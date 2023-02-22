@@ -1,7 +1,10 @@
+import InputField from "@/components/Input/InputField";
+import InputText from "@/components/Input/InputText";
 import ErrorText from "@/components/Modal/Auth/ErrorText";
+import { ValidationError } from "@/constants/validation";
 import { auth } from "@/firebase/clientApp";
 import { UserModel } from "@/models/User";
-import { changePasswordValidation } from "@/validation/authValidation";
+import { validateChangePassword } from "@/validation/authValidation";
 import {
     Flex,
     VStack,
@@ -18,7 +21,6 @@ import {
 import { EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
 import React, { useState } from "react";
 import { useUpdatePassword } from "react-firebase-hooks/auth";
-import ProfileInputText from "../ProfileInputText";
 
 type ProfileFormState = {
     currentPassword: string;
@@ -41,22 +43,24 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
     const [profileForm, setProfileForm] = useState<ProfileFormState>(
         defaultProfileFormState
     );
-    const [error, setError] = useState("");
+    const [errors, setErrors] = useState<ValidationError[]>([]);
     const [firebaseError, setFirebaseError] = useState<Error>();
     const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (error) setError("");
+        setLoading(true);
+        if (errors) setErrors([]);
         if (firebaseError) setFirebaseError(undefined);
         try {
-            const res = changePasswordValidation(
+            const res = validateChangePassword(
                 profileForm.currentPassword,
                 profileForm.newPassword,
                 profileForm.confirmNewPassword
             );
             if (!res.result) {
-                setError(res.message!);
+                setErrors(res.errors);
             } else {
                 const user = auth.currentUser;
                 if (user) {
@@ -82,11 +86,20 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
             console.log(error);
             setFirebaseError(error);
         }
+        setLoading(false);
     };
 
     const handleChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
+        if (errors) {
+            const errorIdx = errors.findIndex(
+                (e) => e.field === event.target.name
+            );
+            if (errorIdx > -1) {
+                setErrors((prev) => prev.splice(errorIdx, 1));
+            }
+        }
         setProfileForm((prev) => ({
             ...prev,
             [event.target.name]: event.target.value,
@@ -129,38 +142,91 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                         width={{ base: 20, md: 28 }}
                         size={{ base: "sm", sm: "md" }}
                         type="submit"
-                        isLoading={updating}
+                        isLoading={loading}
                     >
                         Lưu
                     </Button>
                 </Flex>
                 <Divider my={4} />
                 <Box>
-                    <ProfileInputText
-                        label="Mật khẩu cũ"
-                        name="currentPassword"
-                        value={profileForm.currentPassword}
-                        type="password"
-                        required
-                        onChange={handleChange}
-                    />
-                    <ProfileInputText
-                        label="Mật khẩu mới"
-                        name="newPassword"
-                        value={profileForm.newPassword}
-                        type="password"
-                        required
-                        onChange={handleChange}
-                    />
-                    <ProfileInputText
-                        label="Xác nhận mật khẩu mới"
-                        name="confirmNewPassword"
-                        value={profileForm.confirmNewPassword}
-                        type="password"
-                        required
-                        onChange={handleChange}
-                    />
-                    <ErrorText error={error} userError={firebaseError} />
+                    <InputField label="Mật khẩu cũ" required>
+                        <Flex
+                            direction="column"
+                            flexGrow={1}
+                            w="100%"
+                            align="flex-start"
+                        >
+                            <InputText
+                                name="currentPassword"
+                                value={profileForm.currentPassword}
+                                type="password"
+                                required
+                                onInputChange={handleChange}
+                                isInvalid={
+                                    !!errors.find(
+                                        (error) =>
+                                            error.field === "currentPassword"
+                                    )
+                                }
+                            />
+                            <ErrorText
+                                error={
+                                    errors.find(
+                                        (error) =>
+                                            error.field === "currentPassword"
+                                    )?.message
+                                }
+                            />
+                        </Flex>
+                    </InputField>
+                    <InputField label="Mật khẩu mới" required>
+                        <Flex
+                            direction="column"
+                            flexGrow={1}
+                            w="100%"
+                            align="flex-start"
+                        >
+                            <InputText
+                                name="newPassword"
+                                value={profileForm.newPassword}
+                                type="password"
+                                required
+                                onInputChange={handleChange}
+                            />
+                            <ErrorText
+                                error={
+                                    errors.find(
+                                        (error) => error.field === "newPassword"
+                                    )?.message
+                                }
+                            />
+                        </Flex>
+                    </InputField>
+                    <InputField label="Xác nhận mật khẩu mới" required>
+                        <Flex
+                            direction="column"
+                            flexGrow={1}
+                            w="100%"
+                            align="flex-start"
+                        >
+                            <InputText
+                                name="confirmNewPassword"
+                                value={profileForm.confirmNewPassword}
+                                type="password"
+                                required
+                                onInputChange={handleChange}
+                            />
+                            <ErrorText
+                                error={
+                                    errors.find(
+                                        (error) =>
+                                            error.field === "confirmNewPassword"
+                                    )?.message
+                                }
+                            />
+                        </Flex>
+                    </InputField>
+                    <ErrorText userError={firebaseError} />
                 </Box>
             </form>
         </Box>

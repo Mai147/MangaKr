@@ -5,13 +5,13 @@ import { User } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 import useModal from "@/hooks/useModal";
 import { auth, fireStore } from "@/firebase/clientApp";
-import AuthInputItem from "./AuthInputItem";
-import { FIREBASE_ERRORS } from "@/firebase/errors";
-import { signUpValidation } from "@/validation/authValidation";
 import { USER_ROLE } from "@/constants/roles";
-import { getAllUserRoute } from "@/constants/firebaseRoutes";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import ErrorText from "./ErrorText";
+import ModalInputItem from "../ModalInputItem";
+import { ValidationError } from "@/constants/validation";
+import { validateSignUp } from "@/validation/authValidation";
+import { firebaseRoute } from "@/constants/firebaseRoutes";
 
 type Props = {};
 
@@ -22,21 +22,21 @@ const SignUpForm: React.FC<Props> = () => {
         password: "",
         confirmPassword: "",
     });
-    const [error, setError] = useState("");
+    const [errors, setErrors] = useState<ValidationError[]>([]);
     const [createUserWithEmailAndPassword, userCred, loading, userError] =
         useCreateUserWithEmailAndPassword(auth);
     const [isShowPassword, setIsShowPassword] = useState<boolean[]>([]);
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (error) setError("");
-        const { result, message } = signUpValidation(
+        if (errors) setErrors([]);
+        const res = validateSignUp(
             signUpForm.email,
             signUpForm.password,
             signUpForm.confirmPassword
         );
-        if (!result) {
-            setError(message!);
+        if (!res.result) {
+            setErrors(res.errors);
         } else {
             await createUserWithEmailAndPassword(
                 signUpForm.email,
@@ -46,7 +46,17 @@ const SignUpForm: React.FC<Props> = () => {
         }
     };
 
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onChange = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        if (errors) {
+            const errorIdx = errors.findIndex(
+                (e) => e.field === event.target.name
+            );
+            if (errorIdx > -1) {
+                setErrors((prev) => prev.splice(errorIdx, 1));
+            }
+        }
         setSignUpForm((prev) => ({
             ...prev,
             [event.target.name]: event.target.value,
@@ -54,11 +64,14 @@ const SignUpForm: React.FC<Props> = () => {
     };
 
     const createUserDocument = async (user: User) => {
-        await setDoc(doc(fireStore, getAllUserRoute(), user?.uid), {
-            ...JSON.parse(JSON.stringify(user)),
-            role: USER_ROLE,
-            displayName: user.displayName || user.email?.split("@")[0],
-        });
+        await setDoc(
+            doc(fireStore, firebaseRoute.getAllUserRoute(), user?.uid),
+            {
+                ...JSON.parse(JSON.stringify(user)),
+                role: USER_ROLE,
+                displayName: user.displayName || user.email?.split("@")[0],
+            }
+        );
     };
 
     useEffect(() => {
@@ -69,15 +82,19 @@ const SignUpForm: React.FC<Props> = () => {
 
     return (
         <form onSubmit={onSubmit} style={{ width: "100%" }}>
-            <AuthInputItem
+            <ModalInputItem
                 required={true}
                 name="email"
                 placeholder="Email"
                 type="email"
                 value={signUpForm.email}
                 onChange={onChange}
+                isInvalid={!!errors.find((error) => error.field === "email")}
             />
-            <AuthInputItem
+            <ErrorText
+                error={errors.find((error) => error.field === "email")?.message}
+            />
+            <ModalInputItem
                 required={true}
                 name="password"
                 placeholder="Mật khẩu"
@@ -93,8 +110,14 @@ const SignUpForm: React.FC<Props> = () => {
                         }
                     />
                 }
+                isInvalid={!!errors.find((error) => error.field === "password")}
             />
-            <AuthInputItem
+            <ErrorText
+                error={
+                    errors.find((error) => error.field === "password")?.message
+                }
+            />
+            <ModalInputItem
                 required={true}
                 name="confirmPassword"
                 placeholder="Xác nhận mật khẩu"
@@ -110,8 +133,17 @@ const SignUpForm: React.FC<Props> = () => {
                         }
                     />
                 }
+                isInvalid={
+                    !!errors.find((error) => error.field === "confirmPassword")
+                }
             />
-            <ErrorText error={error} userError={userError} />
+            <ErrorText
+                error={
+                    errors.find((error) => error.field === "confirmPassword")
+                        ?.message
+                }
+            />
+            <ErrorText userError={userError} />
             <Button
                 width={"100%"}
                 height="36px"

@@ -4,78 +4,110 @@ import {
     getMinLengthError,
     NOT_AN_EMAIL_ERROR,
 } from "@/constants/errors";
-import { PASSWORD_MIN_LENGTH } from "@/constants/validation";
-import { isEmail, isMinLength, isPassword } from "@/utils/StringUtils";
+import { PASSWORD_MIN_LENGTH, ValidationError } from "@/constants/validation";
+import { isEmail, isMinLength } from "@/utils/StringUtils";
+import { ValidationResult } from "@/constants/validation";
 
-export type ValidationResult = {
-    result: boolean;
-    message?: string;
-};
-
-export const loginValidation = (
+export const validateLogin = (
     email: string,
     password: string
 ): ValidationResult => {
-    if (!isEmail(email))
-        return {
-            result: false,
+    let res: ValidationResult = {
+        result: false,
+        errors: [],
+    };
+    if (!isEmail(email)) {
+        const error: ValidationError = {
+            field: "email",
             message: NOT_AN_EMAIL_ERROR,
         };
+        res.errors.push(error);
+    }
     if (!isMinLength(password, PASSWORD_MIN_LENGTH)) {
-        return {
-            result: false,
+        const error: ValidationError = {
+            field: "password",
             message: getMinLengthError("mật khẩu", PASSWORD_MIN_LENGTH),
         };
+        res.errors.push(error);
     }
-    return {
-        result: true,
-    };
+    if (res.errors.length <= 0) {
+        res.result = true;
+    }
+    return res;
 };
 
-export const signUpValidation = (
+export const validateSignUp = (
     email: string,
     password: string,
     confirmPassword: string
 ): ValidationResult => {
     let res: ValidationResult = {
         result: false,
+        errors: [],
     };
     if (!isEmail(email)) {
-        res.message = NOT_AN_EMAIL_ERROR;
-    } else if (!isMinLength(password, PASSWORD_MIN_LENGTH)) {
-        res.message = getMinLengthError("mật khẩu", PASSWORD_MIN_LENGTH);
-    } else if (password !== confirmPassword)
-        res.message = CONFIRM_PASSWORD_NOT_MATCH;
-    if (res.message) {
-        return res;
+        const error: ValidationError = {
+            field: "email",
+            message: NOT_AN_EMAIL_ERROR,
+        };
+        res.errors.push(error);
     }
-    return {
-        result: true,
-    };
+    if (!isMinLength(password, PASSWORD_MIN_LENGTH)) {
+        const error: ValidationError = {
+            field: "password",
+            message: getMinLengthError("mật khẩu", PASSWORD_MIN_LENGTH),
+        };
+        res.errors.push(error);
+    } else if (password !== confirmPassword) {
+        const error: ValidationError = {
+            field: "confirmPassword",
+            message: CONFIRM_PASSWORD_NOT_MATCH,
+        };
+        res.errors.push(error);
+    }
+    if (res.errors.length <= 0) {
+        res.result = true;
+    }
+    return res;
 };
 
-export const changePasswordValidation = (
+export const validateChangePassword = (
     currentPassword: string,
     newPassword: string,
     confirmNewPassword: string
 ) => {
     let res: ValidationResult = {
         result: false,
+        errors: [],
     };
-    if (
-        !isMinLength(currentPassword, PASSWORD_MIN_LENGTH) ||
-        !isMinLength(newPassword, PASSWORD_MIN_LENGTH)
-    ) {
-        res.message = getMinLengthError("mật khẩu", PASSWORD_MIN_LENGTH);
+    if (!isMinLength(currentPassword, PASSWORD_MIN_LENGTH)) {
+        const error: ValidationError = {
+            field: "currentPassword",
+            message: getMinLengthError("mật khẩu", PASSWORD_MIN_LENGTH),
+        };
+        res.errors.push(error);
+    }
+    if (!isMinLength(newPassword, PASSWORD_MIN_LENGTH)) {
+        const error: ValidationError = {
+            field: "newPassword",
+            message: getMinLengthError("mật khẩu", PASSWORD_MIN_LENGTH),
+        };
+        res.errors.push(error);
     } else if (newPassword !== confirmNewPassword) {
-        res.message = CONFIRM_PASSWORD_NOT_MATCH;
+        const error: ValidationError = {
+            field: "confirmNewPassword",
+            message: CONFIRM_PASSWORD_NOT_MATCH,
+        };
+        res.errors.push(error);
     } else if (currentPassword === newPassword) {
-        res.message = CURRENT_PASSWORD_MATCH_NEW_PASSWORD;
+        const error: ValidationError = {
+            field: "newPassword",
+            message: CURRENT_PASSWORD_MATCH_NEW_PASSWORD,
+        };
+        res.errors.push(error);
     }
-    if (res.message) {
-        return res;
+    if (res.errors.length <= 0) {
+        res.result = true;
     }
-    return {
-        result: true,
-    };
+    return res;
 };

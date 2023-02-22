@@ -4,8 +4,7 @@ import ProfileShow from "@/components/Profile/Show";
 import ProfileSidebar from "@/components/Profile/Sidebar";
 import { HOME_PAGE } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
-import { UserModel } from "@/models/User";
-import { Flex, Spinner } from "@chakra-ui/react";
+import { Box, Flex, Spinner } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
 import React, { useEffect, useState } from "react";
@@ -32,9 +31,16 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
     return (
         <Flex align="flex-start" direction={{ base: "column", md: "row" }}>
             <ProfileSidebar tab={tab} setTab={setTab} />
-            {tab == 0 && <ProfileShow user={user} />}
-            {tab == 1 && <ProfileDetail user={user} />}
-            {tab == 2 && <ProfilePassword user={user} />}
+            <Box
+                borderLeft="1px solid"
+                borderColor="gray.200"
+                pl={5}
+                flexGrow={1}
+            >
+                {tab == 0 && <ProfileShow user={user} />}
+                {tab == 1 && <ProfileDetail user={user} />}
+                {tab == 2 && <ProfilePassword user={user} />}
+            </Box>
         </Flex>
     );
 };

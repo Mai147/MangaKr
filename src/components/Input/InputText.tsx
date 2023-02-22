@@ -4,66 +4,74 @@ import {
     InputRightElement,
     Text,
     Textarea,
+    FlexProps,
 } from "@chakra-ui/react";
 import React from "react";
 
-type InputTextProps = {
+interface InputTextProps extends FlexProps {
     name?: string;
     value?: string;
     type?: string;
+    placeholder?: string;
     required?: boolean;
     readonly?: boolean;
     isMultipleLine?: boolean;
     height?: string;
-    onChange: (
+    isInvalid?: boolean;
+    onInputChange: (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => void;
-};
+}
 
 const InputText: React.FC<InputTextProps> = ({
     name,
     value,
     required,
+    placeholder,
     readonly,
     type,
     isMultipleLine,
     height,
-    onChange,
+    isInvalid,
+    onInputChange,
+    ...rest
 }) => {
     return (
-        <InputGroup flexGrow={1} width={{ base: "100%", md: 0 }}>
+        <InputGroup flexGrow={1} {...rest}>
             {isMultipleLine ? (
                 <Textarea
                     isReadOnly={readonly}
                     required={required}
+                    isInvalid={isInvalid}
                     borderColor="gray.400"
                     flexGrow={1}
                     name={name}
                     value={value}
+                    placeholder={placeholder}
                     resize="none"
-                    onChange={onChange}
+                    onChange={onInputChange}
                     h={height}
-                    bg="white"
                 />
             ) : (
                 <Input
                     isReadOnly={readonly}
                     required={required}
+                    isInvalid={isInvalid}
                     borderColor="gray.400"
                     flexGrow={1}
                     name={name}
                     type={type}
                     value={value}
+                    placeholder={placeholder}
                     resize="none"
-                    onChange={onChange}
-                    bg="white"
+                    onChange={onInputChange}
                 />
             )}
-            <InputRightElement display={required ? "flex" : "none"}>
+            {/* <InputRightElement display={required ? "flex" : "none"}>
                 <Text color="red" fontWeight={700}>
                     *
                 </Text>
-            </InputRightElement>
+            </InputRightElement> */}
         </InputGroup>
     );
 };

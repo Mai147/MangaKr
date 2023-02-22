@@ -11,7 +11,7 @@ const NavSearch: React.FC<NavSearchProps> = () => {
                 pointerEvents="none"
                 children={<FiSearch color="gray.300" />}
             />
-            <Input type="text" placeholder="Find book..." />
+            <Input type="text" placeholder="Tìm kiếm manga, tin tức..." />
         </InputGroup>
     );
 };

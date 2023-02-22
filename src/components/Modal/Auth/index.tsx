@@ -1,4 +1,3 @@
-import { auth } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import {
@@ -51,7 +50,7 @@ const AuthModal: React.FC = () => {
                             direction="column"
                             align="center"
                             justify="center"
-                            width="70%"
+                            width={{ base: "90%", md: "70%" }}
                         >
                             {view === "login" || view === "signup" ? (
                                 <>

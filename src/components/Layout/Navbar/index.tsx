@@ -18,6 +18,10 @@ type NavbarProps = {
 const Navbar = ({ onOpen }: NavbarProps) => {
     return (
         <Flex
+            position={"fixed"}
+            top={0}
+            zIndex="999"
+            w="100%"
             px={{ base: 4, md: 4 }}
             height="20"
             alignItems="center"

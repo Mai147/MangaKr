@@ -1,12 +1,12 @@
 export interface CharacterSnippet {
     id: string;
-    bookId: string;
     name: string;
     imageUrl?: string;
     role?: string;
 }
 
 export interface Character extends CharacterSnippet {
+    bookId: string;
     bio?: string;
     numberOfLikes: number;
     numberOfDislikes: number;

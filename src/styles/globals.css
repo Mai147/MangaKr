@@ -100,8 +100,15 @@ a {
   text-decoration: none;
 }
 
+.chakra-stack.chakra-input {
+  min-width: 30px;
+  border-color: #A0AEC0;
+  background-color: white;
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;
   }
 }
+

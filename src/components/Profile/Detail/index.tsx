@@ -1,4 +1,6 @@
-import { getAllUserRoute, getUserImageRoute } from "@/constants/firebaseRoutes";
+import InputField from "@/components/Input/InputField";
+import InputText from "@/components/Input/InputText";
+import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { auth, fireStore, storage } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useSelectFile from "@/hooks/useSelectFile";
@@ -18,10 +20,8 @@ import {
     CloseButton,
 } from "@chakra-ui/react";
 import { doc, updateDoc } from "firebase/firestore";
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
 import React, { useEffect, useRef, useState } from "react";
 import { useUpdateProfile } from "react-firebase-hooks/auth";
-import ProfileInputText from "../ProfileInputText";
 
 type ProfileDetailProps = {
     user: UserModel;
@@ -43,7 +43,7 @@ const defaultProfileFormState: ProfileFormState = {
 
 const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
     const { updateUser } = useAuth();
-    const { selectedFile, onSelectFile } = useSelectFile();
+    const { selectedFile, onSelectFile, onUploadFile } = useSelectFile();
     const [updateProfile, updating, error] = useUpdateProfile(auth);
     const avatarRef = useRef<HTMLInputElement>(null);
     const [profileForm, setProfileForm] = useState<ProfileFormState>(
@@ -70,9 +70,9 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
             let downloadUrl = profileForm.photoUrl;
             // Upload file
             if (selectedFile) {
-                const imageRef = ref(storage, getUserImageRoute(user.uid));
-                await uploadString(imageRef, selectedFile, "data_url");
-                downloadUrl = await getDownloadURL(imageRef);
+                downloadUrl = await onUploadFile(
+                    firebaseRoute.getUserImageRoute(user.uid)
+                );
             }
             // Change user in db
             const success = await updateProfile({
@@ -80,7 +80,11 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                 photoURL: downloadUrl,
             });
             if (success) {
-                const userDocRef = doc(fireStore, getAllUserRoute(), user.uid);
+                const userDocRef = doc(
+                    fireStore,
+                    firebaseRoute.getAllUserRoute(),
+                    user.uid
+                );
                 await updateDoc(userDocRef, {
                     displayName: profileForm.displayName,
                     photoURL: downloadUrl,
@@ -173,7 +177,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                         <Flex align="center">
                             <Avatar
                                 size={"lg"}
-                                src={profileForm.photoUrl || ""}
+                                src={selectedFile || profileForm.photoUrl || ""}
                                 border="3px solid"
                                 borderColor="white"
                                 box-shadow="rgba(99, 99, 99, 0.2) 0px 2px 8px 0px"
@@ -195,36 +199,40 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                             />
                         </Flex>
                     </Flex>
-                    <ProfileInputText
-                        label="Email"
-                        name="email"
-                        value={profileForm.email}
-                        type="email"
-                        readonly={true}
-                        onChange={handleChange}
-                    />
-                    <ProfileInputText
-                        label="Tên hiển thị"
-                        name="displayName"
-                        value={profileForm.displayName}
-                        type="text"
-                        required
-                        onChange={handleChange}
-                    />
-                    <ProfileInputText
-                        label="Sub Bio"
-                        name="subBio"
-                        type="text"
-                        value={profileForm.subBio || ""}
-                        onChange={handleChange}
-                    />
-                    <ProfileInputText
-                        label="Bio"
-                        name="bio"
-                        value={profileForm.bio || ""}
-                        isMultipleLine={true}
-                        onChange={handleChange}
-                    />
+                    <InputField label="Email">
+                        <InputText
+                            name="email"
+                            value={profileForm.email}
+                            type="email"
+                            readonly={true}
+                            onInputChange={handleChange}
+                        />
+                    </InputField>
+                    <InputField label="Tên hiển thị" required>
+                        <InputText
+                            name="displayName"
+                            value={profileForm.displayName}
+                            type="text"
+                            required
+                            onInputChange={handleChange}
+                        />
+                    </InputField>
+                    <InputField label="Sub Bio">
+                        <InputText
+                            name="subBio"
+                            type="text"
+                            value={profileForm.subBio || ""}
+                            onInputChange={handleChange}
+                        />
+                    </InputField>
+                    <InputField label="Bio">
+                        <InputText
+                            name="bio"
+                            value={profileForm.bio || ""}
+                            isMultipleLine={true}
+                            onInputChange={handleChange}
+                        />
+                    </InputField>
                 </Box>
             </form>
         </Box>

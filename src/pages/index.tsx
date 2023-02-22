@@ -2,14 +2,36 @@ import Head from "next/head";
 import { Inter } from "@next/font/google";
 import useAuth from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { fireStore } from "@/firebase/clientApp";
+import { Book } from "@/models/Book";
+import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import { GetServerSidePropsContext } from "next";
+import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { Author } from "@/models/Author";
+import BookUtils from "@/utils/BookUtils";
+import Home from "@/components/Home";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home() {
+type HomePageProps = {
+    bannerBooks: Book[];
+    newestMangas: Book[];
+    mostPopularMangas: Book[];
+    mostFavoriteAuthors: Author[];
+    books: Book[];
+};
+
+const HomePage: React.FC<HomePageProps> = ({
+    bannerBooks,
+    mostFavoriteAuthors,
+    mostPopularMangas,
+    newestMangas,
+}) => {
     const { setNeedAuth } = useAuth();
     useEffect(() => {
         setNeedAuth(false);
     }, []);
+
     return (
         <>
             <Head>
@@ -25,8 +47,68 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                <div>abc</div>
+                <Home
+                    bannerBooks={bannerBooks}
+                    newestMangas={newestMangas}
+                    mostPopularMangas={mostPopularMangas}
+                />
             </main>
         </>
     );
+};
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+    const bookDocsRef = collection(fireStore, firebaseRoute.getAllBookRoute());
+    const authorDocRef = collection(
+        fireStore,
+        firebaseRoute.getAllAuthorRoute()
+    );
+    const bannerBookQuery = query(
+        bookDocsRef,
+        orderBy("rating", "desc"),
+        limit(5)
+    );
+    const newestMangaQuery = query(
+        bookDocsRef,
+        orderBy("publishedDate", "desc"),
+        limit(6)
+    );
+    const mostPopularMangaQuery = query(
+        bookDocsRef,
+        orderBy("popularity", "desc"),
+        limit(6)
+    );
+    const mostFavoriteAuthorQuery = query(
+        authorDocRef,
+        orderBy("numberOfLikes", "desc"),
+        limit(6)
+    );
+
+    const bannerDocs = await getDocs(bannerBookQuery);
+    const newestMangaDocs = await getDocs(newestMangaQuery);
+    const mostPopularMangaDocs = await getDocs(mostPopularMangaQuery);
+    const mostFavoriteAuthorDocs = await getDocs(mostFavoriteAuthorQuery);
+    const bannerBooks: Book[] = BookUtils.fromDocs(bannerDocs.docs);
+    const newestMangas: Book[] = BookUtils.fromDocs(newestMangaDocs.docs);
+    const mostPopularMangas: Book[] = BookUtils.fromDocs(
+        mostPopularMangaDocs.docs
+    );
+    const mostFavoriteAuthors: Author[] = mostFavoriteAuthorDocs.docs.map(
+        (doc) =>
+            ({
+                id: doc.id,
+                ...doc.data(),
+            } as Author)
+    );
+
+    return {
+        props: {
+            bannerBooks,
+            mostFavoriteAuthors,
+            mostPopularMangas,
+            newestMangas,
+        },
+    };
 }
+
+export default HomePage;

@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import { AuthProvider } from "@/context/AuthContext";
 import { ModalProvider } from "@/context/ModalContext";
 import "@/styles/globals.css";
+import "@/styles/ckeditor.css";
 import { ChakraProvider } from "@chakra-ui/react";
 
 import type { AppProps } from "next/app";

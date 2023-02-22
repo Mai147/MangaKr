@@ -1,6 +1,12 @@
 import { createContext, useState } from "react";
 
-type ModalView = "login" | "signup";
+type ModalView =
+    | "login"
+    | "signup"
+    | "createAuthor"
+    | "createGenre"
+    | "confirmModal"
+    | "addToLibrary";
 
 type ModalState = {
     isOpen: boolean;

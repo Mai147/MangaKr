@@ -3,11 +3,23 @@ import { AuthorSnippet } from "./Author";
 import { CharacterSnippet } from "./Character";
 import { GenreSnippet } from "./Genre";
 
-export type BookModel = {
-    id: string;
+export type BookStatus = "DONE" | "GOING" | "DROP";
+
+export interface BookSnippet {
+    id?: string;
     name: string;
     imageUrl?: string;
     description?: string;
+    authorIds?: [];
+    genreIds?: [];
+}
+
+export interface ReadingBookSnippet extends BookSnippet {
+    status: BookStatus;
+    chap?: number;
+}
+
+export interface Book extends BookSnippet {
     plot?: string;
     characters?: string;
     authorSnippets?: AuthorSnippet[];
@@ -18,14 +30,15 @@ export type BookModel = {
     characterSnippets?: CharacterSnippet[];
     publishedDate?: Timestamp;
     rating: number;
+    popularity: number;
+    numberOfRates: number;
     numberOfComments: number;
     numberOfReviews: number;
     writerId: string;
-    createdAt: Timestamp;
-};
+    createdAt?: Timestamp;
+}
 
 export type BookVote = {
-    id: string;
     bookId: string;
     value: number;
 };

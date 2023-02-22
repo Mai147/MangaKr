@@ -4,9 +4,11 @@ import {
     DrawerContent,
     Box,
     useDisclosure,
+    Flex,
 } from "@chakra-ui/react";
 import React, { ReactNode } from "react";
 import AuthModal from "../Modal/Auth";
+import Footer from "./Footer";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
@@ -19,7 +21,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <>
             <AuthModal />
-            <Box minH="100vh" bg={useColorModeValue("gray.100", "gray.900")}>
+            <Flex
+                direction="column"
+                minH="100vh"
+                bg={useColorModeValue("gray.100", "gray.900")}
+            >
                 <Drawer
                     autoFocus={false}
                     isOpen={isOpen}
@@ -35,10 +41,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Drawer>
                 {/* mobilenav */}
                 <Navbar onOpen={onOpen} />
-                <Box p={4} px={{ base: 4, md: 30, lg: 40 }}>
+                <Flex
+                    direction="column"
+                    p={4}
+                    px={{ base: 4, md: 30, xl: 40 }}
+                    flexGrow={1}
+                    bg="white"
+                    pt={"100px"}
+                >
                     {children}
-                </Box>
-            </Box>
+                </Flex>
+                <Footer />
+            </Flex>
         </>
     );
 };

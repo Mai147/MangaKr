@@ -1,5 +1,5 @@
 import { ProfileFormState } from "@/components/Profile/Detail";
-import { getAllUserRoute } from "@/constants/firebaseRoutes";
+import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { HOME_PAGE } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import { UserModel } from "@/models/User";
@@ -64,7 +64,11 @@ export const AuthProvider = ({ children }: any) => {
 
     const getUserFromDb = async (user: User) => {
         try {
-            const userDocRef = doc(fireStore, getAllUserRoute(), user.uid);
+            const userDocRef = doc(
+                fireStore,
+                firebaseRoute.getAllUserRoute(),
+                user.uid
+            );
             const userDoc = await getDoc(userDocRef);
             const loggedUser: UserModel = {
                 id: user.uid,

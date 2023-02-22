@@ -1,5 +1,5 @@
 export interface GenreSnippet {
-    id: string;
+    id?: string;
     name: string;
 }
 

@@ -2,13 +2,13 @@ import { Button, Flex, Icon, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { auth } from "@/firebase/clientApp";
 import { useSignInWithEmailAndPassword } from "react-firebase-hooks/auth";
-import { FIREBASE_ERRORS } from "@/firebase/errors";
 import useModal from "@/hooks/useModal";
-import AuthInputItem from "./AuthInputItem";
+import ModalInputItem from "../ModalInputItem";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { loginValidation } from "@/validation/authValidation";
 import ErrorText from "./ErrorText";
 import useAuth from "@/hooks/useAuth";
+import { ValidationError } from "@/constants/validation";
+import { validateLogin } from "@/validation/authValidation";
 
 type LoginFormProps = {};
 
@@ -22,16 +22,13 @@ const LoginForm: React.FC<LoginFormProps> = () => {
         email: "",
         password: "",
     });
-    const [error, setError] = useState("");
+    const [errors, setErrors] = useState<ValidationError[]>([]);
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (error) setError("");
-        const { result, message } = loginValidation(
-            loginForm.email,
-            loginForm.password
-        );
-        if (result) {
+        if (errors) setErrors([]);
+        const res = validateLogin(loginForm.email, loginForm.password);
+        if (res.result) {
             const res = await loginWithEmailAndPassword(
                 loginForm.email,
                 loginForm.password
@@ -40,11 +37,13 @@ const LoginForm: React.FC<LoginFormProps> = () => {
                 login(res.user);
             }
         } else {
-            setError(message || "");
+            setErrors(res.errors);
         }
     };
 
-    const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onChange = (
+        event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
         setLoginForm((prev) => ({
             ...prev,
             [event.target.name]: event.target.value,
@@ -52,7 +51,7 @@ const LoginForm: React.FC<LoginFormProps> = () => {
     };
     return (
         <form onSubmit={onSubmit} style={{ width: "100%" }}>
-            <AuthInputItem
+            <ModalInputItem
                 required={true}
                 name="email"
                 placeholder="Email"
@@ -60,7 +59,7 @@ const LoginForm: React.FC<LoginFormProps> = () => {
                 value={loginForm.email}
                 onChange={onChange}
             />
-            <AuthInputItem
+            <ModalInputItem
                 required={true}
                 name="password"
                 placeholder="Mật khẩu"
@@ -75,7 +74,14 @@ const LoginForm: React.FC<LoginFormProps> = () => {
                     />
                 }
             />
-            <ErrorText error={error} userError={userError} />
+            <ErrorText
+                error={
+                    errors.length > 0
+                        ? "Tài khoản hoặc mật khẩu không chính xác"
+                        : ""
+                }
+                userError={userError}
+            />
             <Button
                 width={"100%"}
                 height="36px"
