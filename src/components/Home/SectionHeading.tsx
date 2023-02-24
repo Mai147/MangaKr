@@ -15,7 +15,7 @@ const SectionHeading: React.FC<SectionHeadingProps> = ({ title, href }) => {
             </Text>
             <Link
                 href={href}
-                fontSize={20}
+                fontSize={18}
                 fontStyle="italic"
                 color="gray.400"
                 _hover={{ textDecoration: "none", color: "brand.100" }}

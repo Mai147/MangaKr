@@ -32,17 +32,6 @@ const Editor: React.FC<EditorProps> = ({
             }}
             config={{
                 toolbar: {
-                    // items: [
-                    //     "heading",
-                    //     "|",
-                    //     "bold",
-                    //     "italic",
-                    //     "link",
-                    //     "bulletedList",
-                    //     "numberedList",
-                    //     "blockQuote",
-                    //     "insertTable",
-                    // ],
                     shouldNotGroupWhenFull: true,
                 },
                 allowedContent: true,

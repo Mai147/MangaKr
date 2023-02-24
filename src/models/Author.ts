@@ -1,10 +1,7 @@
-export interface AuthorSnippet {
+export interface Author {
     id?: string;
     name: string;
     imageUrl?: string;
-}
-
-export interface Author extends AuthorSnippet {
     bio?: string;
     numberOfBooks: number;
     numberOfLikes: number;

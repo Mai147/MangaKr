@@ -1,10 +1,4 @@
-import {
-    Box,
-    Flex,
-    Skeleton,
-    SkeletonCircle,
-    SkeletonText,
-} from "@chakra-ui/react";
+import { Flex, Skeleton, SkeletonText } from "@chakra-ui/react";
 import React from "react";
 
 type BookSnippetHorizontalSkeletonProps = {};
@@ -13,7 +7,7 @@ const BookSnippetHorizontalSkeleton: React.FC<
     BookSnippetHorizontalSkeletonProps
 > = () => {
     return (
-        <Flex padding="6" boxShadow="lg" bg="white" mb={4}>
+        <Flex padding="6" boxShadow="lg" bg="white" mb={4} w="100%">
             <Skeleton
                 height="130px"
                 width="100px"

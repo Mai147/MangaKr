@@ -12,7 +12,14 @@ import { Review } from "@/models/Review";
 import { UserModel } from "@/models/User";
 import { validateCreateReview } from "@/validation/reviewValidation";
 import { Button, Divider, Flex, Text, useToast } from "@chakra-ui/react";
-import { collection, doc, increment, writeBatch } from "firebase/firestore";
+import {
+    collection,
+    doc,
+    increment,
+    serverTimestamp,
+    Timestamp,
+    writeBatch,
+} from "firebase/firestore";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
 import React, { useEffect, useState } from "react";
@@ -41,6 +48,7 @@ const formTab = [
 
 const defaultReview: Review = {
     bookId: "",
+    bookName: "",
     content: "",
     creatorId: "",
     creatorDisplayName: "",
@@ -50,6 +58,7 @@ const defaultReview: Review = {
     tagReview: "RECOMMENDED",
     title: "",
     rating: 0,
+    createdAt: serverTimestamp() as Timestamp,
 };
 
 const BookReviewCreatePage: React.FC<BookReviewCreatePageProps> = ({
@@ -107,6 +116,9 @@ const BookReviewCreatePage: React.FC<BookReviewCreatePageProps> = ({
             );
             batch.set(reviewDocRef, {
                 ...reviewForm,
+                creatorDisplayName: undefined,
+                bookName: undefined,
+                createdAt: serverTimestamp() as Timestamp,
             });
             batch.update(bookDocRef, {
                 numberOfReviews: increment(1),
@@ -129,7 +141,6 @@ const BookReviewCreatePage: React.FC<BookReviewCreatePageProps> = ({
                 ...defaultReview,
                 bookId,
                 creatorId: user.uid,
-                creatorDisplayName: user.displayName!,
             });
             setSelectedFile(undefined);
             toast({

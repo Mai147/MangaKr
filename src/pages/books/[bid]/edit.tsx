@@ -1,9 +1,11 @@
-import BookForm from "@/components/Book/Form";
+// import BookForm from "@/components/Book/Form";
+import BookForm from "@/components/Test/BookForm";
 import { WRITER_ROLE } from "@/constants/roles";
 import { HOME_PAGE } from "@/constants/routes";
+import { BookProvider } from "@/context/BookContext";
 import useAuth from "@/hooks/useAuth";
 import { Book } from "@/models/Book";
-import BookUtils from "@/utils/BookUtils";
+import ModelUtils from "@/utils/ModelUtils";
 import { Box, Divider, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
@@ -25,7 +27,10 @@ const BookEditPage: React.FC<BookEditProps> = ({ userId, book }) => {
                 Edit book
             </Text>
             <Divider my={4} />
-            <BookForm userId={userId} book={book} />
+            <BookProvider>
+                <BookForm book={book} />
+            </BookProvider>
+            {/* <BookForm userId={userId} book={book} /> */}
         </Box>
     );
 };
@@ -44,7 +49,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
 
     const { bid } = context.query;
-    const res = await BookUtils.getBook(bid as string, user_id as string);
+    const res = await ModelUtils.getBook(bid as string, user_id as string);
     if (res) {
         return {
             props: {

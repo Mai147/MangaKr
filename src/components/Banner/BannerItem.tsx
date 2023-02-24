@@ -1,18 +1,8 @@
 import { BOOK_PAGE } from "@/constants/routes";
 import { Book } from "@/models/Book";
-import {
-    AspectRatio,
-    Flex,
-    Icon,
-    Image,
-    Link,
-    Text,
-    VStack,
-} from "@chakra-ui/react";
+import { AspectRatio, Flex, Image, Link, Text, VStack } from "@chakra-ui/react";
 import React from "react";
-import { FaRegComment } from "react-icons/fa";
-import { MdOutlineRateReview } from "react-icons/md";
-import RatingBar from "../RatingBar";
+import BookActionInfoBar from "../Book/Snippet/BookActionInfoBar";
 
 type BannerItemProps = {
     book: Book;
@@ -25,8 +15,9 @@ const BannerItem: React.FC<BannerItemProps> = ({ book }) => {
             href={`${BOOK_PAGE}/${book.id}`}
         >
             <Flex
-                w="95%"
-                p={"24px"}
+                boxShadow="md"
+                w="100%"
+                p={4}
                 borderRadius={4}
                 _hover={{ bg: "gray.100" }}
                 transition="all 0.3s"
@@ -49,38 +40,7 @@ const BannerItem: React.FC<BannerItemProps> = ({ book }) => {
                                 "Manga này chưa có tóm tắt nội dung!"}
                         </Text>
                     </VStack>
-                    <Flex justify="space-between">
-                        <Flex align="center">
-                            <Text color="gray.600" fontSize={20} mr={2}>
-                                {book.rating || 0}/10
-                            </Text>
-                            <RatingBar
-                                rate={book.rating / 2}
-                                size={20}
-                                readonly
-                            />
-                        </Flex>
-                        <Flex align="center" mx={10}>
-                            <Text color="gray.600" fontSize={20} mr={2}>
-                                {book.numberOfComments || 0}
-                            </Text>
-                            <Icon
-                                as={FaRegComment}
-                                fontSize={24}
-                                color="gray.300"
-                            />
-                        </Flex>
-                        <Flex align="center">
-                            <Text color="gray.600" fontSize={20} mr={2}>
-                                {book.numberOfReviews || 0}
-                            </Text>
-                            <Icon
-                                as={MdOutlineRateReview}
-                                fontSize={24}
-                                color="gray.300"
-                            />
-                        </Flex>
-                    </Flex>
+                    <BookActionInfoBar book={book} />
                 </Flex>
             </Flex>
         </Link>

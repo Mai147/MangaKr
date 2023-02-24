@@ -10,8 +10,8 @@ import {
 import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
 // And react-slick as our Carousel Lib
 import Slider from "react-slick";
-import { BookSnippet } from "@/models/Book";
 import BookSnippetItem from "../Book/Snippet/BookSnippetItem";
+import { Book } from "@/models/Book";
 
 // Settings for the slider
 
@@ -30,7 +30,7 @@ const defaultSetting: Settings = {
 };
 
 type Props = {
-    books: BookSnippet[];
+    books: Book[];
 };
 
 const Carousel: React.FC<Props> = ({ books }) => {

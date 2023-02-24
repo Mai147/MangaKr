@@ -1,7 +1,7 @@
 import RatingBar from "@/components/RatingBar";
 import Tag from "@/components/Tag";
 import { Book } from "@/models/Book";
-import { Box, Divider, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
+import { Divider, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
 import moment from "moment";
 import React from "react";
 import { BsBookHalf } from "react-icons/bs";
@@ -23,29 +23,37 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                 Thông tin
             </Text>
             <BookDetailSidebarItem title="Tác giả:">
-                <Flex flexGrow={1} wrap="wrap">
-                    {book.authorSnippets?.map((author, idx) => (
-                        <Flex key={author.id}>
-                            {idx === 0 ? "" : ", "}
-                            <Link
-                                key={author.id!}
-                                ml={1}
-                                _hover={{ color: "brand.400" }}
-                            >
-                                <Text maxW={"90px"} noOfLines={1}>
-                                    {author.name}
-                                </Text>
-                            </Link>
-                        </Flex>
-                    ))}
-                </Flex>
+                {(book.authors || []).length > 0 ? (
+                    <Flex flexGrow={1} wrap="wrap">
+                        {book.authors?.map((author, idx) => (
+                            <Flex key={author.id}>
+                                {idx === 0 ? "" : ", "}
+                                <Link
+                                    key={author.id!}
+                                    ml={1}
+                                    _hover={{ color: "brand.400" }}
+                                >
+                                    <Text maxW={"90px"} noOfLines={1}>
+                                        {author.name}
+                                    </Text>
+                                </Link>
+                            </Flex>
+                        ))}
+                    </Flex>
+                ) : (
+                    <Text>Chưa biết</Text>
+                )}
             </BookDetailSidebarItem>
             <BookDetailSidebarItem title="Thể loại:">
-                <Flex flexGrow={1} wrap="wrap" align="center">
-                    {book.genreSnippets?.map((genre) => (
-                        <Tag key={genre.id} label={genre.name} />
-                    ))}
-                </Flex>
+                {(book.genres || []).length > 0 ? (
+                    <Flex flexGrow={1} wrap="wrap" align="center">
+                        {book.genres?.map((genre) => (
+                            <Tag key={genre.id} label={genre.name} />
+                        ))}
+                    </Flex>
+                ) : (
+                    <Text>Chưa biết</Text>
+                )}
             </BookDetailSidebarItem>
             <BookDetailSidebarItem title="Trạng thái:">
                 <Text>{book.status || "Chưa biết"}</Text>

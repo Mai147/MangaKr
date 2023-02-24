@@ -6,18 +6,17 @@ type TagProps = {
     href?: string;
     isActive?: boolean;
     onClick?: () => void;
-    canClick?: boolean;
 };
 
-const Tag: React.FC<TagProps> = ({
-    label,
-    href,
-    isActive,
-    onClick,
-    canClick = true,
-}) => {
+const Tag: React.FC<TagProps> = ({ label, href, isActive, onClick }) => {
     return (
-        <Link _hover={{ textDecoration: "none" }} href={href} onClick={onClick}>
+        <Link
+            as={href || onClick ? "a" : "div"}
+            _hover={{ textDecoration: "none" }}
+            href={href}
+            onClick={onClick}
+            cursor={href || onClick ? "pointer" : "default"}
+        >
             <Box
                 px={4}
                 py={1}
@@ -25,7 +24,7 @@ const Tag: React.FC<TagProps> = ({
                 color={isActive ? "white" : "gray.700"}
                 borderRadius={"full"}
                 _hover={
-                    canClick
+                    href || onClick
                         ? {
                               bg: "brand.700",
                               color: "white",
@@ -39,4 +38,5 @@ const Tag: React.FC<TagProps> = ({
         </Link>
     );
 };
+
 export default Tag;

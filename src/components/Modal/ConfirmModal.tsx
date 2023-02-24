@@ -27,12 +27,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     const { view, isOpen, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
     return (
-        <Modal
-            isOpen={isOpen && view === "confirmModal"}
-            onClose={() => {
-                closeModal();
-            }}
-        >
+        <Modal isOpen={isOpen && view === "confirmModal"} onClose={closeModal}>
             <ModalOverlay />
             <ModalContent>
                 <ModalHeader>{title}</ModalHeader>

@@ -6,6 +6,14 @@ declare module "@ckeditor/ckeditor5-build-classic" {
     export { ClassicEditor };
 }
 
+declare module "@ckeditor/ckeditor5-alignment" {
+    import Alignment from "@ckeditor/ckeditor5-alignment";
+
+    const Alignment = typeof Alignment;
+
+    export default Alignment;
+}
+
 declare module "@ckeditor/ckeditor5-react" {
     import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
     import Event from "@ckeditor/ckeditor5-utils/src/eventinfo";

@@ -16,9 +16,7 @@ const BookDetail: React.FC<BookDetailProps> = ({ book }) => {
 
     return (
         <Flex position="relative" alignItems="flex-start">
-            <Box position="sticky" top={0} alignSelf="flex-start">
-                <BookDetailSidebar book={book} />
-            </Box>
+            <BookDetailSidebar book={book} />
             <Box
                 flexGrow={1}
                 pl={5}

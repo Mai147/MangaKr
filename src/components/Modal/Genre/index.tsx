@@ -3,7 +3,7 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
 import { fireStore } from "@/firebase/clientApp";
 import useModal from "@/hooks/useModal";
-import { Genre, GenreSnippet } from "@/models/Genre";
+import { Genre } from "@/models/Genre";
 import { validateCreateGenre } from "@/validation/genreValidation";
 import {
     Modal,
@@ -21,7 +21,7 @@ import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
 
 type GenreModalProps = {
-    setGenres: (value: GenreSnippet) => void;
+    setGenres: (value: Genre) => void;
 };
 
 const defaultGenreFormState: Genre = {
@@ -63,7 +63,7 @@ const GenreModal: React.FC<GenreModalProps> = ({ setGenres }) => {
                 if (res) {
                     setGenres({
                         id: res.id,
-                        name: genreForm.name,
+                        ...genreForm,
                     });
                     setGenreForm(defaultGenreFormState);
                     closeModal();

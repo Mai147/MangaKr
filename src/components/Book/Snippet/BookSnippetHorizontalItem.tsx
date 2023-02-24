@@ -1,11 +1,11 @@
 import { BOOK_PAGE } from "@/constants/routes";
-import { BookSnippet } from "@/models/Book";
+import { Book } from "@/models/Book";
 import { Box, Flex, Link, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 import SnippetHorizontalImage from "../Image/SnippetHorizontalImage";
 
 type BookSnippetHorizontalItemProps = {
-    book: BookSnippet;
+    book: Book;
 };
 
 const BookSnippetHorizontalItem: React.FC<BookSnippetHorizontalItemProps> = ({
@@ -20,6 +20,8 @@ const BookSnippetHorizontalItem: React.FC<BookSnippetHorizontalItemProps> = ({
                 p={4}
                 boxShadow="rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px"
                 mb={4}
+                _hover={{ bg: "gray.200" }}
+                transition="all 0.5s"
             >
                 <Flex>
                     <SnippetHorizontalImage imageUrl={book.imageUrl} />

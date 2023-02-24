@@ -296,7 +296,7 @@
 }
 /* @ckeditor/ckeditor5-list/theme/todolist.css */
 .ck-content .todo-list .todo-list__label > input {
-    -webkit-appearance: none;
+    /* -webkit-appearance: none; */
     display: inline-block;
     position: relative;
     width: var(--ck-todo-list-checkmark-size);

@@ -13,10 +13,11 @@ const useSelectFile = () => {
 
         reader.onload = (readerEvent) => {
             if (readerEvent.target?.result) {
-                setSelectedFile(readerEvent.target.result as string);
+                const url = readerEvent.target.result as string;
+                setSelectedFile(url);
+                setChanged(true);
             }
         };
-        setChanged(true);
     };
 
     const onUploadFile = async (route: string) => {
@@ -27,6 +28,7 @@ const useSelectFile = () => {
             return downloadUrl;
         }
     };
+
     return {
         onSelectFile,
         selectedFile,

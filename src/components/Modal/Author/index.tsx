@@ -3,7 +3,7 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
 import { fireStore } from "@/firebase/clientApp";
 import useModal from "@/hooks/useModal";
-import { Author, AuthorSnippet } from "@/models/Author";
+import { Author } from "@/models/Author";
 import { validateCreateAuthor } from "@/validation/authorValidation";
 import {
     Modal,
@@ -21,7 +21,7 @@ import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
 
 type AuthorModalProps = {
-    setAuthors: (value: AuthorSnippet) => void;
+    setAuthors: (value: Author) => void;
 };
 
 const defaultAuthorFormState: Author = {
@@ -65,10 +65,7 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
                     numberOfDislikes: authorForm.numberOfDislikes,
                 });
                 if (res) {
-                    setAuthors({
-                        id: res.id,
-                        name: authorForm.name,
-                    });
+                    setAuthors({ id: res.id, ...authorForm });
                     setAuthorForm(defaultAuthorFormState);
                     closeModal();
                 } else {

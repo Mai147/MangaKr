@@ -23,20 +23,22 @@ const Home: React.FC<HomeProps> = ({
     return (
         <>
             <Flex direction="column" align="flex-start">
-                <BookCarousel length={bannerBooks.length} type="banner">
+                <BookCarousel
+                    length={bannerBooks.length}
+                    type="banner"
+                    autoplay={true}
+                >
                     {bannerBooks.map((book) => {
-                        return <BannerItem key={book.id} book={book} />;
+                        return (
+                            <Box p={4} key={book.id}>
+                                <BannerItem book={book} />
+                            </Box>
+                        );
                     })}
                 </BookCarousel>
             </Flex>
             <PageContent>
-                <VStack
-                    spacing={2}
-                    align="flex-start"
-                    borderRight="1px solid"
-                    borderColor="gray.200"
-                    px={6}
-                >
+                <VStack spacing={2} align="flex-start">
                     <SectionHeading title="Manga vừa ra mắt" href={BOOK_PAGE} />
                     <BookCarousel length={newestMangas.length}>
                         {newestMangas.map((book) => (

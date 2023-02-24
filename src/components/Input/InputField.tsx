@@ -1,4 +1,4 @@
-import { Flex } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import React from "react";
 import InputLabel from "./InputLabel";
 
@@ -23,6 +23,7 @@ const InputField: React.FC<InputFieldProps> = ({
             py={2}
             direction={{ base: "column", md: "row" }}
             flexGrow={1}
+            w="100%"
         >
             <InputLabel
                 label={label}

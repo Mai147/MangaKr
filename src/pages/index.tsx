@@ -4,12 +4,23 @@ import useAuth from "@/hooks/useAuth";
 import { useEffect } from "react";
 import { fireStore } from "@/firebase/clientApp";
 import { Book } from "@/models/Book";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
+import {
+    collection,
+    collectionGroup,
+    getDoc,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    where,
+    writeBatch,
+} from "firebase/firestore";
 import { GetServerSidePropsContext } from "next";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { Author } from "@/models/Author";
 import BookUtils from "@/utils/BookUtils";
 import Home from "@/components/Home";
+import { Button } from "@chakra-ui/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,18 +30,43 @@ type HomePageProps = {
     mostPopularMangas: Book[];
     mostFavoriteAuthors: Author[];
     books: Book[];
+    testBooks?: Book[];
 };
+
+const genreId = "L2W94uCtFVA4Wac20715";
 
 const HomePage: React.FC<HomePageProps> = ({
     bannerBooks,
     mostFavoriteAuthors,
     mostPopularMangas,
     newestMangas,
+    testBooks,
 }) => {
     const { setNeedAuth } = useAuth();
     useEffect(() => {
         setNeedAuth(false);
     }, []);
+
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const res = collectionGroup(fireStore, "genreSnippets");
+    //         const res2 = query(res, where("name", "==", "Genre 1"));
+    //         const docs = await getDocs(res2);
+    //         docs.docs.forEach((doc) => {
+    //             if (doc.exists()) {
+    //                 batch.update(doc.ref, {
+    //                     name: "New name",
+    //                     description: "New description",
+    //                 });
+    //             }
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
 
     return (
         <>
@@ -47,6 +83,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
+                {/* <Button onClick={testFunction}>Test function</Button> */}
                 <Home
                     bannerBooks={bannerBooks}
                     newestMangas={newestMangas}

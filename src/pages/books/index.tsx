@@ -5,16 +5,16 @@ import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
 import Pagination from "@/components/Pagination";
 import Tag from "@/components/Tag";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { BOOK_PAGE } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useBook from "@/hooks/useBook";
 import { Book } from "@/models/Book";
 import { Genre } from "@/models/Genre";
-import { Box, Flex, Spinner } from "@chakra-ui/react";
-import { collection, doc, getDocs } from "firebase/firestore";
+import { Box, Divider, Flex, Spinner, Text } from "@chakra-ui/react";
+import { collection, getDocs } from "firebase/firestore";
 import { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 type BookPageProps = {
@@ -36,7 +36,7 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
         setBookLoading(true);
         const listBook = await getBooks({
             page,
-            pageCount: 2,
+            pageCount: BOOK_PAGE_COUNT,
             isNext: isNext!,
             genreId: genreId || undefined,
         });
@@ -81,6 +81,10 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
     return (
         <PageContent>
             <Box flexGrow={1}>
+                <Text fontSize={24} fontWeight={600}>
+                    Tìm kiếm manga
+                </Text>
+                <Divider my={4} />
                 <Flex justify="center">
                     <Box mx={2}>
                         <Tag
@@ -104,9 +108,15 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
                     [1, 2, 3, 4].map((e, idx) => (
                         <BookSnippetHorizontalSkeleton key={idx} />
                     ))}
-                {books.map((book) => (
-                    <BookSnippetHorizontalItem key={book.id} book={book} />
-                ))}
+                {books.length <= 0 ? (
+                    <Text align="center" mt={10}>
+                        Không có manga nào!
+                    </Text>
+                ) : (
+                    books.map((book) => (
+                        <BookSnippetHorizontalItem key={book.id} book={book} />
+                    ))
+                )}
                 <Pagination
                     page={page}
                     setPage={setPage}

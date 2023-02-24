@@ -8,8 +8,14 @@ export const BOOK_REVIEW_PAGE = "/books/reviews";
 export const getEditBookPage = (bookId: string) => {
     return `/books/${bookId}/edit`;
 };
+export const getBookReviewPage = (bookId: string) => {
+    return `/books/${bookId}/reviews`;
+};
 export const getCreateBookReviewPage = (bookId: string) => {
     return `/books/${bookId}/reviews/create`;
+};
+export const getBookReviewDetailPage = (bookId: string, reviewId: string) => {
+    return `/books/${bookId}/reviews/${reviewId}`;
 };
 export const NEWS_PAGE = "/news";
 export const CREATE_NEWS_PAGE = "/news/create";

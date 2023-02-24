@@ -6,7 +6,7 @@ import Slider from "react-slick";
 type CarouselButtonProps = {
     slider: Slider | null;
     pos: "left" | "right";
-    type?: "snippet" | "banner";
+    type?: "snippet" | "banner" | "librarySnippet";
 };
 
 const CarouselButton: React.FC<CarouselButtonProps> = ({
@@ -18,7 +18,8 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
     const side = useBreakpointValue({
         base: "35%",
         sm: "40px",
-        md: type === "snippet" ? "30px" : "40px",
+        md: "30px",
+        // md: type === "snippet" ? "30px" : type === "banner" ? "40px" : "20px",
     });
     return (
         <IconButton
@@ -30,8 +31,8 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
             top={top}
             transform={"translate(0%, -50%)"}
             zIndex={2}
-            bg="gray.100"
-            opacity="20%"
+            bg="gray.300"
+            opacity="30%"
             _hover={{ bg: "brand.400", opacity: "100%" }}
             transition="all 0.3s"
             size={type === "snippet" ? "md" : "sm"}

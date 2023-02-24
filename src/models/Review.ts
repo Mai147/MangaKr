@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export type TagReview = "RECOMMENDED" | "NOT RECOMMENDED";
 
 export type TagReviewItem = {
@@ -16,14 +18,12 @@ export const tagReviewList: TagReviewItem[] = [
     },
 ];
 
-// export interface ReviewSnippet {
-// }
-
 export interface Review {
     id?: string;
     bookId: string;
     creatorId: string;
     creatorDisplayName: string;
+    bookName: string;
     title: string;
     imageUrl?: string;
     tagReview: TagReview;
@@ -32,4 +32,5 @@ export interface Review {
     numberOfComments: number;
     numberOfLikes: number;
     numberOfDislikes: number;
+    createdAt: Timestamp;
 }

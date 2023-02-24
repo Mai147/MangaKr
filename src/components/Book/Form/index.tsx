@@ -10,7 +10,7 @@ import {
     HStack,
 } from "@chakra-ui/react";
 import useSelectFile from "@/hooks/useSelectFile";
-import { Book, BookSnippet } from "@/models/Book";
+import { Book } from "@/models/Book";
 import InputText from "@/components/Input/InputText";
 import dynamic from "next/dynamic";
 import InputField from "@/components/Input/InputField";
@@ -29,9 +29,7 @@ import {
     writeBatch,
 } from "firebase/firestore";
 import { fireStore } from "@/firebase/clientApp";
-import { AuthorSnippet } from "@/models/Author";
 import SelectField from "@/components/Book/Form/SelectField";
-import { GenreSnippet } from "@/models/Genre";
 import GenreModal from "@/components/Modal/Genre";
 import ErrorText from "@/components/Modal/Auth/ErrorText";
 import { ValidationError } from "@/constants/validation";
@@ -39,6 +37,8 @@ import { validateCreateBook } from "@/validation/bookValidation";
 import moment from "moment";
 import BookImage from "../Image";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { Author } from "@/models/Author";
+import { Genre } from "@/models/Genre";
 
 const defaultBookFormState: Book = {
     name: "",
@@ -47,8 +47,6 @@ const defaultBookFormState: Book = {
     characters: "",
     authorIds: [],
     genreIds: [],
-    authorSnippets: [],
-    genreSnippets: [],
     characterSnippets: [],
     plot: "",
     publishedDate: undefined,
@@ -67,25 +65,25 @@ const Editor = dynamic(() => import("@/components/Editor"), {
 });
 
 type BookOtherValue = {
-    authorSnippets: AuthorSnippet[];
-    genreSnippets: GenreSnippet[];
+    authors: Author[];
+    genres: Genre[];
     status: string[];
 };
 
 const defaultBookOtherValue: BookOtherValue = {
-    authorSnippets: [],
-    genreSnippets: [],
+    authors: [],
+    genres: [],
     status: ["Done", "Going", "Drop"],
 };
 
 type RemovedAndInsertedSnippet = {
-    authorSnippets: {
-        removed: AuthorSnippet[];
-        inserted: AuthorSnippet[];
+    authorIds: {
+        removed: string[];
+        inserted: string[];
     };
-    genreSnippets: {
-        removed: GenreSnippet[];
-        inserted: GenreSnippet[];
+    genreIds: {
+        removed: string[];
+        inserted: string[];
     };
 };
 
@@ -141,31 +139,37 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
 
     const handleSelectChange = (
         ids: string[] | string,
-        field: "authorSnippets" | "genreSnippets" | "status",
-        isSingle?: boolean
+        field: "authorIds" | "genreIds" | "status"
     ) => {
-        if (isSingle) {
+        if (field === "status") {
             setBookForm((prev) => {
                 return {
                     ...prev,
-                    [field]: (bookOtherValue[field] as any[]).find(
-                        (item: string) => item === ids
-                    ),
+                    status: bookOtherValue.status.find((item) => item === ids),
+                    // [field]: (bookOtherValue[field] as any[]).find(
+                    //     (item: string) => item === ids
+                    // ),
                 };
             });
         } else {
-            const idString = `${field.replace("Snippets", "")}Ids`;
             setBookForm((prev) => {
-                return {
-                    ...prev,
-                    [field]: (bookOtherValue[field] as any[]).filter(
-                        (item: AuthorSnippet | GenreSnippet) =>
-                            ids.includes(item.name)
-                    ),
-                    [idString]: (bookOtherValue[field] as any[])
-                        .filter((item) => ids.includes(item.name))
-                        .map((item) => item.id),
-                };
+                if (field === "authorIds") {
+                    const authorIds = bookOtherValue.authors
+                        .filter((item: Author) => ids.includes(item.name))
+                        .map((au) => au.id!);
+                    return {
+                        ...prev,
+                        authorIds,
+                    };
+                } else {
+                    const genreIds = bookOtherValue.genres
+                        .filter((item: Genre) => ids.includes(item.name))
+                        .map((gen) => gen.id!);
+                    return {
+                        ...prev,
+                        genreIds,
+                    };
+                }
             });
         }
     };
@@ -176,17 +180,16 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
             firebaseRoute.getAllAuthorRoute()
         );
         const authorsDocs = await getDocs(authorsDocRef);
-        const authors: AuthorSnippet[] = authorsDocs.docs.map((doc) => {
-            const authorSnippet: AuthorSnippet = {
-                id: doc.id,
-                name: doc.data().name,
-                imageUrl: doc.data().imageUrl,
-            };
-            return authorSnippet;
-        });
+        const authors: Author[] = authorsDocs.docs.map(
+            (doc) =>
+                ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as Author)
+        );
         setBookOtherValue((prev) => ({
             ...prev,
-            authorSnippets: authors,
+            authors,
         }));
     };
 
@@ -196,62 +199,50 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
             firebaseRoute.getAllGenreRoute()
         );
         const genresDocs = await getDocs(genresDocRef);
-        const genres: GenreSnippet[] = genresDocs.docs.map((doc) => {
-            const genreSnippet: GenreSnippet = {
-                id: doc.id,
-                name: doc.data().name,
-            };
-            return genreSnippet;
-        });
+        const genres: Genre[] = genresDocs.docs.map(
+            (doc) =>
+                ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as Genre)
+        );
         setBookOtherValue((prev) => ({
             ...prev,
-            genreSnippets: genres,
+            genres,
         }));
     };
 
     const findRemovedAndInsertedSnippet = (): RemovedAndInsertedSnippet => {
-        let removedAuthor: AuthorSnippet[] = [];
-        let insertedAuthor: AuthorSnippet[] = [];
-        let removedGenre: GenreSnippet[] = [];
-        let insertedGenre: GenreSnippet[] = [];
-        if (book?.authorSnippets) {
-            removedAuthor = book?.authorSnippets.filter(
-                (author) =>
-                    !bookForm.authorSnippets
-                        ?.map((au) => au.id)
-                        .includes(author.id)
+        let removedAuthor: string[] = [];
+        let insertedAuthor: string[] = [];
+        let removedGenre: string[] = [];
+        let insertedGenre: string[] = [];
+        if (book?.authorIds) {
+            removedAuthor = book?.authorIds.filter(
+                (id) => !bookForm.authorIds?.includes(id)
             );
-            if (bookForm.authorSnippets) {
-                insertedAuthor = bookForm.authorSnippets.filter(
-                    (author) =>
-                        !book.authorSnippets
-                            ?.map((au) => au.id)
-                            .includes(author.id)
+            if (bookForm.authorIds) {
+                insertedAuthor = bookForm.authorIds.filter(
+                    (id) => !book.authorIds?.includes(id)
                 );
             }
         }
-        if (book?.genreSnippets) {
-            removedGenre = book?.genreSnippets.filter(
-                (genre) =>
-                    !bookForm.genreSnippets
-                        ?.map((gen) => gen.id)
-                        .includes(genre.id)
+        if (book?.genreIds) {
+            removedGenre = book?.genreIds.filter(
+                (id) => !bookForm.genreIds?.includes(id)
             );
-            if (bookForm.genreSnippets) {
-                insertedGenre = bookForm.genreSnippets.filter(
-                    (genre) =>
-                        !book.genreSnippets
-                            ?.map((gen) => gen.id)
-                            .includes(genre.id)
+            if (bookForm.genreIds) {
+                insertedGenre = bookForm.genreIds.filter(
+                    (id) => !book.genreIds?.includes(id)
                 );
             }
         }
         return {
-            authorSnippets: {
+            authorIds: {
                 removed: removedAuthor,
                 inserted: insertedAuthor,
             },
-            genreSnippets: {
+            genreIds: {
                 removed: removedGenre,
                 inserted: insertedGenre,
             },
@@ -264,14 +255,12 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
         id,
         type,
         ref,
-        newSnippet,
     }: {
         batch: WriteBatch;
         snippetRef: string;
         ref: string;
         id: string;
         type: "create" | "delete";
-        newSnippet?: any;
     }) => {
         const snippetDocRef = doc(fireStore, snippetRef, id);
         switch (type) {
@@ -279,9 +268,7 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                 batch.delete(snippetDocRef);
                 break;
             case "create":
-                batch.set(snippetDocRef, {
-                    ...newSnippet,
-                });
+                batch.set(snippetDocRef, {});
         }
         // Update number of books
         const docRef = doc(fireStore, ref, id);
@@ -318,12 +305,9 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                 firebaseRoute.getBookImageRoute(bookDocRef.id)
             );
             // Create book
-            const {
-                authorSnippets,
-                genreSnippets,
-                characterSnippets,
-                ...newBook
-            } = { ...bookForm };
+            const { characterSnippets, ...newBook } = {
+                ...bookForm,
+            };
             batch.set(bookDocRef, {
                 ...newBook,
                 writerId: userId,
@@ -331,47 +315,38 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
             });
             // Create Snippet
             const authorRoute = firebaseRoute.getAllAuthorRoute();
-            const authorSnippetRoute = firebaseRoute.getBookAuthorSnippetRoute(
+            const bookAuthorIdRoute = firebaseRoute.getBookAuthorIdRoute(
                 bookDocRef.id
             );
-            const genreSnippetRoute = firebaseRoute.getBookGenreSnippetRoute(
+            const bookGenreIdRoute = firebaseRoute.getBookGenreIdRoute(
                 bookDocRef.id
             );
             const genreRoute = firebaseRoute.getAllGenreRoute();
-            bookForm.authorSnippets?.forEach((author) => {
+            bookForm.authorIds?.forEach((id) => {
                 updateSnippet({
                     batch,
-                    id: author.id!,
-                    snippetRef: authorSnippetRoute,
+                    id,
+                    snippetRef: bookAuthorIdRoute,
                     ref: authorRoute,
                     type: "create",
-                    newSnippet: author,
                 });
             });
-            bookForm.genreSnippets?.forEach((genre) => {
+            bookForm.genreIds?.forEach((id) => {
                 updateSnippet({
                     batch,
-                    id: genre.id!,
-                    snippetRef: genreSnippetRoute,
+                    id,
+                    snippetRef: bookGenreIdRoute,
                     ref: genreRoute,
                     type: "create",
-                    newSnippet: genre,
                 });
             });
-            // Create user book Snippet
+            // Create user book writing Snippet
             const userWritingBookDocRef = doc(
                 fireStore,
-                firebaseRoute.getUserWritingBookSnippetRoute(userId),
+                firebaseRoute.getUserWritingBookIdRoute(userId),
                 bookDocRef.id
             );
-            const bookSnippet: BookSnippet = {
-                name: bookForm.name,
-                description: bookForm.description,
-                imageUrl: selectedFile || bookForm.imageUrl,
-                authorIds: bookForm.authorIds,
-                genreIds: bookForm.genreIds,
-            };
-            batch.set(userWritingBookDocRef, bookSnippet);
+            batch.set(userWritingBookDocRef, {});
 
             // Update image
             batch.update(
@@ -408,84 +383,58 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                 firebaseRoute.getBookImageRoute(bookDocRef.id)
             );
             // Update book
-            const {
-                authorSnippets,
-                genreSnippets,
-                characterSnippets,
-                ...updateBook
-            } = { ...bookForm };
+            const { characterSnippets, ...updateBook } = {
+                ...bookForm,
+            };
             batch.update(bookDocRef, {
                 ...updateBook,
             });
             // Update Snippet
             const authorRoute = firebaseRoute.getAllAuthorRoute();
-            const authorSnippetRoute = firebaseRoute.getBookAuthorSnippetRoute(
+            const bookAuthorIdRoute = firebaseRoute.getBookAuthorIdRoute(
                 book?.id!
             );
             const genreRoute = firebaseRoute.getAllGenreRoute();
-            const genreSnippetRoute = firebaseRoute.getBookGenreSnippetRoute(
+            const bookGenreIdRoute = firebaseRoute.getBookGenreIdRoute(
                 book?.id!
             );
             const removedAndInsertedSnippet = findRemovedAndInsertedSnippet();
-            removedAndInsertedSnippet.authorSnippets.removed.forEach(
-                (author) => {
-                    updateSnippet({
-                        batch,
-                        id: author.id!,
-                        snippetRef: authorSnippetRoute,
-                        ref: authorRoute,
-                        type: "delete",
-                    });
-                }
-            );
-            removedAndInsertedSnippet.genreSnippets.removed.forEach((genre) => {
+            removedAndInsertedSnippet.authorIds.removed.forEach((id) => {
                 updateSnippet({
                     batch,
-                    id: genre.id!,
-                    snippetRef: genreSnippetRoute,
+                    id,
+                    snippetRef: bookAuthorIdRoute,
+                    ref: authorRoute,
+                    type: "delete",
+                });
+            });
+            removedAndInsertedSnippet.genreIds.removed.forEach((id) => {
+                updateSnippet({
+                    batch,
+                    id,
+                    snippetRef: bookGenreIdRoute,
                     ref: genreRoute,
                     type: "delete",
                 });
             });
-            removedAndInsertedSnippet.authorSnippets.inserted.forEach(
-                (author) => {
-                    updateSnippet({
-                        batch,
-                        id: author.id!,
-                        snippetRef: authorSnippetRoute,
-                        ref: authorRoute,
-                        type: "create",
-                        newSnippet: author,
-                    });
-                }
-            );
-            removedAndInsertedSnippet.genreSnippets.inserted.forEach(
-                (genre) => {
-                    updateSnippet({
-                        batch,
-                        id: genre.id!,
-                        snippetRef: genreSnippetRoute,
-                        ref: genreRoute,
-                        type: "create",
-                        newSnippet: genre,
-                    });
-                }
-            );
-
-            // Update user book Snippet
-            const userWritingBookDocRef = doc(
-                fireStore,
-                firebaseRoute.getUserWritingBookSnippetRoute(userId),
-                book?.id!
-            );
-            const bookSnippet: BookSnippet = {
-                name: bookForm.name,
-                description: bookForm.description,
-                imageUrl: selectedFile || bookForm.imageUrl,
-                authorIds: bookForm.authorIds,
-                genreIds: bookForm.genreIds,
-            };
-            batch.update(userWritingBookDocRef, { ...bookSnippet });
+            removedAndInsertedSnippet.authorIds.inserted.forEach((id) => {
+                updateSnippet({
+                    batch,
+                    id: id!,
+                    snippetRef: bookAuthorIdRoute,
+                    ref: authorRoute,
+                    type: "create",
+                });
+            });
+            removedAndInsertedSnippet.genreIds.inserted.forEach((id) => {
+                updateSnippet({
+                    batch,
+                    id,
+                    snippetRef: bookGenreIdRoute,
+                    ref: genreRoute,
+                    type: "create",
+                });
+            });
 
             // Update image
             batch.update(bookDocRef, {
@@ -534,10 +483,7 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                     setAuthors={(author) => {
                         setBookOtherValue((prev) => ({
                             ...prev,
-                            authorSnippets: [
-                                ...(prev.authorSnippets || []),
-                                author,
-                            ],
+                            authors: [...(prev.authors || []), author],
                         }));
                     }}
                 />
@@ -545,10 +491,7 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                     setGenres={(genre) => {
                         setBookOtherValue((prev) => ({
                             ...prev,
-                            genreSnippets: [
-                                ...(prev.genreSnippets || []),
-                                genre,
-                            ],
+                            genres: [...(prev.genres || []), genre],
                         }));
                     }}
                 />
@@ -651,15 +594,14 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                                 isHalf={true}
                             >
                                 <SelectField
-                                    options={bookOtherValue.authorSnippets}
-                                    value={bookForm.authorSnippets!.map(
-                                        (author) => author.name
-                                    )}
-                                    onChange={(ids) =>
-                                        handleSelectChange(
-                                            ids,
-                                            "authorSnippets"
+                                    options={bookOtherValue.authors}
+                                    value={bookOtherValue.authors
+                                        .filter((au) =>
+                                            bookForm.authorIds?.includes(au.id!)
                                         )
+                                        .map((au) => au.name)}
+                                    onChange={(ids) =>
+                                        handleSelectChange(ids, "authorIds")
                                     }
                                     onAdd={() => toggleView("createAuthor")}
                                 />
@@ -671,15 +613,14 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                         >
                             <InputField label="Authors">
                                 <SelectField
-                                    options={bookOtherValue.authorSnippets}
-                                    value={bookForm.authorSnippets!.map(
-                                        (author) => author.name
-                                    )}
-                                    onChange={(ids) =>
-                                        handleSelectChange(
-                                            ids,
-                                            "authorSnippets"
+                                    options={bookOtherValue.authors}
+                                    value={bookOtherValue.authors
+                                        .filter((au) =>
+                                            bookForm.authorIds?.includes(au.id!)
                                         )
+                                        .map((au) => au.name)}
+                                    onChange={(ids) =>
+                                        handleSelectChange(ids, "authorIds")
                                     }
                                     onAdd={() => toggleView("createAuthor")}
                                 />
@@ -692,12 +633,14 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                                 isHalf={true}
                             >
                                 <SelectField
-                                    options={bookOtherValue.genreSnippets}
-                                    value={bookForm.genreSnippets!.map(
-                                        (genre) => genre.name
-                                    )}
+                                    options={bookOtherValue.genres}
+                                    value={bookOtherValue.genres
+                                        .filter((gen) =>
+                                            bookForm.genreIds?.includes(gen.id!)
+                                        )
+                                        .map((gen) => gen.name)}
                                     onChange={(ids) =>
-                                        handleSelectChange(ids, "genreSnippets")
+                                        handleSelectChange(ids, "genreIds")
                                     }
                                     onAdd={() => toggleView("createGenre")}
                                 />
@@ -709,12 +652,14 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                         >
                             <InputField label="Genres">
                                 <SelectField
-                                    options={bookOtherValue.genreSnippets}
-                                    value={bookForm.genreSnippets!.map(
-                                        (genre) => genre.name
-                                    )}
+                                    options={bookOtherValue.genres}
+                                    value={bookOtherValue.genres
+                                        .filter((gen) =>
+                                            bookForm.genreIds?.includes(gen.id!)
+                                        )
+                                        .map((gen) => gen.name)}
                                     onChange={(ids) =>
-                                        handleSelectChange(ids, "genreSnippets")
+                                        handleSelectChange(ids, "genreIds")
                                     }
                                     onAdd={() => toggleView("createGenre")}
                                 />
@@ -740,8 +685,7 @@ const BookForm: React.FC<BookFormProps> = ({ userId, book }) => {
                                         onChange={(data) =>
                                             handleSelectChange(
                                                 data as string,
-                                                "status",
-                                                true
+                                                "status"
                                             )
                                         }
                                         single

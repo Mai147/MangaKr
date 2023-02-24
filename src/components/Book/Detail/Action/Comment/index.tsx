@@ -1,8 +1,8 @@
 import BookCommentItem from "@/components/Book/Comment/CommentItem";
 import CommentInputs from "@/components/Comment/CommentInput";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { COMMENT_PAGE_COUNT } from "@/constants/pagination";
 import { fireStore } from "@/firebase/clientApp";
-import useBook from "@/hooks/useBook";
 import { BookComment } from "@/models/Comment";
 import { UserModel } from "@/models/User";
 import {
@@ -107,7 +107,9 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
             firebaseRoute.getAllCommentRoute()
         );
         const queryConstraints = [];
-        const snapShot = await getCountFromServer(query(commentDocsRef));
+        const snapShot = await getCountFromServer(
+            query(commentDocsRef, where("bookId", "==", bookId))
+        );
         const ttPage = Math.ceil(snapShot.data().count / pageCount);
         setTotalPage(ttPage);
         if (lastCommentDoc) {
@@ -137,7 +139,7 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
     };
 
     useEffect(() => {
-        getComments({ bookId, page, pageCount: 5 });
+        getComments({ bookId, page, pageCount: COMMENT_PAGE_COUNT });
     }, [page]);
 
     return (

@@ -5,7 +5,6 @@ import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Book, BookStatus } from "@/models/Book";
-import BookUtils from "@/utils/BookUtils";
 import {
     Modal,
     ModalOverlay,
@@ -17,6 +16,7 @@ import {
     Button,
     VStack,
     Text,
+    useToast,
 } from "@chakra-ui/react";
 import { MultiSelect } from "chakra-multiselect";
 import { collection, doc, increment, writeBatch } from "firebase/firestore";
@@ -59,6 +59,7 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
     const [chap, setChap] = useState("");
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [loading, setLoading] = useState(false);
+    const toast = useToast();
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -81,7 +82,7 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                 const userReadingBookDocRef = doc(
                     collection(
                         fireStore,
-                        firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
+                        firebaseRoute.getUserReadingBookIdRoute(user.uid)
                     ),
                     book.id!
                 );
@@ -89,9 +90,7 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                     collection(fireStore, firebaseRoute.getAllBookRoute()),
                     book.id!
                 );
-                const { id, ...rest } = book;
                 batch.set(userReadingBookDocRef, {
-                    ...BookUtils.toSnippet(rest),
                     status,
                     chap,
                 });
@@ -101,13 +100,19 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                 await batch.commit();
                 setIsInLibrary((prev) => !prev);
                 closeModal();
+                toast({
+                    title: "Thêm thành công",
+                    status: "success",
+                    duration: 5000,
+                    isClosable: true,
+                    position: "top-right",
+                });
             } catch (error) {
                 console.log(error);
             }
             setLoading(false);
         }
     };
-    console.log(errors);
     return (
         <>
             <Modal

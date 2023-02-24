@@ -35,7 +35,7 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
         const readingBookDocRef = doc(
             collection(
                 fireStore,
-                firebaseRoute.getUserReadingBookSnippetRoute(userId)
+                firebaseRoute.getUserReadingBookIdRoute(userId)
             ),
             book.id
         );
@@ -64,7 +64,7 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
                 const userReadingBookDocRef = doc(
                     collection(
                         fireStore,
-                        firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
+                        firebaseRoute.getUserReadingBookIdRoute(user.uid)
                     ),
                     book.id
                 );
@@ -88,7 +88,7 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
     return (
         <VStack spacing={2} align="stretch">
             <AddLibraryModal book={book} setIsInLibrary={setIsInLibrary} />
-            <Heading as="h2">{book.name}</Heading>
+            <Heading as="h3">{book.name}</Heading>
             <Flex align="center" justify="space-between">
                 <Button
                     isLoading={loadingBookLibrary}

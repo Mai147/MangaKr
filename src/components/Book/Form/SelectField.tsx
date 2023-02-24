@@ -1,5 +1,3 @@
-import useModal from "@/hooks/useModal";
-import { AuthorSnippet } from "@/models/Author";
 import { Box, Flex, Icon } from "@chakra-ui/react";
 import { MultiSelect, Option } from "chakra-multiselect";
 import React from "react";
@@ -18,7 +16,6 @@ const SelectField: React.FC<SelectFieldProps> = ({
     onChange,
     onAdd,
 }) => {
-    const { toggleView } = useModal();
     return (
         <Flex flexGrow={1} alignItems="center" w={{ base: "100%", md: "auto" }}>
             <Box flexGrow={1}>

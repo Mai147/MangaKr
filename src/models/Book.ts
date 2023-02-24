@@ -1,33 +1,24 @@
 import { Timestamp } from "firebase/firestore";
-import { AuthorSnippet } from "./Author";
-import { CharacterSnippet } from "./Character";
-import { GenreSnippet } from "./Genre";
+import { Author } from "./Author";
+import { Character } from "./Character";
+import { Genre, GenreSnippet } from "./Genre";
 
 export type BookStatus = "DONE" | "GOING" | "DROP";
 
-export interface BookSnippet {
+export interface Book {
     id?: string;
     name: string;
     imageUrl?: string;
     description?: string;
-    authorIds?: [];
-    genreIds?: [];
-}
-
-export interface ReadingBookSnippet extends BookSnippet {
-    status: BookStatus;
-    chap?: number;
-}
-
-export interface Book extends BookSnippet {
+    authorIds?: string[];
+    genreIds?: string[];
+    genreSnippets: GenreSnippet[];
     plot?: string;
     characters?: string;
-    authorSnippets?: AuthorSnippet[];
-    genreSnippets?: GenreSnippet[];
     status?: string;
     volumes?: string;
     chapters?: string;
-    characterSnippets?: CharacterSnippet[];
+    characterSnippets?: Character[];
     publishedDate?: Timestamp;
     rating: number;
     popularity: number;
@@ -36,6 +27,7 @@ export interface Book extends BookSnippet {
     numberOfReviews: number;
     writerId: string;
     createdAt?: Timestamp;
+    authors?: Author[];
 }
 
 export type BookVote = {

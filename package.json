@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.4.9",
+    "@ckeditor/ckeditor5-alignment": "^36.0.1",
     "@ckeditor/ckeditor5-build-classic": "^36.0.1",
     "@ckeditor/ckeditor5-react": "^5.0.6",
     "@emotion/react": "^11.10.5",
@@ -30,10 +31,12 @@
     "react-firebase-hooks": "^5.1.1",
     "react-icons": "^4.7.1",
     "react-slick": "^0.29.0",
-    "typescript": "4.9.5"
+    "typescript": "4.9.5",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.2",
-    "@types/react-slick": "^0.23.10"
+    "@types/react-slick": "^0.23.10",
+    "@types/uuid": "^9.0.1"
   }
 }
