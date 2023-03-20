@@ -26,6 +26,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 }) => {
     const { view, isOpen, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
+
+    const handle = async () => {
+        setLoading(true);
+        await onSubmit();
+        setLoading(false);
+    };
     return (
         <Modal isOpen={isOpen && view === "confirmModal"} onClose={closeModal}>
             <ModalOverlay />
@@ -43,15 +49,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                     <Button variant="ghost" mr={3} w={28} onClick={closeModal}>
                         Hủy
                     </Button>
-                    <Button
-                        onClick={async () => {
-                            setLoading(true);
-                            await onSubmit();
-                            setLoading(false);
-                        }}
-                        w={28}
-                        isLoading={loading}
-                    >
+                    <Button onClick={handle} w={28} isLoading={loading}>
                         Xác nhận
                     </Button>
                 </ModalFooter>

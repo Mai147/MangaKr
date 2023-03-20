@@ -35,7 +35,7 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
         const readingBookDocRef = doc(
             collection(
                 fireStore,
-                firebaseRoute.getUserReadingBookIdRoute(userId)
+                firebaseRoute.getUserReadingBookSnippetRoute(userId)
             ),
             book.id
         );
@@ -64,7 +64,7 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
                 const userReadingBookDocRef = doc(
                     collection(
                         fireStore,
-                        firebaseRoute.getUserReadingBookIdRoute(user.uid)
+                        firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
                     ),
                     book.id
                 );

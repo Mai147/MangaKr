@@ -1,9 +1,8 @@
-import BookCommentItem from "@/components/Book/Comment/CommentItem";
+import CommentItem from "@/components/Comment/CommentItem";
 import CommentInputs from "@/components/Comment/CommentInput";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { COMMENT_PAGE_COUNT } from "@/constants/pagination";
 import { fireStore } from "@/firebase/clientApp";
-import { BookComment } from "@/models/Comment";
+import { Comment } from "@/models/Comment";
 import { UserModel } from "@/models/User";
 import {
     Box,
@@ -14,12 +13,10 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import {
-    collection,
     getCountFromServer,
     query,
     startAfter,
     limit,
-    where,
     orderBy,
     getDocs,
     DocumentData,
@@ -29,23 +26,27 @@ import {
     serverTimestamp,
     Timestamp,
     writeBatch,
+    CollectionReference,
+    DocumentReference,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import RequiredLoginContainer from "../RequiredLoginContainer";
+import RequiredLoginContainer from "../Book/Detail/Action/RequiredLoginContainer";
 
-type BookDetailCommentProps = {
-    bookId: string;
+type CommentSectionProps = {
+    commentDocsRef: CollectionReference<DocumentData>;
+    rootDocRef: DocumentReference<DocumentData>;
     user?: UserModel | null;
 };
 
-const BookDetailComment: React.FC<BookDetailCommentProps> = ({
-    bookId,
+const CommentSection: React.FC<CommentSectionProps> = ({
+    commentDocsRef,
+    rootDocRef,
     user,
 }) => {
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
     const [commentText, setCommentText] = useState("");
-    const [commentList, setCommentList] = useState<BookComment[]>([]);
+    const [commentList, setCommentList] = useState<Comment[]>([]);
     const [commentLoading, setCommentLoading] = useState(false);
     const [getCommentLoading, setGetCommentLoading] = useState(false);
     const [lastCommentDoc, setLastCommentDoc] =
@@ -58,23 +59,23 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
                 return;
             }
             const batch = writeBatch(fireStore);
-            const newComment: BookComment = {
-                bookId,
+            const newComment: Comment = {
                 creatorId: user.uid,
                 creatorDisplayName: user.displayName!,
                 creatorImageUrl: user.photoURL,
                 text: commentText,
                 createdAt: serverTimestamp() as Timestamp,
             };
-            const commentDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllCommentRoute())
-            );
-            const bookDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllBookRoute()),
-                bookId
-            );
+            // const commentDocRef = doc(
+            //     collection(fireStore, firebaseRoute.getBookCommentRoute(bookId))
+            // );
+            const commentDocRef = doc(commentDocsRef);
+            // const bookDocRef = doc(
+            //     collection(fireStore, firebaseRoute.getAllBookRoute()),
+            //     bookId
+            // );
             batch.set(commentDocRef, newComment);
-            batch.update(bookDocRef, {
+            batch.update(rootDocRef, {
                 numberOfComments: increment(1),
             });
             await batch.commit();
@@ -82,6 +83,7 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
             setCommentList((prev) => [
                 {
                     ...newComment,
+                    id: commentDocRef.id,
                     createdAt: Timestamp.fromDate(new Date()),
                 },
                 ...prev,
@@ -95,21 +97,17 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
     const getComments = async ({
         page,
         pageCount,
-        bookId,
     }: {
         page: number;
         pageCount: number;
-        bookId: string;
     }) => {
         setGetCommentLoading(true);
-        const commentDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllCommentRoute()
-        );
+        // const commentDocsRef = collection(
+        //     fireStore,
+        //     firebaseRoute.getBookCommentRoute(bookId)
+        // );
         const queryConstraints = [];
-        const snapShot = await getCountFromServer(
-            query(commentDocsRef, where("bookId", "==", bookId))
-        );
+        const snapShot = await getCountFromServer(commentDocsRef);
         const ttPage = Math.ceil(snapShot.data().count / pageCount);
         setTotalPage(ttPage);
         if (lastCommentDoc) {
@@ -120,26 +118,29 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
         }
         const commentQuery = query(
             commentDocsRef,
-            where("bookId", "==", bookId),
             orderBy("createdAt", "desc"),
             limit(pageCount),
             ...queryConstraints
         );
         const commentDocs = await getDocs(commentQuery);
-        const comments = commentDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as BookComment)
-        );
+        let comments: Comment[] = [];
+        for (const commentDoc of commentDocs.docs) {
+            const comment = commentDoc.data() as Comment;
+            comments = [
+                ...comments,
+                {
+                    id: commentDoc.id,
+                    ...comment,
+                },
+            ];
+        }
         setLastCommentDoc(commentDocs.docs[commentDocs.docs.length - 1]);
         setCommentList((prev) => [...prev, ...comments]);
         setGetCommentLoading(false);
     };
 
     useEffect(() => {
-        getComments({ bookId, page, pageCount: COMMENT_PAGE_COUNT });
+        getComments({ page, pageCount: COMMENT_PAGE_COUNT });
     }, [page]);
 
     return (
@@ -147,7 +148,7 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
             {!user ? (
                 <RequiredLoginContainer action="bình luận" />
             ) : (
-                <Box>
+                <Box w="100%">
                     <CommentInputs
                         commentText={commentText}
                         setCommentText={setCommentText}
@@ -157,15 +158,17 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
                     />
                     <VStack spacing={2} align="center">
                         <Flex alignSelf="stretch" direction="column">
-                            {commentList.map((comment) => (
-                                <BookCommentItem
-                                    key={comment.id}
-                                    comment={comment}
-                                    loadingDelete={false}
-                                    onDeleteComment={() => {}}
-                                    userId={user.uid}
-                                />
-                            ))}
+                            {commentList.map((comment) => {
+                                return (
+                                    <CommentItem
+                                        key={comment.id}
+                                        comment={comment}
+                                        loadingDelete={false}
+                                        onDeleteComment={() => {}}
+                                        userId={user.uid}
+                                    />
+                                );
+                            })}
                             {getCommentLoading && (
                                 <Box padding="6" boxShadow="lg" bg="white">
                                     <SkeletonCircle size="10" />
@@ -195,4 +198,4 @@ const BookDetailComment: React.FC<BookDetailCommentProps> = ({
         </>
     );
 };
-export default BookDetailComment;
+export default CommentSection;

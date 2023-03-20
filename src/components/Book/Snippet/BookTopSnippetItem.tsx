@@ -1,10 +1,7 @@
-import RatingBar from "@/components/RatingBar";
 import { BOOK_PAGE } from "@/constants/routes";
 import { Book } from "@/models/Book";
-import { Box, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, Link, Text } from "@chakra-ui/react";
 import React from "react";
-import { FaRegComment } from "react-icons/fa";
-import { MdOutlineRateReview } from "react-icons/md";
 import SnippetHorizontalImage from "../Image/SnippetHorizontalImage";
 import BookActionInfoBar from "./BookActionInfoBar";
 
@@ -24,9 +21,10 @@ const BookTopSnippetItem: React.FC<BookTopSnippetItemProps> = ({
         >
             <Box
                 p={4}
-                boxShadow="rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px"
+                boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
+                borderRadius={4}
                 mb={4}
-                _hover={{ bg: "gray.100" }}
+                _hover={{ bg: "gray.50" }}
                 transition="all 0.5s"
             >
                 <Flex align="center">

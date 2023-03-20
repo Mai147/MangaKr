@@ -6,7 +6,8 @@ type ModalView =
     | "createAuthor"
     | "createGenre"
     | "confirmModal"
-    | "addToLibrary";
+    | "addToLibrary"
+    | "createCommunity";
 
 type ModalState = {
     isOpen: boolean;

@@ -1,4 +1,12 @@
-import { Flex, Icon, Text } from "@chakra-ui/react";
+import { HOME_PAGE } from "@/constants/routes";
+import {
+    Button,
+    Flex,
+    Icon,
+    Link,
+    Text,
+    textDecoration,
+} from "@chakra-ui/react";
 import React from "react";
 import { CgUnavailable } from "react-icons/cg";
 
@@ -13,6 +21,9 @@ const NotAvailable: React.FC<NotAvailableProps> = ({ title }) => {
             <Text fontSize={24} fontWeight={600}>
                 {title}
             </Text>
+            <Link href={HOME_PAGE} _hover={{ textDecoration: "none" }} mt={4}>
+                <Button>Trở về trang chủ</Button>
+            </Link>
         </Flex>
     );
 };

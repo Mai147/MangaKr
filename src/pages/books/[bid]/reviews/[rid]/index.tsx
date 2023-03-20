@@ -27,10 +27,7 @@ const ReviewDetailPage: React.FC<ReviewDetailPageProps> = ({ review }) => {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { rid } = context.query;
-    const res = await ModelUtils.getReview(rid as string, undefined, {
-        getBook: true,
-        getCreator: true,
-    });
+    const res = await ModelUtils.getReview(rid as string);
     if (res)
         return {
             props: {

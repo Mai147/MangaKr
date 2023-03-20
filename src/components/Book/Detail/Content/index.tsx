@@ -1,3 +1,4 @@
+import CharacterSnippetItem from "@/components/Character/CharacterSnippetItem";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_REVIEW_PAGE_COUNT } from "@/constants/pagination";
@@ -5,9 +6,17 @@ import { getBookReviewDetailPage, getBookReviewPage } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import { Book } from "@/models/Book";
 import { Review } from "@/models/Review";
-import { Box, Divider, Skeleton, SkeletonText, Text } from "@chakra-ui/react";
+import {
+    Box,
+    Divider,
+    Flex,
+    Skeleton,
+    SkeletonText,
+    Text,
+} from "@chakra-ui/react";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
+import BookCarousel from "../../Snippet/Carousel";
 import BookDetailSection from "./Section";
 
 type BookDetailContentProps = {
@@ -67,6 +76,19 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                     }}
                     className="ck ck-content"
                 ></div>
+                {book.characterSnippets && (
+                    <BookCarousel
+                        length={book.characterSnippets?.length}
+                        type="characterSnippet"
+                    >
+                        {book.characterSnippets?.map((char) => (
+                            <CharacterSnippetItem
+                                key={char.id}
+                                character={char}
+                            />
+                        ))}
+                    </BookCarousel>
+                )}
             </BookDetailSection>
             <Divider my={4} />
             <BookDetailSection
@@ -101,14 +123,15 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                     </Box>
                 ) : (
                     bookReviews.map((review) => (
-                        <ReviewSnippetItem
-                            key={review.id}
-                            review={review}
-                            href={getBookReviewDetailPage(
-                                review.bookId,
-                                review.id!
-                            )}
-                        />
+                        <Box key={review.id} my={4}>
+                            <ReviewSnippetItem
+                                review={review}
+                                href={getBookReviewDetailPage(
+                                    review.bookId,
+                                    review.id!
+                                )}
+                            />
+                        </Box>
                     ))
                 )}
             </BookDetailSection>

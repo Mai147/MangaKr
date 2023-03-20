@@ -14,7 +14,7 @@ const BookDetailSection: React.FC<BookDetailSectionProps> = ({
 }) => {
     return (
         <Box>
-            <Flex justify="space-between">
+            <Flex justify="space-between" align="center">
                 <Text fontSize={24} fontWeight={600}>
                     {title}
                 </Text>
@@ -22,9 +22,10 @@ const BookDetailSection: React.FC<BookDetailSectionProps> = ({
                     <Link
                         href={seeMoreHref}
                         fontStyle="italic"
+                        color={"gray.400"}
                         _hover={{ textDecoration: "none", color: "brand.100" }}
                     >
-                        Xem thêm
+                        Xem thêm...
                     </Link>
                 )}
             </Flex>

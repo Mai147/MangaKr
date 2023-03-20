@@ -4,10 +4,12 @@ import AuthorModal from "@/components/Modal/Author";
 import GenreModal from "@/components/Modal/Genre";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
+import useBookCreate from "@/hooks/useBookCreate";
 import useModal from "@/hooks/useModal";
-import { Author } from "@/models/Author";
-import { Book } from "@/models/Book";
-import { Genre } from "@/models/Genre";
+import { Author, AuthorSnippet } from "@/models/Author";
+import { Book, bookStatusList } from "@/models/Book";
+import { Genre, GenreSnippet } from "@/models/Genre";
+import ModelUtils from "@/utils/ModelUtils";
 import { Box, Flex, HStack, VStack } from "@chakra-ui/react";
 import { MultiSelect } from "chakra-multiselect";
 import { collection, getDocs } from "firebase/firestore";
@@ -19,7 +21,7 @@ type BookFormSubInfoTabProps = {
     onInputTextChange: (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => void;
-    onSelectChange: (value: any, field: string) => void;
+    // onSelectChange: (value: any, field: string) => void;
 };
 
 type Status = {
@@ -28,39 +30,48 @@ type Status = {
 };
 
 type BookOtherValue = {
-    authors: Author[];
-    genres: Genre[];
+    authorSnippets: AuthorSnippet[];
+    genreSnippets: GenreSnippet[];
     status: Status[];
 };
 
 const defaultBookOtherValue: BookOtherValue = {
-    authors: [],
-    genres: [],
-    status: [
-        {
-            label: "Hoàn thành",
-            value: "DONE",
-        },
-        {
-            label: "Còn tiếp",
-            value: "GOING",
-        },
-        {
-            label: "Đang tạm dừng",
-            value: "DROP",
-        },
-    ],
+    authorSnippets: [],
+    genreSnippets: [],
+    status: bookStatusList,
 };
 
 const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
     book,
     onInputTextChange,
-    onSelectChange,
 }) => {
     const { toggleView } = useModal();
     const [bookOtherValue, setBookOtherValue] = useState<BookOtherValue>(
         defaultBookOtherValue
     );
+    const { setBookForm } = useBookCreate();
+
+    const handleSelectChange = (
+        field: "authorSnippets" | "genreSnippets" | "status",
+        value: any,
+        ids?: any
+    ) => {
+        setBookForm((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+        if (field === "authorSnippets") {
+            setBookForm((prev) => ({
+                ...prev,
+                authorIds: ids,
+            }));
+        } else if (field === "genreSnippets") {
+            setBookForm((prev) => ({
+                ...prev,
+                genreIds: ids,
+            }));
+        }
+    };
 
     const getAuthors = async () => {
         const authorsDocRef = collection(
@@ -68,16 +79,15 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
             firebaseRoute.getAllAuthorRoute()
         );
         const authorsDocs = await getDocs(authorsDocRef);
-        const authors: Author[] = authorsDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Author)
+        const authors: AuthorSnippet[] = authorsDocs.docs.map((doc) =>
+            ModelUtils.toAuthorSnippet({
+                id: doc.id,
+                ...doc.data(),
+            } as Author)
         );
         setBookOtherValue((prev) => ({
             ...prev,
-            authors,
+            authorSnippets: authors,
         }));
     };
 
@@ -87,16 +97,15 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
             firebaseRoute.getAllGenreRoute()
         );
         const genresDocs = await getDocs(genresDocRef);
-        const genres: Genre[] = genresDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Genre)
+        const genres: GenreSnippet[] = genresDocs.docs.map((doc) =>
+            ModelUtils.toGenreSnippet({
+                id: doc.id,
+                ...doc.data(),
+            } as Genre)
         );
         setBookOtherValue((prev) => ({
             ...prev,
-            genres,
+            genreSnippets: genres,
         }));
     };
 
@@ -112,7 +121,10 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
                 setAuthors={(author) => {
                     setBookOtherValue((prev) => ({
                         ...prev,
-                        authors: [...(prev.authors || []), author],
+                        authorSnippets: [
+                            ...(prev.authorSnippets || []),
+                            author,
+                        ],
                     }));
                 }}
             />
@@ -120,36 +132,38 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
                 setGenres={(genre) => {
                     setBookOtherValue((prev) => ({
                         ...prev,
-                        genres: [...(prev.genres || []), genre],
+                        genreSnippets: [...(prev.genreSnippets || []), genre],
                     }));
                 }}
             />
             <InputField label="Tác giả">
                 <SelectField
-                    options={bookOtherValue.authors}
-                    value={bookOtherValue.authors
+                    options={bookOtherValue.authorSnippets}
+                    value={bookOtherValue.authorSnippets
                         .filter((au) => book.authorIds?.includes(au.id!))
                         .map((au) => au.name)}
-                    onChange={(ids) => {
-                        const authorIds = bookOtherValue.authors
-                            .filter((item: Author) => ids.includes(item.name))
-                            .map((au) => au.id!);
-                        onSelectChange(authorIds, "authorIds");
+                    onChange={(data) => {
+                        const authors = bookOtherValue.authorSnippets.filter(
+                            (item: AuthorSnippet) => data.includes(item.name)
+                        );
+                        const ids = authors.map((au) => au.id);
+                        handleSelectChange("authorSnippets", authors, ids);
                     }}
                     onAdd={() => toggleView("createAuthor")}
                 />
             </InputField>
             <InputField label="Thể loại">
                 <SelectField
-                    options={bookOtherValue.genres}
-                    value={bookOtherValue.genres
+                    options={bookOtherValue.genreSnippets}
+                    value={bookOtherValue.genreSnippets
                         .filter((gen) => book.genreIds?.includes(gen.id!))
                         .map((gen) => gen.name)}
-                    onChange={(ids) => {
-                        const genreIds = bookOtherValue.genres
-                            .filter((item: Genre) => ids.includes(item.name))
-                            .map((gen) => gen.id!);
-                        onSelectChange(genreIds, "genreIds");
+                    onChange={(data) => {
+                        const genres = bookOtherValue.genreSnippets.filter(
+                            (item: GenreSnippet) => data.includes(item.name)
+                        );
+                        const ids = genres.map((genre) => genre.id);
+                        handleSelectChange("genreSnippets", genres, ids);
                     }}
                     onAdd={() => toggleView("createGenre")}
                 />
@@ -168,7 +182,7 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
                                     const status = bookOtherValue.status.find(
                                         (item) => item.value === data
                                     );
-                                    onSelectChange(status, "status");
+                                    handleSelectChange("status", status?.value);
                                 }}
                                 single
                             />

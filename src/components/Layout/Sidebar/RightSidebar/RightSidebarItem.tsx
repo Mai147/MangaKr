@@ -1,5 +1,5 @@
 import { Book } from "@/models/Book";
-import { Flex, Image, Link, Text } from "@chakra-ui/react";
+import { Box, Flex, Image, Link, Text } from "@chakra-ui/react";
 import React, { ReactNode } from "react";
 
 type RightSidebarItemProps = {
@@ -21,19 +21,26 @@ const RightSidebarItem: React.FC<RightSidebarItemProps> = ({
                 p={2}
                 width="100%"
                 cursor="pointer"
-                _hover={{ bg: "gray.300" }}
-                transition="all 0.3s"
+                _hover={{ bg: "gray.100" }}
+                transition="all 0.5s"
             >
                 <Image
-                    src={imageUrl || "images/noImage.jpg"}
+                    src={imageUrl || "/images/noImage.jpg"}
                     width="50px"
                     height="65px"
                     objectFit="cover"
                     flexShrink={0}
                     mr={2}
+                    borderRadius={4}
                 />
                 <Flex direction="column">
-                    <Text color="gray.600" fontWeight={600} noOfLines={1}>
+                    <Text
+                        color="gray.600"
+                        fontWeight={600}
+                        noOfLines={1}
+                        lineHeight={1}
+                        mb={2}
+                    >
                         {title}
                     </Text>
                     {sub}

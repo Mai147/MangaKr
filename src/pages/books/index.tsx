@@ -9,19 +9,20 @@ import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { BOOK_PAGE } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
-import useBook from "@/hooks/useBook";
+import usePagination from "@/hooks/usePagination";
 import { Book } from "@/models/Book";
 import { Genre } from "@/models/Genre";
 import { Box, Divider, Flex, Spinner, Text } from "@chakra-ui/react";
 import { collection, getDocs } from "firebase/firestore";
-import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-type BookPageProps = {
-    genreId: string | null;
-};
+type BookPageProps = {};
 
-const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
+const BookPage: React.FC<BookPageProps> = ({}) => {
+    const router = useRouter();
+    const [genreId, setGenreId] = useState<string | undefined>(undefined);
+    const [isFirst, setIsFirst] = useState(true);
     const [bookLoading, setBookLoading] = useState(false);
     const [genreLoading, setGenreLoading] = useState(false);
     const [totalPage, setTotalPage] = useState(1);
@@ -29,7 +30,7 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
     const [isNext, setIsNext] = useState<boolean | null>(true);
     const [genres, setGenres] = useState<Genre[]>([]);
     const [books, setBooks] = useState<Book[]>([]);
-    const { getBooks } = useBook();
+    const { getBooks } = usePagination();
     const { setNeedAuth } = useAuth();
 
     const getListBook = async () => {
@@ -38,11 +39,12 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
             page,
             pageCount: BOOK_PAGE_COUNT,
             isNext: isNext!,
-            genreId: genreId || undefined,
+            genreId,
+            isFirst,
         });
         if (listBook) {
             setBooks(listBook.books);
-            setTotalPage(listBook.totalPage);
+            setTotalPage(listBook.totalPage || 0);
         }
         setBookLoading(false);
         setIsNext(null);
@@ -75,8 +77,22 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
     }, []);
 
     useEffect(() => {
+        setPage(1);
+        setTotalPage(1);
+        setIsNext(true);
+        setIsFirst(true);
+    }, [genreId]);
+
+    useEffect(() => {
+        setGenreId(router.query.genreId as string);
+    }, [router.query]);
+
+    useEffect(() => {
         getListBook();
-    }, [page]);
+        if (isFirst) {
+            setIsFirst(false);
+        }
+    }, [page, isFirst]);
 
     return (
         <PageContent>
@@ -85,12 +101,14 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
                     Tìm kiếm manga
                 </Text>
                 <Divider my={4} />
-                <Flex justify="center">
+                <Flex justify="center" mb={6}>
                     <Box mx={2}>
                         <Tag
                             label="Tất cả"
                             isActive={!genreId}
-                            href={`${BOOK_PAGE}`}
+                            onClick={() => {
+                                router.push(BOOK_PAGE);
+                            }}
                         />
                     </Box>
                     {genreLoading && <Spinner />}
@@ -99,7 +117,11 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
                             <Tag
                                 label={genre.name}
                                 isActive={genreId === genre.id}
-                                href={`${BOOK_PAGE}?genreId=${genre.id}`}
+                                onClick={() => {
+                                    router.push(
+                                        `${BOOK_PAGE}?genreId=${genre.id}`
+                                    );
+                                }}
                             />
                         </Box>
                     ))}
@@ -133,14 +155,4 @@ const BookPage: React.FC<BookPageProps> = ({ genreId }) => {
         </PageContent>
     );
 };
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-    const { genreId } = context.query;
-    return {
-        props: {
-            genreId: genreId || null,
-        },
-    };
-}
-
 export default BookPage;

@@ -46,12 +46,25 @@ const formTab = [
 const BookForm: React.FC<BookFormProps> = ({ book }) => {
     const [loading, setLoading] = useState(false);
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
-    const [errors, setErrors] = useState<ValidationError[]>([]);
-    const { bookForm, setBookForm, handleCreateBook } = useBookCreate();
+    const { bookForm, setBookForm, setCharacters, handleSubmit, errors } =
+        useBookCreate();
+    const { onSelectFile, selectedFile, setSelectedFile } = useSelectFile();
 
     useEffect(() => {
         if (book) {
             setBookForm(book);
+            setCharacters(
+                book.characterSnippets?.map(
+                    (char) =>
+                        ({
+                            ...char,
+                            bookId: book.id,
+                            numberOfDislikes: 0,
+                            numberOfLikes: 0,
+                        } as Character)
+                ) || []
+            );
+            setSelectedFile(book.imageUrl);
         }
     }, []);
 
@@ -95,7 +108,7 @@ const BookForm: React.FC<BookFormProps> = ({ book }) => {
                     isLoading={loading}
                     onClick={async () => {
                         setLoading(true);
-                        await handleCreateBook();
+                        await handleSubmit(book);
                         setLoading(false);
                     }}
                 >
@@ -114,7 +127,13 @@ const BookForm: React.FC<BookFormProps> = ({ book }) => {
                 ))}
             </Flex>
             <Flex p={4}>
-                {selectedTab === formTab[0].title && <BookFormImageTab />}
+                {selectedTab === formTab[0].title && (
+                    <BookFormImageTab
+                        onSelectFile={onSelectFile}
+                        setSelectedFile={setSelectedFile}
+                        selectedFile={selectedFile}
+                    />
+                )}
                 {selectedTab === formTab[1].title && (
                     <BookFormDescriptionTab
                         bookName={bookForm.name}
@@ -135,12 +154,6 @@ const BookForm: React.FC<BookFormProps> = ({ book }) => {
                     <BookFormSubInfoTab
                         book={bookForm}
                         onInputTextChange={handleChange}
-                        onSelectChange={(data, field) => {
-                            setBookForm((prev) => ({
-                                ...prev,
-                                [field]: data,
-                            }));
-                        }}
                     />
                 )}
             </Flex>

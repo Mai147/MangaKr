@@ -4,7 +4,7 @@ import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 
 type PaginationProps = {
     page: number;
-    setPage: React.Dispatch<React.SetStateAction<number>>;
+    setPage?: React.Dispatch<React.SetStateAction<number>>;
     totalPage: number;
     onNext: () => void;
     onPrev: () => void;
@@ -34,7 +34,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         _hover={{ bg: "brand.100", opacity: "0.95" }}
                         transition="all 0.3s"
                         onClick={() => {
-                            setPage((prev) => prev - 1);
+                            setPage && setPage((prev) => prev - 1);
                             onPrev();
                         }}
                     >
@@ -72,7 +72,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         _hover={{ bg: "brand.100", opacity: "0.95" }}
                         transition="all 0.3s"
                         onClick={() => {
-                            setPage((prev) => prev + 1);
+                            setPage && setPage((prev) => prev + 1);
                             onNext();
                         }}
                     >

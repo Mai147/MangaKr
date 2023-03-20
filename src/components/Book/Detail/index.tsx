@@ -13,7 +13,6 @@ type BookDetailProps = {
 
 const BookDetail: React.FC<BookDetailProps> = ({ book }) => {
     const { user } = useAuth();
-
     return (
         <Flex position="relative" alignItems="flex-start">
             <BookDetailSidebar book={book} />

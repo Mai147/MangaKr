@@ -8,6 +8,8 @@ type Settings = {
 
 type CarouselSetting = {
     defaultSetting: Settings;
+    characterSnippetSm: Settings;
+    characterSnippetLg: Settings;
     bookSnippetSm: Settings;
     bookSnippetLg: Settings;
     bookSnippetLibraryLg: Settings;
@@ -34,6 +36,18 @@ const bookSnippetLg: Settings = {
     slidesToScroll: 4,
 };
 
+const characterSnippetSm: Settings = {
+    ...defaultSetting,
+    slidesToShow: 3,
+    slidesToScroll: 3,
+};
+
+const characterSnippetLg: Settings = {
+    ...defaultSetting,
+    slidesToShow: 6,
+    slidesToScroll: 6,
+};
+
 const bookSnippetLibraryLg: Settings = {
     ...defaultSetting,
     slidesToShow: 5,
@@ -48,6 +62,8 @@ const bannerMd: Settings = {
 
 export const carouselSetting: CarouselSetting = {
     defaultSetting,
+    characterSnippetLg,
+    characterSnippetSm,
     bookSnippetSm,
     bookSnippetLg,
     bookSnippetLibraryLg,

@@ -1,4 +1,4 @@
-import { Book } from "@/models/Book";
+import { Book, BookSnippet } from "@/models/Book";
 import {
     AspectRatio,
     Box,
@@ -12,9 +12,9 @@ import React from "react";
 import { FaTimes } from "react-icons/fa";
 
 type BookSnippetItemProps = {
-    book: Book;
+    book: BookSnippet;
     href?: string;
-    onDelete?: (book: Book) => void;
+    onDelete?: (book: BookSnippet) => void;
 };
 
 const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
@@ -24,10 +24,10 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
 }) => {
     const nameLines = useBreakpointValue({ base: 1, md: 2, lg: 1, xl: 2 });
     const nameHeight = useBreakpointValue({
-        base: "28px",
-        md: "56px",
-        lg: "28px",
-        xl: "56px",
+        base: "25px",
+        md: "50px",
+        lg: "25px",
+        xl: "50px",
     });
     const descriptionLines = useBreakpointValue({
         base: 2,
@@ -46,15 +46,13 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
             <Link href={href} _hover={{ textDecor: "none" }}>
                 <Box
                     position="relative"
-                    p="4"
-                    boxShadow="md"
+                    boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
                     bg="white"
                     borderRadius={4}
-                    textAlign="center"
-                    _hover={{ transform: "scale(1.03)", bg: "gray.100" }}
+                    _hover={{ transform: "scale(1.02)", bg: "gray.50" }}
                     transition="all 0.3s"
                 >
-                    <AspectRatio ratio={3 / 4}>
+                    <AspectRatio ratio={1}>
                         <Image
                             src={book.imageUrl || "/images/noImage.jpg"}
                             objectFit={"cover"}
@@ -62,24 +60,27 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
                             alt="Book Image"
                         />
                     </AspectRatio>
-                    <Text
-                        fontSize={{ base: 16, md: 18 }}
-                        fontWeight={600}
-                        noOfLines={nameLines}
-                        mt={4}
-                        height={nameHeight}
-                    >
-                        {book.name}
-                    </Text>
-                    <Text
-                        fontSize={{ base: 12, md: 14 }}
-                        color="gray.400"
-                        noOfLines={descriptionLines}
-                        height={descriptionHeight}
-                    >
-                        {book.description ||
-                            "Manga này chưa có tóm tắt nội dung!"}
-                    </Text>
+                    <Box px="4" pb={4}>
+                        <Text
+                            fontSize={{ base: 16, md: 18 }}
+                            fontWeight={600}
+                            noOfLines={nameLines}
+                            mt={4}
+                            height={nameHeight}
+                            lineHeight={1.2}
+                        >
+                            {book.name}
+                        </Text>
+                        <Text
+                            fontSize={{ base: 12, md: 14 }}
+                            color="gray.400"
+                            noOfLines={descriptionLines}
+                            height={descriptionHeight}
+                        >
+                            {book.description ||
+                                "Manga này chưa có tóm tắt nội dung!"}
+                        </Text>
+                    </Box>
                     {onDelete && (
                         <IconButton
                             position="absolute"

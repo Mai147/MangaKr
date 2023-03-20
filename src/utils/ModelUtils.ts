@@ -1,25 +1,24 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
-import { Author } from "@/models/Author";
-import { Book } from "@/models/Book";
-import { Genre } from "@/models/Genre";
+import { Author, AuthorSnippet } from "@/models/Author";
+import { Book, BookSnippet } from "@/models/Book";
+import { Character, CharacterSnippet } from "@/models/Character";
+import { Genre, GenreSnippet } from "@/models/Genre";
 import { Review } from "@/models/Review";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import {
+    doc,
+    getDoc,
+    collection,
+    getDocs,
+    query,
+    where,
+    orderBy,
+} from "firebase/firestore";
 
 let ModelUtils = {};
 
-type BookOptions = {
-    getAuthor?: boolean;
-    getGenre?: boolean;
-};
-
-type ReviewOptions = {
-    getCreator?: boolean;
-    getBook?: boolean;
-};
-
 export default ModelUtils = {
-    async getBook(bookId: string, userId?: string, option?: BookOptions) {
+    async getBook(bookId: string, userId?: string) {
         try {
             const bookDocRef = doc(
                 fireStore,
@@ -34,65 +33,27 @@ export default ModelUtils = {
                         return;
                     }
                 }
-                const bookAuthorIdDocRef = collection(
+                const bookAuthorSnippetDocRef = collection(
                     fireStore,
-                    firebaseRoute.getBookAuthorIdRoute(bookId)
+                    firebaseRoute.getBookAuthorSnippetsRoute(bookId)
                 );
-                const bookGenreIdDocRef = collection(
+                const bookGenreSnippetDocRef = collection(
                     fireStore,
-                    firebaseRoute.getBookGenreIdRoute(bookId)
+                    firebaseRoute.getBookGenreSnippetsRoute(bookId)
                 );
                 const characterSnippetsDocRef = collection(
                     fireStore,
                     firebaseRoute.getBookCharacterSnippetRoute(bookId)
                 );
-                const bookAuthorIdDocs = await getDocs(bookAuthorIdDocRef);
-                const bookGenreIdDocs = await getDocs(bookGenreIdDocRef);
+                const bookAuthorSnippetsDocs = await getDocs(
+                    bookAuthorSnippetDocRef
+                );
+                const bookGenreSnippetsDocs = await getDocs(
+                    bookGenreSnippetDocRef
+                );
                 const characterSnippetsDocs = await getDocs(
                     characterSnippetsDocRef
                 );
-                let authors: Author[] = [];
-                let genres: Genre[] = [];
-                if (option?.getAuthor) {
-                    const authorDocRef = collection(
-                        fireStore,
-                        firebaseRoute.getAllAuthorRoute()
-                    );
-                    const authorDocs = await Promise.all(
-                        bookAuthorIdDocs.docs.map((d) =>
-                            getDoc(doc(authorDocRef, d.id))
-                        )
-                    );
-                    authors = authorDocs
-                        .filter((doc) => doc.exists())
-                        .map(
-                            (doc) =>
-                                ({
-                                    id: doc.id,
-                                    ...doc.data(),
-                                } as Author)
-                        );
-                }
-                if (option?.getGenre) {
-                    const genreDocRef = collection(
-                        fireStore,
-                        firebaseRoute.getAllGenreRoute()
-                    );
-                    const genreDocs = await Promise.all(
-                        bookGenreIdDocs.docs.map((d) =>
-                            getDoc(doc(genreDocRef, d.id))
-                        )
-                    );
-                    genres = genreDocs
-                        .filter((doc) => doc.exists())
-                        .map(
-                            (doc) =>
-                                ({
-                                    id: doc.id,
-                                    ...doc.data(),
-                                } as Genre)
-                        );
-                }
 
                 return {
                     book: bookDoc.exists()
@@ -100,11 +61,19 @@ export default ModelUtils = {
                               JSON.stringify({
                                   id: bookDoc.id,
                                   ...bookDoc.data(),
-                                  authorIds: bookAuthorIdDocs.docs.map(
-                                      (doc) => doc.id
+                                  authorSnippets:
+                                      bookAuthorSnippetsDocs.docs.map(
+                                          (doc) => ({
+                                              id: doc.id,
+                                              ...doc.data(),
+                                          })
+                                      ),
+                                  genreSnippets: bookGenreSnippetsDocs.docs.map(
+                                      (doc) => ({
+                                          id: doc.id,
+                                          ...doc.data(),
+                                      })
                                   ),
-                                  authors,
-                                  genres,
                                   characterSnippets:
                                       characterSnippetsDocs.docs.map((doc) => ({
                                           id: doc.id,
@@ -120,7 +89,28 @@ export default ModelUtils = {
             console.log(error);
         }
     },
-    async getReview(reviewId: string, userId?: string, option?: ReviewOptions) {
+    async getBooks(searchValue: string) {
+        const bookDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllBookRoute()
+        );
+        const queryConstraints = [];
+        queryConstraints.push(where("name", ">=", searchValue));
+        queryConstraints.push(where("name", "<=", searchValue + `\uf8ff`));
+        queryConstraints.push(orderBy("name"));
+        // queryConstraints.push(orderBy("createdAt"));
+        const bookQuery = query(bookDocsRef, ...queryConstraints);
+        const bookDocs = await getDocs(bookQuery);
+        const books = bookDocs.docs.map(
+            (doc) =>
+                ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as Book)
+        );
+        return books;
+    },
+    async getReview(reviewId: string, userId?: string) {
         try {
             const reviewDocRef = doc(
                 fireStore,
@@ -136,40 +126,12 @@ export default ModelUtils = {
                     }
                 }
 
-                let creatorDisplayName: string = "";
-                let bookName: string = "";
-                if (option?.getCreator) {
-                    const reviewCreatorDocRef = doc(
-                        fireStore,
-                        firebaseRoute.getAllUserRoute(),
-                        reviewDoc.data().creatorId!
-                    );
-                    const reviewCreatorDoc = await getDoc(reviewCreatorDocRef);
-                    if (reviewCreatorDoc.exists()) {
-                        creatorDisplayName =
-                            reviewCreatorDoc.data().displayName;
-                    }
-                }
-                if (option?.getBook) {
-                    const reviewBookDocRef = doc(
-                        fireStore,
-                        firebaseRoute.getAllBookRoute(),
-                        reviewDoc.data().bookId!
-                    );
-                    const reviewBookDoc = await getDoc(reviewBookDocRef);
-                    if (reviewBookDoc.exists()) {
-                        bookName = reviewBookDoc.data().name;
-                    }
-                }
-
                 return {
                     review: reviewDoc.exists()
                         ? (JSON.parse(
                               JSON.stringify({
                                   id: reviewDoc.id,
                                   ...reviewDoc.data(),
-                                  creatorDisplayName,
-                                  bookName,
                               })
                           ) as Review)
                         : null,
@@ -179,5 +141,37 @@ export default ModelUtils = {
         } catch (error) {
             console.log(error);
         }
+    },
+    toGenreSnippet(genre: Genre): GenreSnippet {
+        return {
+            id: genre.id,
+            name: genre.name,
+        };
+    },
+    toAuthorSnippet(author: Author): AuthorSnippet {
+        return {
+            id: author.id,
+            name: author.name,
+            imageUrl: author.imageUrl,
+        };
+    },
+    toCharacterSnippet(character: Character): CharacterSnippet {
+        return {
+            id: character.id,
+            name: character.name,
+            imageUrl: character.imageUrl,
+            role: character.role,
+        };
+    },
+    toBookSnippet(book: Book): BookSnippet {
+        return {
+            id: book.id,
+            name: book.name,
+            description: book.description,
+            imageUrl: book.imageUrl,
+            authorIds: book.authorIds,
+            characterIds: book.characterIds,
+            genreIds: book.genreIds,
+        };
     },
 };

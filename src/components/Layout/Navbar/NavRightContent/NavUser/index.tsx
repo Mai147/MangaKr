@@ -75,8 +75,8 @@ const NavUser: React.FC<NavUserProps> = () => {
                             icon={FiLogOut}
                             title="Đăng xuất"
                             onClick={async () => {
+                                await logout();
                                 await signOut(auth);
-                                logout();
                             }}
                         />
                     </MenuList>

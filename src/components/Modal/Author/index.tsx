@@ -3,7 +3,8 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
 import { fireStore } from "@/firebase/clientApp";
 import useModal from "@/hooks/useModal";
-import { Author } from "@/models/Author";
+import { Author, AuthorSnippet } from "@/models/Author";
+import ModelUtils from "@/utils/ModelUtils";
 import { validateCreateAuthor } from "@/validation/authorValidation";
 import {
     Modal,
@@ -21,7 +22,7 @@ import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
 
 type AuthorModalProps = {
-    setAuthors: (value: Author) => void;
+    setAuthors: (value: AuthorSnippet) => void;
 };
 
 const defaultAuthorFormState: Author = {
@@ -58,14 +59,21 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
                     fireStore,
                     firebaseRoute.getAllAuthorRoute()
                 );
+                const nameLowerCase = authorForm.name.toLowerCase();
                 const res = await addDoc(authorsDocRef, {
                     name: authorForm.name,
+                    nameLowerCase,
                     numberOfBooks: authorForm.numberOfBooks,
                     numberOfLikes: authorForm.numberOfLikes,
                     numberOfDislikes: authorForm.numberOfDislikes,
                 });
                 if (res) {
-                    setAuthors({ id: res.id, ...authorForm });
+                    setAuthors(
+                        ModelUtils.toAuthorSnippet({
+                            id: res.id,
+                            ...authorForm,
+                        })
+                    );
                     setAuthorForm(defaultAuthorFormState);
                     closeModal();
                 } else {

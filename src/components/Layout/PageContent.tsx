@@ -7,7 +7,7 @@ type PageContentProps = {
 
 const PageContent: React.FC<PageContentProps> = ({ children }) => {
     return (
-        <Flex justify="center" p="16px 0px">
+        <Flex justify="center" p={4}>
             <Flex width="100%" justify="center">
                 <Flex
                     direction="column"

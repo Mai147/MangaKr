@@ -1,15 +1,10 @@
+import LeftSidebar from "@/components/Layout/Sidebar/LeftSidebar";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { IconButton, VStack } from "@chakra-ui/react";
-import {
-    collection,
-    doc,
-    getDoc,
-    increment,
-    writeBatch,
-} from "firebase/firestore";
+import { doc, getDoc, increment, writeBatch } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import {
     AiFillDislike,
@@ -92,7 +87,7 @@ const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({ reviewId }) => {
                 numberOfDislikes: increment(dislikeIncrement),
             });
             await batch.commit();
-            setUserVote(value);
+            setUserVote((prev) => (prev === value ? undefined : value));
         } catch (error) {
             console.log(error);
         }
@@ -106,42 +101,12 @@ const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({ reviewId }) => {
     }, [user]);
 
     return (
-        <VStack position="sticky" top={24} mr={4}>
-            <IconButton
-                aria-label="like-button"
-                icon={
-                    userVote === 1 ? (
-                        <AiFillLike fontSize={30} />
-                    ) : (
-                        <AiOutlineLike fontSize={30} />
-                    )
-                }
-                color={userVote === 1 ? "brand.100" : "gray.700"}
-                variant="ghost"
-                borderRadius="full"
-                size="lg"
-                onClick={() => handleLike(1)}
-                isDisabled={dislikeLoading}
-                isLoading={likeLoading}
-            />
-            <IconButton
-                aria-label="like-button"
-                icon={
-                    userVote === -1 ? (
-                        <AiFillDislike fontSize={30} />
-                    ) : (
-                        <AiOutlineDislike fontSize={30} />
-                    )
-                }
-                color={userVote === -1 ? "brand.100" : "gray.700"}
-                variant="ghost"
-                borderRadius="full"
-                size="lg"
-                onClick={() => handleLike(-1)}
-                isDisabled={likeLoading}
-                isLoading={dislikeLoading}
-            />
-        </VStack>
+        <LeftSidebar
+            handleLike={handleLike}
+            userVote={userVote}
+            likeLoading={likeLoading}
+            dislikeLoading={dislikeLoading}
+        />
     );
 };
 export default ReviewLeftSideBar;

@@ -1,13 +1,18 @@
 import { User } from "firebase/auth";
-import { Book } from "./Book";
+import { Book, BookSnippet } from "./Book";
+
+export interface UserSnippet {
+    id: string;
+    displayName: string;
+    imageUrl?: string;
+}
 
 export interface UserModel extends User {
     role: string;
     bio?: string;
     subBio?: string;
     // TODO: snippet
-    readingBookIds?: string[];
-    writingBookIds?: string[];
+    readingBookSnippets?: BookSnippet[];
+    writingBookSnippets?: BookSnippet[];
     readingBooks?: Book[];
-    writingBooks?: Book[];
 }

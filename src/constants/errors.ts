@@ -6,6 +6,9 @@ export const CURRENT_PASSWORD_MATCH_NEW_PASSWORD =
 export const getMinLengthError = (name: string, length: number) => {
     return `Vui lòng nhập ${name} tối thiểu ${length} ký tự!`;
 };
+export const getMaxLengthError = (name: string, length: number) => {
+    return `Vui lòng nhập ${name} tối thiểu ${length} ký tự!`;
+};
 export const getRequiredError = (name: string) => {
     return `Vui lòng nhập ${name}!`;
 };

@@ -1,9 +1,12 @@
-export interface Character {
+export interface CharacterSnippet {
     id?: string;
     name: string;
-    bookId: string;
     imageUrl?: string;
     role?: string;
+}
+
+export interface Character extends CharacterSnippet {
+    bookId: string;
     bio?: string;
     numberOfLikes: number;
     numberOfDislikes: number;

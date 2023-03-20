@@ -1,10 +1,8 @@
 import RatingBar from "@/components/RatingBar";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
-import useAuth from "@/hooks/useAuth";
-import useBook from "@/hooks/useBook";
 import { UserModel } from "@/models/User";
-import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
+import { Flex, Spinner, Text } from "@chakra-ui/react";
 import {
     doc,
     collection,

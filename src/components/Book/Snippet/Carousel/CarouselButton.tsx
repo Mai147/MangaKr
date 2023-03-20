@@ -1,46 +1,62 @@
-import { IconButton, useBreakpointValue } from "@chakra-ui/react";
+import { ButtonProps, IconButton, useBreakpointValue } from "@chakra-ui/react";
 import React from "react";
-import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
+import { MdArrowBackIosNew, MdArrowForwardIos } from "react-icons/md";
 import Slider from "react-slick";
 
-type CarouselButtonProps = {
+interface CarouselButtonProps extends ButtonProps {
     slider: Slider | null;
-    pos: "left" | "right";
-    type?: "snippet" | "banner" | "librarySnippet";
-};
+    btnPos: "left" | "right";
+    // btnType?:
+    //     | "snippet"
+    //     | "banner"
+    //     | "librarySnippet"
+    //     | "characterSnippet"
+    //     | "grid";
+    onNext?: () => Promise<void>;
+    onPrev?: () => Promise<void>;
+}
 
 const CarouselButton: React.FC<CarouselButtonProps> = ({
-    pos,
+    btnPos,
     slider,
-    type = "snippet",
+    // btnType = "snippet",
+    onNext,
+    onPrev,
+    ...rest
 }) => {
     const top = useBreakpointValue({ base: "80%", sm: "50%" });
     const side = useBreakpointValue({
         base: "35%",
         sm: "40px",
-        md: "30px",
-        // md: type === "snippet" ? "30px" : type === "banner" ? "40px" : "20px",
+        md: "1.2rem",
     });
     return (
         <IconButton
-            aria-label={pos === "left" ? "left-arrow" : "right-arrow"}
+            {...rest}
+            aria-label={btnPos === "left" ? "left-arrow" : "right-arrow"}
             borderRadius="full"
             position="absolute"
-            left={pos === "left" ? side : undefined}
-            right={pos === "right" ? side : undefined}
+            left={btnPos === "left" ? side : undefined}
+            right={btnPos === "right" ? `calc(${side} + 0.5rem)` : undefined}
             top={top}
             transform={"translate(0%, -50%)"}
             zIndex={2}
-            bg="gray.300"
+            bg="gray.500"
             opacity="30%"
             _hover={{ bg: "brand.400", opacity: "100%" }}
             transition="all 0.3s"
-            size={type === "snippet" ? "md" : "sm"}
-            onClick={() =>
-                pos === "left" ? slider?.slickPrev() : slider?.slickNext()
-            }
+            size="md"
+            onClick={async () => {
+                if (btnPos === "left") {
+                    onPrev && (await onPrev());
+                    slider?.slickPrev();
+                } else {
+                    onNext && (await onNext());
+                    slider?.slickNext();
+                }
+            }}
         >
-            {pos === "left" ? <BiLeftArrowAlt /> : <BiRightArrowAlt />}
+            {btnPos === "left" ? <MdArrowBackIosNew /> : <MdArrowForwardIos />}
         </IconButton>
     );
 };

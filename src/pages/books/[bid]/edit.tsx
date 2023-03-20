@@ -1,8 +1,7 @@
-// import BookForm from "@/components/Book/Form";
-import BookForm from "@/components/Test/BookForm";
+import BookForm from "@/components/Book/Form";
 import { WRITER_ROLE } from "@/constants/roles";
 import { HOME_PAGE } from "@/constants/routes";
-import { BookProvider } from "@/context/BookContext";
+import { BookCreateProvider } from "@/context/BookCreateContext";
 import useAuth from "@/hooks/useAuth";
 import { Book } from "@/models/Book";
 import ModelUtils from "@/utils/ModelUtils";
@@ -12,25 +11,19 @@ import cookies from "next-cookies";
 import React, { useEffect } from "react";
 
 type BookEditProps = {
-    userId: string;
     book: Book;
 };
 
-const BookEditPage: React.FC<BookEditProps> = ({ userId, book }) => {
+const BookEditPage: React.FC<BookEditProps> = ({ book }) => {
     const { setDefaultPath, setNeedAuth } = useAuth();
     useEffect(() => {
         setDefaultPath(HOME_PAGE), setNeedAuth(true);
     }, []);
     return (
         <Box p="6" bg="white" borderRadius={4} boxShadow="lg">
-            <Text fontSize={24} fontWeight={600}>
-                Edit book
-            </Text>
-            <Divider my={4} />
-            <BookProvider>
+            <BookCreateProvider>
                 <BookForm book={book} />
-            </BookProvider>
-            {/* <BookForm userId={userId} book={book} /> */}
+            </BookCreateProvider>
         </Box>
     );
 };
@@ -53,7 +46,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (res) {
         return {
             props: {
-                userId: user_id,
                 book: res.book,
             },
         };

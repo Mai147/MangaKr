@@ -1,4 +1,3 @@
-import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHorizontalItem";
 import BookSnippetHorizontalSkeleton from "@/components/Book/Snippet/BookSnippetHorizontalSkeleton";
 import PageContent from "@/components/Layout/PageContent";
 import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
@@ -8,22 +7,12 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { getBookReviewDetailPage } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
-import { Book } from "@/models/Book";
 import { Review } from "@/models/Review";
-import {
-    Box,
-    Divider,
-    Flex,
-    Spinner,
-    Tag,
-    Text,
-    VStack,
-} from "@chakra-ui/react";
+import { Box, Divider, Text, VStack } from "@chakra-ui/react";
 import {
     QueryDocumentSnapshot,
     DocumentData,
     collection,
-    where,
     getCountFromServer,
     query,
     startAfter,
@@ -34,7 +23,6 @@ import {
     getDocs,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import books from "..";
 
 type ReviewPageProps = {};
 

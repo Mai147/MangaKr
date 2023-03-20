@@ -1,6 +1,7 @@
 import RatingBar from "@/components/RatingBar";
 import Tag from "@/components/Tag";
-import { Book } from "@/models/Book";
+import { AUTHOR_PAGE, BOOK_PAGE } from "@/constants/routes";
+import { Book, bookStatusList } from "@/models/Book";
 import { Divider, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
 import moment from "moment";
 import React from "react";
@@ -23,15 +24,16 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                 Thông tin
             </Text>
             <BookDetailSidebarItem title="Tác giả:">
-                {(book.authors || []).length > 0 ? (
+                {(book.authorSnippets || []).length > 0 ? (
                     <Flex flexGrow={1} wrap="wrap">
-                        {book.authors?.map((author, idx) => (
+                        {book.authorSnippets?.map((author, idx) => (
                             <Flex key={author.id}>
                                 {idx === 0 ? "" : ", "}
                                 <Link
                                     key={author.id!}
                                     ml={1}
                                     _hover={{ color: "brand.400" }}
+                                    href={`${AUTHOR_PAGE}/${author.id}`}
                                 >
                                     <Text maxW={"90px"} noOfLines={1}>
                                         {author.name}
@@ -45,10 +47,15 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                 )}
             </BookDetailSidebarItem>
             <BookDetailSidebarItem title="Thể loại:">
-                {(book.genres || []).length > 0 ? (
+                {(book.genreSnippets || []).length > 0 ? (
                     <Flex flexGrow={1} wrap="wrap" align="center">
-                        {book.genres?.map((genre) => (
-                            <Tag key={genre.id} label={genre.name} />
+                        {book.genreSnippets?.map((genre) => (
+                            <Tag
+                                key={genre.id}
+                                label={genre.name}
+                                href={`${BOOK_PAGE}?genreId=${genre.id}`}
+                                mr={2}
+                            />
                         ))}
                     </Flex>
                 ) : (
@@ -56,7 +63,10 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                 )}
             </BookDetailSidebarItem>
             <BookDetailSidebarItem title="Trạng thái:">
-                <Text>{book.status || "Chưa biết"}</Text>
+                <Text>
+                    {bookStatusList.find((item) => item.value === book.status)
+                        ?.label || "Chưa biết"}
+                </Text>
             </BookDetailSidebarItem>
             <BookDetailSidebarItem title="Số tập:">
                 <Text>{book.volumes || "Chưa biết"}</Text>

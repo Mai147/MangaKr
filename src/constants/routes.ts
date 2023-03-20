@@ -17,6 +17,11 @@ export const getCreateBookReviewPage = (bookId: string) => {
 export const getBookReviewDetailPage = (bookId: string, reviewId: string) => {
     return `/books/${bookId}/reviews/${reviewId}`;
 };
+export const getEditBookReviewPage = (bookId: string, reviewId: string) => {
+    return `/books/${bookId}/reviews/${reviewId}/edit`;
+};
+export const AUTHOR_PAGE = "/authors";
 export const NEWS_PAGE = "/news";
 export const CREATE_NEWS_PAGE = "/news/create";
-export const COMMUNITY_PAGE = "/community";
+export const COMMUNITY_PAGE = "/communities";
+export const SEARCH_PAGE = "/search";

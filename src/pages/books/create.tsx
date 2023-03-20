@@ -5,15 +5,12 @@ import cookies from "next-cookies";
 import React, { useEffect } from "react";
 import { GetServerSidePropsContext } from "next";
 import BookForm from "@/components/Book/Form";
-import { Box, Divider, Text } from "@chakra-ui/react";
-import BookForm2 from "@/components/Test/BookForm";
-import { BookProvider } from "@/context/BookContext";
+import { Box } from "@chakra-ui/react";
+import { BookCreateProvider } from "@/context/BookCreateContext";
 
-type BookCreatePageProps = {
-    userId: string;
-};
+type BookCreatePageProps = {};
 
-const BookCreatePage: React.FC<BookCreatePageProps> = ({ userId }) => {
+const BookCreatePage: React.FC<BookCreatePageProps> = () => {
     const { setNeedAuth, setDefaultPath } = useAuth();
 
     useEffect(() => {
@@ -23,10 +20,9 @@ const BookCreatePage: React.FC<BookCreatePageProps> = ({ userId }) => {
 
     return (
         <Box p="6" bg="white" borderRadius={4} boxShadow="lg">
-            <BookProvider>
-                <BookForm2 />
-            </BookProvider>
-            {/* <BookForm userId={userId} /> */}
+            <BookCreateProvider>
+                <BookForm />
+            </BookCreateProvider>
         </Box>
     );
 };
@@ -45,9 +41,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
 
     return {
-        props: {
-            userId: user_id,
-        },
+        props: {},
     };
 }
 

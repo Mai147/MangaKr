@@ -1,11 +1,11 @@
 import BookLibraryCarousel from "@/components/Book/Snippet/BookLibraryCarousel";
-import ConfirmModal from "@/components/Modal/ConfirmModal";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE, getEditBookPage } from "@/constants/routes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import { Book } from "@/models/Book";
+import usePagination from "@/hooks/usePagination";
+import { Book, BookSnippet, ReadingBookSnippet } from "@/models/Book";
 import { Divider, Box, Flex, Spinner, useToast } from "@chakra-ui/react";
 import {
     collection,
@@ -16,76 +16,136 @@ import {
     increment,
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import LibrarySection from "../Section";
 
-type LibraryBookProps = {};
+// interface PaginationInfo {
+//     page: number;
+//     totalPage: number;
+//     pageCount: number;
+//     isNext: boolean;
+//     loading: boolean;
+// }
 
-const LibraryBook: React.FC<LibraryBookProps> = () => {
+// interface BookPaginationInfo extends PaginationInfo {
+//     books: BookSnippet[];
+// }
+
+// const defaultPaginationInfoState: PaginationInfo = {
+//     page: 1,
+//     totalPage: 1,
+//     isNext: true,
+//     loading: false,
+//     pageCount: 0,
+// };
+
+// const defaultBookPaginationState: BookPaginationInfo = {
+//     ...defaultPaginationInfoState,
+//     books: [],
+//     pageCount: 5,
+// };
+
+type LibraryBookProps = {
+    setConfirmTitle: React.Dispatch<SetStateAction<string>>;
+    setConfirmContent: React.Dispatch<SetStateAction<string>>;
+    setConfirmSubmitFunc: React.Dispatch<
+        SetStateAction<() => () => Promise<void>>
+    >;
+};
+
+const LibraryBook: React.FC<LibraryBookProps> = ({
+    setConfirmContent,
+    setConfirmSubmitFunc,
+    setConfirmTitle,
+}) => {
     const { toggleView, closeModal } = useModal();
     const toast = useToast();
     const { user } = useAuth();
-    const [writingBooks, setWritingBooks] = useState<Book[]>([]);
-    const [readingBooks, setReadingBooks] = useState<Book[]>([]);
+    const [writingBooks, setWritingBooks] = useState<BookSnippet[]>([]);
+    const [readingBooks, setReadingBooks] = useState<BookSnippet[]>([]);
     const [writingBooksLoading, setWritingBooksLoading] = useState(false);
     const [readingBooksLoading, setReadingBooksLoading] = useState(false);
-    const [confirmTitle, setConfirmTitle] = useState("");
-    const [confirmContent, setConfirmContent] = useState("");
-    const [confirmSubmitFunc, setConfirmSubmitFunc] = useState<
-        () => () => Promise<void>
-    >(() => async () => {});
+    // const [writingBooks, setWritingBooks] = useState<BookPaginationInfo>(
+    //     defaultBookPaginationState
+    // );
+    // const [readingBooks, setReadingBooks] = useState<BookPaginationInfo>(
+    //     defaultBookPaginationState
+    // );
+    // const { getWritingBookSnippets, getReadingBookSnippets } = usePagination();
+
+    // const getWritingBook = async (userId: string) => {
+    //     setWritingBooks((prev) => ({
+    //         ...prev,
+    //         loading: true,
+    //     }));
+    //     const res = await getWritingBookSnippets({
+    //         page: writingBooks.page,
+    //         isNext: writingBooks.isNext,
+    //         pageCount: writingBooks.pageCount,
+    //         userId,
+    //     });
+    //     console.log(res);
+    //     setWritingBooks((prev) => ({
+    //         ...prev,
+    //         books: [...prev.books, ...res?.books],
+    //         totalPage: res?.totalPage || 0,
+    //         loading: false,
+    //     }));
+    // };
+
+    // const getReadingBook = async (userId: string) => {
+    //     setReadingBooks((prev) => ({
+    //         ...prev,
+    //         loading: true,
+    //     }));
+    //     const res = await getReadingBookSnippets({
+    //         page: readingBooks.page,
+    //         isNext: readingBooks.isNext,
+    //         pageCount: readingBooks.pageCount,
+    //         userId,
+    //     });
+    //     setReadingBooks((prev) => ({
+    //         ...prev,
+    //         books: res?.books,
+    //         totalPage: res?.totalPage || 0,
+    //         loading: false,
+    //     }));
+    // };
 
     const getWritingBook = async (userId: string) => {
         setWritingBooksLoading(true);
-        const writingBookIdDocRef = collection(
+        const writingBookSnippetDocRef = collection(
             fireStore,
-            firebaseRoute.getUserWritingBookIdRoute(userId)
+            firebaseRoute.getUserWritingBookSnippetRoute(userId)
         );
-        const bookDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllBookRoute()
+        const writingBookSnippetDocs = await getDocs(writingBookSnippetDocRef);
+        const writingBooks = writingBookSnippetDocs.docs.map(
+            (doc) =>
+                ({
+                    ...doc.data(),
+                    id: doc.id,
+                } as BookSnippet)
         );
-        const writingBookIdDocs = await getDocs(writingBookIdDocRef);
-        const writingBookDocs = await Promise.all(
-            writingBookIdDocs.docs.map((d) => getDoc(doc(bookDocsRef, d.id)))
-        );
-        const books = writingBookDocs
-            .filter((doc) => doc.exists())
-            .map(
-                (doc) =>
-                    ({
-                        id: doc.id,
-                        ...doc.data(),
-                    } as Book)
-            );
-        setWritingBooks(books);
+
+        setWritingBooks(writingBooks);
         setWritingBooksLoading(false);
     };
 
     const getReadingBook = async (userId: string) => {
         setReadingBooksLoading(true);
-        const readingBookIdDocRef = collection(
+        const readingBookSnippetDocRef = collection(
             fireStore,
-            firebaseRoute.getUserReadingBookIdRoute(userId)
+            firebaseRoute.getUserReadingBookSnippetRoute(userId)
         );
-        const bookDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllBookRoute()
+        const readingBookSnippetDocs = await getDocs(readingBookSnippetDocRef);
+        const readingBooks = readingBookSnippetDocs.docs.map(
+            (doc) =>
+                ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as BookSnippet)
         );
-        const readingBookIdDocs = await getDocs(readingBookIdDocRef);
-        const readingBookDocs = await Promise.all(
-            readingBookIdDocs.docs.map((d) => getDoc(doc(bookDocsRef, d.id)))
-        );
-        const books = readingBookDocs
-            .filter((doc) => doc.exists())
-            .map(
-                (doc) =>
-                    ({
-                        id: doc.id,
-                        ...doc.data(),
-                    } as Book)
-            );
-        setReadingBooks(books);
+        setReadingBooks(readingBooks);
         setReadingBooksLoading(false);
     };
 
@@ -106,7 +166,7 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
         );
     }
 
-    const handleDeleteReadingBook = async (book: Book) => {
+    const handleDeleteReadingBook = async (book: BookSnippet) => {
         try {
             if (!user) {
                 throw Error("Not authenticated");
@@ -119,7 +179,7 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
             const userReadingDocRef = doc(
                 collection(
                     fireStore,
-                    firebaseRoute.getUserReadingBookIdRoute(user.uid)
+                    firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
                 ),
                 book.id
             );
@@ -131,7 +191,7 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
                 });
             }
             await batch.commit();
-            setReadingBooks((prev) => prev.filter((b) => b.id !== book.id));
+            // setReadingBooks((prev) => prev.filter((b) => b.id !== book.id));
             closeModal();
             toast({
                 title: "Xóa thành công",
@@ -145,7 +205,7 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
         }
     };
 
-    const handleDeleteBook = async (book: Book) => {
+    const handleDeleteBook = async (book: BookSnippet) => {
         try {
             const batch = writeBatch(fireStore);
             // Delete Book image
@@ -178,10 +238,27 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
                 });
             });
 
-            // Delete author and genre sub collection
+            // Delete character
+            if (book.characterIds) {
+                for (const id of book.characterIds) {
+                    const characterDocRef = doc(
+                        fireStore,
+                        firebaseRoute.getAllCharacterRoute(),
+                        id!
+                    );
+                    const imageRef = ref(
+                        storage,
+                        firebaseRoute.getCharacterImageRoute(id!)
+                    );
+                    await deleteObject(imageRef);
+                    batch.delete(characterDocRef);
+                }
+            }
+
+            // Delete author, genre, character sub collection
             const bookAuthorDocsRef = collection(
                 fireStore,
-                firebaseRoute.getBookAuthorIdRoute(book.id!)
+                firebaseRoute.getBookAuthorSnippetsRoute(book.id!)
             );
             const bookAuthorDocs = await getDocs(bookAuthorDocsRef);
             bookAuthorDocs.docs.forEach((d) => {
@@ -189,11 +266,27 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
             });
             const bookGenreDocsRef = collection(
                 fireStore,
-                firebaseRoute.getBookGenreIdRoute(book.id!)
+                firebaseRoute.getBookGenreSnippetsRoute(book.id!)
             );
             const bookGenreDocs = await getDocs(bookGenreDocsRef);
             bookGenreDocs.docs.forEach((d) => {
                 batch.delete(doc(bookGenreDocsRef, d.id));
+            });
+            const bookCharacterDocsRef = collection(
+                fireStore,
+                firebaseRoute.getBookCharacterSnippetRoute(book.id!)
+            );
+            const bookCharacterDocs = await getDocs(bookCharacterDocsRef);
+            bookCharacterDocs.forEach((d) => {
+                batch.delete(doc(bookCharacterDocsRef, d.id));
+            });
+            const bookCommentsDocsRef = collection(
+                fireStore,
+                firebaseRoute.getBookCommentRoute(book.id!)
+            );
+            const bookCommentsDocs = await getDocs(bookCommentsDocsRef);
+            bookCommentsDocs.forEach((d) => {
+                batch.delete(doc(bookCommentsDocsRef, d.id));
             });
 
             // Delete Book
@@ -207,16 +300,16 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
             // Delete BookSnippet in user
             const userBookRef = doc(
                 fireStore,
-                firebaseRoute.getUserWritingBookIdRoute(user.uid),
+                firebaseRoute.getUserWritingBookSnippetRoute(user.uid),
                 book.id!
             );
             batch.delete(userBookRef);
             await batch.commit();
 
             // Set writing book state
-            setWritingBooks((prev) =>
-                prev.filter((item) => item.id !== book.id)
-            );
+            // setWritingBooks((prev) =>
+            //     prev.filter((item) => item.id !== book.id)
+            // );
             closeModal();
             toast({
                 title: "Xóa thành công",
@@ -238,15 +331,9 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
     };
     return (
         <Box>
-            <ConfirmModal
-                title={confirmTitle}
-                content={confirmContent}
-                onSubmit={async () => {
-                    confirmSubmitFunc();
-                }}
-            />
             <LibrarySection title="Danh sách đọc">
                 <BookLibraryCarousel
+                    length={readingBooks.length}
                     books={readingBooks}
                     loading={readingBooksLoading}
                     onDelete={(book) => {
@@ -254,9 +341,9 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
                         setConfirmContent(
                             "Bạn chắc chắn muốn xóa truyện này khỏi danh sách đọc?"
                         );
-                        setConfirmSubmitFunc(
-                            () => () => handleDeleteReadingBook(book)
-                        );
+                        setConfirmSubmitFunc(() => async () => {
+                            handleDeleteReadingBook(book);
+                        });
                         toggleView("confirmModal");
                     }}
                     noBookText="Chưa có manga nào trong danh sách đọc"
@@ -266,14 +353,15 @@ const LibraryBook: React.FC<LibraryBookProps> = () => {
             <Divider my={4} />
             <LibrarySection title="Manga đã viết">
                 <BookLibraryCarousel
+                    length={writingBooks.length}
                     books={writingBooks}
                     loading={writingBooksLoading}
                     onDelete={(book) => {
                         setConfirmTitle("Xác nhận xóa truyện");
                         setConfirmContent("Bạn chắc chắn muốn xóa truyện này?");
-                        setConfirmSubmitFunc(
-                            () => () => handleDeleteBook(book)
-                        );
+                        setConfirmSubmitFunc(() => async () => {
+                            await handleDeleteBook(book);
+                        });
                         toggleView("confirmModal");
                     }}
                     noBookText="Bạn chưa viết manga nào"

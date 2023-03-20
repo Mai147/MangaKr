@@ -10,6 +10,7 @@ import {
     PROFILE_LIBRARY_PAGE,
 } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
+import useModal from "@/hooks/useModal";
 import {
     useColorModeValue,
     Stack,
@@ -85,6 +86,7 @@ const writerNavList: NavItemProps[] = [
 ];
 
 const NavList: React.FC<NavListProps> = () => {
+    const { toggleView } = useModal();
     const linkColor = useColorModeValue("gray.700", "gray.200");
     const linkHoverColor = useColorModeValue("gray.800", "white");
     const popoverContentBgColor = useColorModeValue("white", "gray.800");
@@ -111,7 +113,7 @@ const NavList: React.FC<NavListProps> = () => {
                         <PopoverTrigger>
                             <Link
                                 p={2}
-                                href={navItem.href ?? "#"}
+                                href={navItem.href}
                                 fontSize={"sm"}
                                 fontWeight={500}
                                 color={linkColor}

@@ -8,10 +8,11 @@ import CharacterItem from "./CharacterItem";
 type BookFormCharacterTabProps = {};
 
 const BookFormCharacterTab: React.FC<BookFormCharacterTabProps> = ({}) => {
-    const { bookForm, isOpenAddCharacter, openAddCharacter } = useBookCreate();
+    const { characters, isOpenAddCharacter, openAddCharacter } =
+        useBookCreate();
     return (
         <VStack spacing={2} align="flex-start" w="100%">
-            {bookForm.characterSnippets?.map((char, idx) => (
+            {characters.map((char, idx) => (
                 <CharacterItem key={char.id || idx} character={char} />
             ))}
             {isOpenAddCharacter && <CharacterInput />}

@@ -21,6 +21,7 @@ import { Author } from "@/models/Author";
 import BookUtils from "@/utils/BookUtils";
 import Home from "@/components/Home";
 import { Button } from "@chakra-ui/react";
+import { Review } from "@/models/Review";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,18 +30,15 @@ type HomePageProps = {
     newestMangas: Book[];
     mostPopularMangas: Book[];
     mostFavoriteAuthors: Author[];
-    books: Book[];
-    testBooks?: Book[];
+    newestReviews: Review[];
 };
-
-const genreId = "L2W94uCtFVA4Wac20715";
 
 const HomePage: React.FC<HomePageProps> = ({
     bannerBooks,
     mostFavoriteAuthors,
     mostPopularMangas,
     newestMangas,
-    testBooks,
+    newestReviews,
 }) => {
     const { setNeedAuth } = useAuth();
     useEffect(() => {
@@ -68,6 +66,73 @@ const HomePage: React.FC<HomePageProps> = ({
     //     }
     // };
 
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const res = collectionGroup(fireStore, "bookComments");
+    //         const res2 = query(
+    //             res,
+    //             where("creatorId", "==", "Gw6Fcbm7yWV5zcr5ORlJlwP1lQw1")
+    //         );
+    //         const docs = await getDocs(res2);
+    //         docs.docs.forEach((doc) => {
+    //             if (doc.exists()) {
+    //                 batch.update(doc.ref, {
+    //                     creatorDisplayName: "KKKKKKK",
+    //                 });
+    //             }
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const res = collectionGroup(fireStore, "reviews");
+    //         const res2 = query(
+    //             res,
+    //             where("creatorId", "==", "Gw6Fcbm7yWV5zcr5ORlJlwP1lQw1")
+    //         );
+    //         const docs = await getDocs(res2);
+    //         docs.docs.forEach((doc) => {
+    //             if (doc.exists()) {
+    //                 batch.update(doc.ref, {
+    //                     creatorDisplayName: "KKKKKKK",
+    //                 });
+    //             }
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const bookDocsRef = collection(
+    //             fireStore,
+    //             firebaseRoute.getAllAuthorRoute()
+    //         );
+    //         const bookDocs = await getDocs(bookDocsRef);
+    //         bookDocs.docs.forEach((doc) => {
+    //             const name = doc.data().name as string;
+    //             batch.update(doc.ref, {
+    //                 nameLowerCase: name.toLowerCase(),
+    //             });
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
     return (
         <>
             <Head>
@@ -83,11 +148,13 @@ const HomePage: React.FC<HomePageProps> = ({
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                {/* <Button onClick={testFunction}>Test function</Button> */}
+                {/* <Button onClick={testFunction}>Test</Button> */}
                 <Home
                     bannerBooks={bannerBooks}
                     newestMangas={newestMangas}
                     mostPopularMangas={mostPopularMangas}
+                    newestReviews={newestReviews}
+                    mostFavoriteAuthors={mostFavoriteAuthors}
                 />
             </main>
         </>
@@ -99,6 +166,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const authorDocRef = collection(
         fireStore,
         firebaseRoute.getAllAuthorRoute()
+    );
+    const reviewDocsRef = collection(
+        fireStore,
+        firebaseRoute.getAllReviewRoute()
     );
     const bannerBookQuery = query(
         bookDocsRef,
@@ -120,11 +191,17 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         orderBy("numberOfLikes", "desc"),
         limit(6)
     );
+    const newestReviewQuery = query(
+        reviewDocsRef,
+        orderBy("createdAt", "desc"),
+        limit(6)
+    );
 
     const bannerDocs = await getDocs(bannerBookQuery);
     const newestMangaDocs = await getDocs(newestMangaQuery);
     const mostPopularMangaDocs = await getDocs(mostPopularMangaQuery);
     const mostFavoriteAuthorDocs = await getDocs(mostFavoriteAuthorQuery);
+    const newestReviewDocs = await getDocs(newestReviewQuery);
     const bannerBooks: Book[] = BookUtils.fromDocs(bannerDocs.docs);
     const newestMangas: Book[] = BookUtils.fromDocs(newestMangaDocs.docs);
     const mostPopularMangas: Book[] = BookUtils.fromDocs(
@@ -137,6 +214,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 ...doc.data(),
             } as Author)
     );
+    const newestReviews: Review[] = newestReviewDocs.docs.map(
+        (doc) =>
+            JSON.parse(
+                JSON.stringify({
+                    id: doc.id,
+                    ...doc.data(),
+                })
+            ) as Review
+    );
 
     return {
         props: {
@@ -144,6 +230,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             mostFavoriteAuthors,
             mostPopularMangas,
             newestMangas,
+            newestReviews,
         },
     };
 }

@@ -1,6 +1,6 @@
 import { Timestamp } from "firebase/firestore";
 
-interface Comment {
+export interface Comment {
     id?: string;
     creatorId: string;
     creatorDisplayName: string;
@@ -9,6 +9,6 @@ interface Comment {
     createdAt: Timestamp;
 }
 
-export interface BookComment extends Comment {
-    bookId: string;
-}
+// export interface BookComment extends Comment {
+//     bookId: string;
+// }

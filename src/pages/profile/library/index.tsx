@@ -1,16 +1,22 @@
 import LibraryBook from "@/components/Library/Book";
 import LibraryReview from "@/components/Library/Review";
+import ConfirmModal from "@/components/Modal/ConfirmModal";
 import { HOME_PAGE } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { Box, Divider } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 type ProfileLibaryPageProps = {};
 
 const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
     const { setDefaultPath, setNeedAuth } = useAuth();
+    const [confirmTitle, setConfirmTitle] = useState("");
+    const [confirmContent, setConfirmContent] = useState("");
+    const [confirmSubmitFunc, setConfirmSubmitFunc] = useState<
+        () => () => Promise<void>
+    >(() => async () => {});
 
     useEffect(() => {
         setNeedAuth(true);
@@ -19,9 +25,24 @@ const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
 
     return (
         <Box>
-            <LibraryBook />
+            <ConfirmModal
+                title={confirmTitle}
+                content={confirmContent}
+                onSubmit={async () => {
+                    confirmSubmitFunc();
+                }}
+            />
+            <LibraryBook
+                setConfirmContent={setConfirmContent}
+                setConfirmSubmitFunc={setConfirmSubmitFunc}
+                setConfirmTitle={setConfirmTitle}
+            />
             <Divider my={4} />
-            <LibraryReview />
+            <LibraryReview
+                setConfirmContent={setConfirmContent}
+                setConfirmSubmitFunc={setConfirmSubmitFunc}
+                setConfirmTitle={setConfirmTitle}
+            />
         </Box>
     );
 };

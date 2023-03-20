@@ -3,6 +3,8 @@ import {
     Box,
     Button,
     Flex,
+    Grid,
+    GridItem,
     IconButton,
     useBreakpointValue,
 } from "@chakra-ui/react";
@@ -12,6 +14,10 @@ import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
 import Slider from "react-slick";
 import BookSnippetItem from "../Book/Snippet/BookSnippetItem";
 import { Book } from "@/models/Book";
+import { getEditBookReviewPage } from "@/constants/routes";
+import reviews from "@/pages/books/reviews";
+import ReviewSnippetItem from "../Review/Snippet/ReviewSnippetItem";
+import { Review } from "@/models/Review";
 
 // Settings for the slider
 
@@ -26,16 +32,17 @@ const defaultSetting: Settings = {
     arrows: false,
     speed: 500,
     slidesToShow: 1,
-    slidesToScroll: 2,
+    slidesToScroll: 1,
 };
 
 type Props = {
-    books: Book[];
+    reviews: Review[];
 };
 
-const Carousel: React.FC<Props> = ({ books }) => {
+const Carousel: React.FC<Props> = ({ reviews }) => {
     // As we have used custom buttons, we need a reference variable to
     // change the state
+
     const [slider, setSlider] = React.useState<Slider | null>(null);
 
     // These are the breakpoints which changes the position of the
@@ -46,13 +53,31 @@ const Carousel: React.FC<Props> = ({ books }) => {
         base: defaultSetting,
         sm: {
             ...defaultSetting,
-            slidesToShow: 3,
+            slidesToShow: 1,
         },
         lg: {
             ...defaultSetting,
-            slidesToShow: 4,
+            slidesToShow: 1,
         },
     });
+
+    const getReviewGroup = () => {
+        let reviewGroup = [];
+        let reviewFourthGroup: Review[] = [];
+        reviews.forEach((review, idx) => {
+            if (idx % 4 === 0) {
+                if (reviewFourthGroup.length > 0) {
+                    reviewGroup.push(reviewFourthGroup);
+                }
+                reviewFourthGroup = [];
+            }
+            reviewFourthGroup.push(review);
+        });
+        if (reviewFourthGroup.length > 0) {
+            reviewGroup.push(reviewFourthGroup);
+        }
+        return reviewGroup;
+    };
 
     return (
         <Box position={"relative"} width={"full"} overflow={"hidden"}>
@@ -77,8 +102,8 @@ const Carousel: React.FC<Props> = ({ books }) => {
                 top={top}
                 transform={"translate(0%, -50%)"}
                 zIndex={2}
-                bg="gray.100"
-                opacity="30%"
+                bg="gray.700"
+                opacity="70%"
                 _hover={{ bg: "brand.100", opacity: "100%" }}
                 transition="all 0.3s"
                 onClick={() => slider?.slickPrev()}
@@ -94,8 +119,8 @@ const Carousel: React.FC<Props> = ({ books }) => {
                 top={top}
                 transform={"translate(0%, -50%)"}
                 zIndex={2}
-                bg="gray.100"
-                opacity="30%"
+                bg="gray.700"
+                opacity="70%"
                 _hover={{ bg: "brand.100", opacity: "100%" }}
                 transition="all 0.3s"
                 onClick={() => slider?.slickNext()}
@@ -105,16 +130,23 @@ const Carousel: React.FC<Props> = ({ books }) => {
             {/* Slider */}
             <Slider {...settings} ref={(slider) => setSlider(slider)}>
                 {/* <Flex> */}
-                {books.map((book) => (
-                    <Box key={book.id}>
-                        <Flex direction="column" align="center">
-                            <Flex direction="column" w="95%">
-                                <BookSnippetItem book={book} />
-                                <Button mt={4}>Xóa</Button>
-                            </Flex>
-                        </Flex>
+                {/* <Grid templateColumns="repeat(2, 1fr)" gap={4} w="100%"> */}
+                {getReviewGroup().map((reviewGroup) => (
+                    <Box>
+                        <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                            {reviewGroup.map((review) => (
+                                <ReviewSnippetItem
+                                    review={review}
+                                    href={getEditBookReviewPage(
+                                        review.bookId,
+                                        review.id!
+                                    )}
+                                />
+                            ))}
+                        </Grid>
                     </Box>
                 ))}
+                {/* </Grid> */}
                 {/* </Flex> */}
             </Slider>
         </Box>

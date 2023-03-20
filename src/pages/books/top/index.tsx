@@ -5,7 +5,7 @@ import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
 import Pagination from "@/components/Pagination";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import useAuth from "@/hooks/useAuth";
-import useBook from "@/hooks/useBook";
+import usePagination from "@/hooks/usePagination";
 import { Book } from "@/models/Book";
 import { Divider, Flex, Box, Text, Select } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
@@ -38,7 +38,7 @@ const filterList: Filter[] = [
 
 const BookTopPage: React.FC<BookTopPageProps> = () => {
     const { setNeedAuth } = useAuth();
-    const { getBooks } = useBook();
+    const { getBooks } = usePagination();
     const [filter, setFilter] = useState("rating");
     const [bookLoading, setBookLoading] = useState(false);
     const [books, setBooks] = useState<Book[]>([]);
@@ -58,7 +58,7 @@ const BookTopPage: React.FC<BookTopPageProps> = () => {
         });
         if (listBook) {
             setBooks(listBook.books);
-            setTotalPage(listBook.totalPage);
+            setTotalPage(listBook.totalPage || 0);
         }
         setBookLoading(false);
         setIsNext(null);

@@ -5,6 +5,7 @@ import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Book, BookStatus } from "@/models/Book";
+import ModelUtils from "@/utils/ModelUtils";
 import {
     Modal,
     ModalOverlay,
@@ -82,7 +83,7 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                 const userReadingBookDocRef = doc(
                     collection(
                         fireStore,
-                        firebaseRoute.getUserReadingBookIdRoute(user.uid)
+                        firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
                     ),
                     book.id!
                 );
@@ -91,6 +92,7 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                     book.id!
                 );
                 batch.set(userReadingBookDocRef, {
+                    ...ModelUtils.toBookSnippet(book),
                     status,
                     chap,
                 });

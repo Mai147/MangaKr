@@ -1,4 +1,4 @@
-import { BookComment } from "@/models/Comment";
+import { Comment } from "@/models/Comment";
 import {
     Avatar,
     Box,
@@ -11,20 +11,19 @@ import {
 import moment from "moment";
 import "moment/locale/vi";
 import React from "react";
-import { FaReddit } from "react-icons/fa";
 import {
     IoArrowUpCircleOutline,
     IoArrowDownCircleOutline,
 } from "react-icons/io5";
 
-type BookCommentItemProps = {
-    comment: BookComment;
-    onDeleteComment: (comment: BookComment) => void;
+type CommentItemProps = {
+    comment: Comment;
+    onDeleteComment: (comment: Comment) => void;
     loadingDelete: boolean;
     userId: string;
 };
 
-const BookCommentItem: React.FC<BookCommentItemProps> = ({
+const CommentItem: React.FC<CommentItemProps> = ({
     comment,
     loadingDelete,
     onDeleteComment,
@@ -93,4 +92,4 @@ const BookCommentItem: React.FC<BookCommentItemProps> = ({
         </Flex>
     );
 };
-export default BookCommentItem;
+export default CommentItem;

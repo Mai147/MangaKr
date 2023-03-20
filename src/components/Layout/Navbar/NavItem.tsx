@@ -1,5 +1,4 @@
 import { Stack, Box, Text, Flex, Icon, Divider, Link } from "@chakra-ui/react";
-// import Link from 'next/link';
 import React from "react";
 import { IconType } from "react-icons";
 import { BsChevronRight } from "react-icons/bs";
@@ -11,6 +10,7 @@ export type NavItemProps = {
     href?: string;
     leftIcon?: IconType;
     divider?: boolean;
+    onClick?: () => void;
 };
 
 const NavItem: React.FC<NavItemProps> = ({
@@ -19,20 +19,22 @@ const NavItem: React.FC<NavItemProps> = ({
     subLabel,
     leftIcon,
     divider,
+    onClick,
 }) => {
     return (
         <Flex direction="column">
-            {divider && <Divider />}
+            {divider && <Divider my={2} />}
             <Link
-                href={href}
+                href={!onClick ? href : undefined}
                 role={"group"}
                 display={"block"}
                 p={2}
                 rounded={"md"}
                 _hover={{ decoration: "none" }}
+                onClick={onClick}
             >
                 <Stack direction={"row"} align={"center"}>
-                    {leftIcon && <Icon as={leftIcon} />}
+                    {leftIcon && <Icon as={leftIcon} fontSize={20} mr={2} />}
                     <Box>
                         <Text transition={"all .3s ease"} fontWeight={500}>
                             {label}

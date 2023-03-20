@@ -1,9 +1,9 @@
 import BookSnippetHorizontalSkeleton from "@/components/Book/Snippet/BookSnippetHorizontalSkeleton";
-import BookSnippetSkeleton from "@/components/Book/Snippet/BookSnippetSkeleton";
-import ConfirmModal from "@/components/Modal/ConfirmModal";
+import BookCarousel from "@/components/Book/Snippet/Carousel";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
+import Carousel from "@/components/Test/carousel";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { getBookReviewDetailPage } from "@/constants/routes";
+import { getEditBookReviewPage } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
@@ -19,17 +19,44 @@ import {
     where,
     writeBatch,
 } from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import React, { SetStateAction, useEffect, useState } from "react";
 import LibrarySection from "../Section";
 
-type LibraryReviewProps = {};
+type LibraryReviewProps = {
+    setConfirmTitle: React.Dispatch<SetStateAction<string>>;
+    setConfirmContent: React.Dispatch<SetStateAction<string>>;
+    setConfirmSubmitFunc: React.Dispatch<
+        SetStateAction<() => () => Promise<void>>
+    >;
+};
 
-const LibraryReview: React.FC<LibraryReviewProps> = () => {
+const LibraryReview: React.FC<LibraryReviewProps> = ({
+    setConfirmContent,
+    setConfirmSubmitFunc,
+    setConfirmTitle,
+}) => {
     const { user } = useAuth();
     const { toggleView } = useModal();
-    const [selectedReview, setSelectedReview] = useState<Review>();
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(false);
+
+    const getReviewGroup = () => {
+        let reviewGroup = [];
+        let reviewFourthGroup: Review[] = [];
+        reviews.forEach((review, idx) => {
+            if (idx % 4 === 0) {
+                if (reviewFourthGroup.length > 0) {
+                    reviewGroup.push(reviewFourthGroup);
+                }
+                reviewFourthGroup = [];
+            }
+            reviewFourthGroup.push(review);
+        });
+        if (reviewFourthGroup.length > 0) {
+            reviewGroup.push(reviewFourthGroup);
+        }
+        return reviewGroup;
+    };
 
     const getBookReviews = async (userId: string) => {
         setLoading(true);
@@ -90,33 +117,44 @@ const LibraryReview: React.FC<LibraryReviewProps> = () => {
 
     return (
         <Box>
-            <ConfirmModal
-                title="Xác nhận xóa bài đánh giá"
-                content="Bạn chắc chắn muốn xóa bài đánh giá này?"
-                onSubmit={() => handleDeleteReview(selectedReview!)}
-            />
             <LibrarySection title="Bài đánh giá">
                 {loading && <BookSnippetHorizontalSkeleton />}
                 {reviews.length <= 0 ? (
                     <Text fontSize={18}>Chưa có bài đánh giá nào</Text>
                 ) : (
-                    <Grid templateColumns="repeat(2, 1fr)" gap={4} w="100%">
-                        {reviews.map((review) => (
-                            <GridItem key={review.id}>
-                                <ReviewSnippetItem
-                                    review={review}
-                                    // href={getBookReviewDetailPage(
-                                    //     review.bookId,
-                                    //     review.id!
-                                    // )}
-                                    onDelete={(review) => {
-                                        setSelectedReview(review);
-                                        toggleView("confirmModal");
-                                    }}
-                                />
-                            </GridItem>
+                    <BookCarousel type="grid" length={getReviewGroup().length}>
+                        {getReviewGroup().map((reviewGroup) => (
+                            <Box>
+                                <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                                    {reviewGroup.map((review) => (
+                                        <ReviewSnippetItem
+                                            review={review}
+                                            href={getEditBookReviewPage(
+                                                review.bookId,
+                                                review.id!
+                                            )}
+                                            onDelete={(review) => {
+                                                setConfirmTitle(
+                                                    "Xác nhận xóa bài đánh giá"
+                                                );
+                                                setConfirmContent(
+                                                    "Bạn chắc chắn muốn xóa bài đánh giá này?"
+                                                );
+                                                setConfirmSubmitFunc(
+                                                    () => () =>
+                                                        handleDeleteReview(
+                                                            review
+                                                        )
+                                                );
+                                                toggleView("confirmModal");
+                                            }}
+                                            onCarousel={true}
+                                        />
+                                    ))}
+                                </Grid>
+                            </Box>
                         ))}
-                    </Grid>
+                    </BookCarousel>
                 )}
             </LibrarySection>
         </Box>

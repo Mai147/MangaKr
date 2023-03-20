@@ -1,14 +1,20 @@
-import { Box, Link, Text } from "@chakra-ui/react";
+import { Box, FlexProps, Link, Text } from "@chakra-ui/react";
 import React from "react";
 
-type TagProps = {
+interface TagProps extends FlexProps {
     label: string;
     href?: string;
     isActive?: boolean;
     onClick?: () => void;
-};
+}
 
-const Tag: React.FC<TagProps> = ({ label, href, isActive, onClick }) => {
+const Tag: React.FC<TagProps> = ({
+    label,
+    href,
+    isActive,
+    onClick,
+    ...rest
+}) => {
     return (
         <Link
             as={href || onClick ? "a" : "div"}
@@ -18,6 +24,7 @@ const Tag: React.FC<TagProps> = ({ label, href, isActive, onClick }) => {
             cursor={href || onClick ? "pointer" : "default"}
         >
             <Box
+                {...rest}
                 px={4}
                 py={1}
                 bg={isActive ? "brand.400" : "gray.300"}

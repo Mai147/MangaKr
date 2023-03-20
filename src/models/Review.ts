@@ -21,9 +21,9 @@ export const tagReviewList: TagReviewItem[] = [
 export interface Review {
     id?: string;
     bookId: string;
+    bookName: string;
     creatorId: string;
     creatorDisplayName: string;
-    bookName: string;
     title: string;
     imageUrl?: string;
     tagReview: TagReview;

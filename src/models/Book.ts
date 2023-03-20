@@ -1,24 +1,44 @@
 import { Timestamp } from "firebase/firestore";
-import { Author } from "./Author";
-import { Character } from "./Character";
-import { Genre, GenreSnippet } from "./Genre";
+import { AuthorSnippet } from "./Author";
+import { CharacterSnippet } from "./Character";
+import { GenreSnippet } from "./Genre";
 
 export type BookStatus = "DONE" | "GOING" | "DROP";
 
-export interface Book {
+export const bookStatusList = [
+    {
+        label: "Hoàn thành",
+        value: "DONE",
+    },
+    {
+        label: "Còn tiếp",
+        value: "GOING",
+    },
+    {
+        label: "Đang tạm dừng",
+        value: "DROP",
+    },
+];
+
+export interface BookSnippet {
     id?: string;
     name: string;
     imageUrl?: string;
     description?: string;
     authorIds?: string[];
     genreIds?: string[];
+    characterIds?: string[];
+}
+
+export interface Book extends BookSnippet {
+    authorSnippets: AuthorSnippet[];
     genreSnippets: GenreSnippet[];
     plot?: string;
     characters?: string;
     status?: string;
     volumes?: string;
     chapters?: string;
-    characterSnippets?: Character[];
+    characterSnippets?: CharacterSnippet[];
     publishedDate?: Timestamp;
     rating: number;
     popularity: number;
@@ -27,7 +47,11 @@ export interface Book {
     numberOfReviews: number;
     writerId: string;
     createdAt?: Timestamp;
-    authors?: Author[];
+}
+
+export interface ReadingBookSnippet extends BookSnippet {
+    status: BookStatus;
+    chap: string;
 }
 
 export type BookVote = {

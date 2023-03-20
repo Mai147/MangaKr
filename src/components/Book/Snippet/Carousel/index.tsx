@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Box, Flex, useBreakpointValue } from "@chakra-ui/react";
 import Slider from "react-slick";
 import CarouselButton from "./CarouselButton";
@@ -7,8 +7,15 @@ import { carouselSetting } from "@/constants/carouselSetting";
 type Props = {
     children: any;
     length: number;
-    type?: "snippet" | "banner" | "librarySnippet";
+    type?:
+        | "snippet"
+        | "banner"
+        | "librarySnippet"
+        | "characterSnippet"
+        | "grid";
     autoplay?: boolean;
+    onPrev?: () => Promise<void>;
+    onNext?: () => Promise<void>;
 };
 
 const BookCarousel: React.FC<Props> = ({
@@ -16,6 +23,8 @@ const BookCarousel: React.FC<Props> = ({
     length,
     type = "snippet",
     autoplay = false,
+    onNext,
+    onPrev,
 }) => {
     const {
         defaultSetting,
@@ -23,6 +32,8 @@ const BookCarousel: React.FC<Props> = ({
         bookSnippetSm,
         bookSnippetLg,
         bookSnippetLibraryLg,
+        characterSnippetLg,
+        characterSnippetSm,
     } = carouselSetting;
     const [slider, setSlider] = useState<Slider | null>(null);
 
@@ -38,9 +49,19 @@ const BookCarousel: React.FC<Props> = ({
                   base: defaultSetting,
                   md: bannerMd.slidesToShow,
               })
-            : useBreakpointValue({
+            : type === "characterSnippet"
+            ? useBreakpointValue({
+                  base: defaultSetting,
+                  sm: characterSnippetSm.slidesToShow,
+                  lg: characterSnippetLg.slidesToShow,
+              })
+            : type === "librarySnippet"
+            ? useBreakpointValue({
                   base: defaultSetting.slidesToShow,
                   lg: bookSnippetLibraryLg.slidesToShow,
+              })
+            : useBreakpointValue({
+                  base: defaultSetting.slidesToShow,
               });
 
     const settings =
@@ -55,26 +76,33 @@ const BookCarousel: React.FC<Props> = ({
                   base: { ...defaultSetting, autoplay },
                   md: { ...bannerMd, autoplay },
               })
-            : useBreakpointValue({
+            : type === "characterSnippet"
+            ? useBreakpointValue({
+                  base: { ...defaultSetting, autoplay },
+                  sm: { ...characterSnippetSm, autoplay },
+                  lg: { ...characterSnippetLg, autoplay },
+              })
+            : type === "librarySnippet"
+            ? useBreakpointValue({
                   base: { ...defaultSetting, autoplay },
                   lg: { ...bookSnippetLibraryLg, autoplay },
-              });
+              })
+            : useBreakpointValue({ base: { ...defaultSetting, autoplay } });
+
     return (
         <>
             {slidesToShow! >= length ? (
                 <Flex w={"full"}>
                     {children.map((child: any) => (
                         <Box
-                            w={{
-                                base: "100%",
-                                sm: `${100 / bookSnippetSm.slidesToShow}%`,
-                                lg: `${
-                                    100 /
-                                    (type === "snippet"
-                                        ? bookSnippetLg.slidesToShow
-                                        : bookSnippetLibraryLg.slidesToShow)
-                                }%`,
-                            }}
+                            w={
+                                type === "banner"
+                                    ? "100%"
+                                    : `${100 / (slidesToShow as number)}%`
+                            }
+                            px={2}
+                            _first={{ ml: -2 }}
+                            py={2}
                             key={child.key}
                         >
                             <Box>{child}</Box>
@@ -82,11 +110,43 @@ const BookCarousel: React.FC<Props> = ({
                     ))}
                 </Flex>
             ) : (
-                <Box position={"relative"} width={"full"} overflow={"hidden"}>
-                    <CarouselButton slider={slider} pos="left" type={type} />
-                    <CarouselButton slider={slider} pos="right" type={type} />
+                <Box
+                    position={"relative"}
+                    width={"full"}
+                    overflow={"hidden"}
+                    role="group"
+                >
+                    <CarouselButton
+                        slider={slider}
+                        btnPos="left"
+                        // type={type}
+                        onNext={onNext}
+                        onPrev={onPrev}
+                        display="none"
+                        _groupHover={{ display: "flex" }}
+                        transition="all 0.5s"
+                    />
+                    <CarouselButton
+                        slider={slider}
+                        btnPos="right"
+                        // type={type}
+                        onNext={onNext}
+                        onPrev={onPrev}
+                        display="none"
+                        _groupHover={{ display: "flex" }}
+                        transition="all 0.5s"
+                    />
                     <Slider {...settings} ref={(slider) => setSlider(slider)}>
-                        {children}
+                        {children.map((child: any) => (
+                            <Box
+                                key={child.key}
+                                py={2}
+                                px={2}
+                                ml={"calc(2px - 0.5rem)"}
+                            >
+                                {child}
+                            </Box>
+                        ))}
                     </Slider>
                 </Box>
             )}

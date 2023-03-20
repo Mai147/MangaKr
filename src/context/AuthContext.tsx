@@ -13,7 +13,7 @@ type AuthState = {
     user?: UserModel | null;
     updateUser: (user: ProfileFormState) => void;
     login: (user: User) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     setNeedAuth: (value: boolean) => void;
     setDefaultPath: (value: string) => void;
 };
@@ -22,7 +22,7 @@ const defaultAuthState: AuthState = {
     user: null,
     updateUser: () => null,
     login: async () => {},
-    logout: () => null,
+    logout: async () => {},
     setNeedAuth: () => null,
     setDefaultPath: () => null,
 };
@@ -91,15 +91,15 @@ export const AuthProvider = ({ children }: any) => {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        if (needAuth) {
+            setNeedAuth(false);
+            await rounter.push(defaultPath);
+        }
         setUser(null);
         Cookies.remove("token");
         Cookies.remove("user_id");
         Cookies.remove("user");
-        if (needAuth) {
-            setNeedAuth(false);
-            rounter.push(defaultPath);
-        }
     };
 
     return (

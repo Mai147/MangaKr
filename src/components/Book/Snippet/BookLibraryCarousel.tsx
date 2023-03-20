@@ -1,4 +1,4 @@
-import { Book } from "@/models/Book";
+import { BookSnippet } from "@/models/Book";
 import { Flex, Box, Text } from "@chakra-ui/react";
 import React from "react";
 import BookSnippetItem from "./BookSnippetItem";
@@ -6,11 +6,14 @@ import BookSnippetSkeleton from "./BookSnippetSkeleton";
 import BookCarousel from "./Carousel";
 
 type BookLibraryCarouselProps = {
-    books: Book[];
+    books: BookSnippet[];
     loading: boolean;
-    onDelete: (book: Book) => void;
+    onDelete: (book: BookSnippet) => void;
     href?: (bookId: string) => string;
     noBookText?: string;
+    length: number;
+    onPrev?: () => Promise<void>;
+    onNext?: () => Promise<void>;
 };
 
 const BookLibraryCarousel: React.FC<BookLibraryCarouselProps> = ({
@@ -19,6 +22,9 @@ const BookLibraryCarousel: React.FC<BookLibraryCarouselProps> = ({
     onDelete,
     href,
     noBookText = "Chưa có manga nào",
+    length,
+    onNext,
+    onPrev,
 }) => {
     return loading ? (
         <Flex>
@@ -29,19 +35,19 @@ const BookLibraryCarousel: React.FC<BookLibraryCarouselProps> = ({
     ) : books.length <= 0 ? (
         <Text fontSize={18}>{noBookText}</Text>
     ) : (
-        <BookCarousel length={books.length} type="librarySnippet">
+        <BookCarousel
+            length={length}
+            type="librarySnippet"
+            onNext={onNext}
+            onPrev={onPrev}
+        >
             {books.map((book) => (
-                <Box key={book.id}>
-                    <Flex direction="column" align="center">
-                        <Flex direction="column" w="95%" py={2}>
-                            <BookSnippetItem
-                                book={book}
-                                href={href && href(book.id!)}
-                                onDelete={onDelete}
-                            />
-                        </Flex>
-                    </Flex>
-                </Box>
+                <BookSnippetItem
+                    key={book.id}
+                    book={book}
+                    href={href && href(book.id!)}
+                    onDelete={onDelete}
+                />
             ))}
         </BookCarousel>
     );
