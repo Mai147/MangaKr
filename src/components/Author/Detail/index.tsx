@@ -1,7 +1,8 @@
 import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHorizontalItem";
 import BookCarousel from "@/components/Book/Snippet/Carousel";
 import Pagination from "@/components/Pagination";
-import usePagination from "@/hooks/usePagination";
+import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
+import usePagination, { PaginationInput } from "@/hooks/usePagination";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import {
@@ -23,24 +24,26 @@ type AuthorDetailProps = {
     author: Author;
 };
 
-const defaultPaginationInfo = {
+const defaultPaginationInput: PaginationInput = {
     page: 1,
     isNext: true,
     isFirst: true,
+    pageCount: 2,
+    loading: false,
+    totalPage: 1,
 };
 
 const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
-    const [paginationInfo, setPaginationInfo] = useState(defaultPaginationInfo);
+    const [paginationInput, setPaginationInput] = useState(
+        defaultPaginationInput
+    );
     const [totalPage, setTotalPage] = useState(0);
     const [books, setBooks] = useState<Book[]>([]);
     const { getBooks } = usePagination();
 
     const getAuthorBooks = async (authorId: string) => {
         const res = await getBooks({
-            page: paginationInfo.page,
-            pageCount: 2,
-            isNext: paginationInfo.isNext,
-            isFirst: paginationInfo.isFirst,
+            ...paginationInput,
             authorId,
         });
         setBooks(res.books);
@@ -66,12 +69,12 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
     };
 
     useEffect(() => {
-        setPaginationInfo(defaultPaginationInfo);
+        setPaginationInput(defaultPaginationInput);
     }, []);
 
     useEffect(() => {
         getAuthorBooks(author.id!);
-    }, [paginationInfo.page, paginationInfo.isFirst]);
+    }, [paginationInput.page, paginationInput.isFirst]);
 
     return (
         <Flex align="flex-start">
@@ -83,6 +86,7 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                 borderRadius={4}
                 p={6}
                 w="100%"
+                bg="white"
             >
                 <Flex>
                     <Avatar
@@ -127,7 +131,16 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                     <Text fontSize={20} fontWeight={600}>
                         Danh sách Manga
                     </Text>
-                    {totalPage > 0 ? (
+                    {paginationInput.loading ? (
+                        <Grid
+                            templateColumns="repeat(2, minmax(0, 1fr))"
+                            gap={4}
+                            w="100%"
+                        >
+                            <HorizontalSkeleton size="sm" />
+                            <HorizontalSkeleton size="sm" />
+                        </Grid>
+                    ) : totalPage > 0 ? (
                         <Flex direction="column" w="100%">
                             <BookCarousel
                                 length={getBookGroup().length}
@@ -150,17 +163,17 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                                 ))}
                             </BookCarousel>
                             <Pagination
-                                page={paginationInfo.page}
+                                page={paginationInput.page}
                                 totalPage={totalPage}
                                 onNext={() => {
-                                    setPaginationInfo((prev) => ({
+                                    setPaginationInput((prev) => ({
                                         ...prev,
                                         page: prev.page + 1,
                                         isNext: true,
                                     }));
                                 }}
                                 onPrev={() => {
-                                    setPaginationInfo((prev) => ({
+                                    setPaginationInput((prev) => ({
                                         ...prev,
                                         page: prev.page - 1,
                                         isNext: false,

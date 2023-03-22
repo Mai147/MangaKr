@@ -58,3 +58,26 @@ export type BookVote = {
     bookId: string;
     value: number;
 };
+
+export const defaultBookForm: Book = {
+    name: "",
+    description: "",
+    chapters: "",
+    characters: "",
+    authorIds: [],
+    genreIds: [],
+    genreSnippets: [],
+    authorSnippets: [],
+    characterIds: [],
+    characterSnippets: [],
+    plot: "",
+    publishedDate: undefined,
+    status: "",
+    volumes: "",
+    rating: 0,
+    popularity: 0,
+    numberOfRates: 0,
+    numberOfComments: 0,
+    numberOfReviews: 0,
+    writerId: "1",
+};

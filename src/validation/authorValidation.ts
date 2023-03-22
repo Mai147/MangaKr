@@ -5,7 +5,10 @@ import { fireStore } from "@/firebase/clientApp";
 import { Author } from "@/models/Author";
 import { query, collection, where, getDocs } from "firebase/firestore";
 
-export const validateCreateAuthor = async (author: Author) => {
+export const validateCreateAuthor = async (
+    author: Author,
+    currentAuthorName?: string
+) => {
     let res: ValidationResult = {
         result: false,
         errors: [],
@@ -16,7 +19,7 @@ export const validateCreateAuthor = async (author: Author) => {
             message: getRequiredError("tên tác giả"),
         };
         res.errors.push(error);
-    } else {
+    } else if (author.name !== currentAuthorName) {
         const authorQuery = query(
             collection(fireStore, firebaseRoute.getAllAuthorRoute()),
             where("name", "==", author.name)

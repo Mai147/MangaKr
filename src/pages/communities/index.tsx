@@ -6,9 +6,10 @@ import CreateCommunityModal from "@/components/Modal/Community/CreateCommunityMo
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
+import useModal from "@/hooks/useModal";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";
-import { Box, Divider, VStack } from "@chakra-ui/react";
+import { Box, Button, Divider, VStack } from "@chakra-ui/react";
 import { collection, getDocs, limit, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 
@@ -17,6 +18,7 @@ type CommunityPageProps = {};
 const CommunityPage: React.FC<CommunityPageProps> = () => {
     const { user } = useAuth();
     const [communities, setCommunities] = useState<Community[]>([]);
+    const { toggleView } = useModal();
     const [loading, setLoading] = useState(false);
 
     const getRelativeCommunities = async (userId: string) => {
@@ -57,7 +59,11 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     return (
         <PageContent>
             <VStack spacing={2} align="flex-start">
-                <SectionHeading title="You may like" />
+                <Button onClick={() => toggleView("createCommunity")}>
+                    Test
+                </Button>
+                <CreateCommunityModal />
+                <SectionHeading title="Bạn có thể thích" />
                 {communities.map((community) => (
                     <Box w="100%" key={community.id}>
                         <CommunitySnippetHorizontalItem

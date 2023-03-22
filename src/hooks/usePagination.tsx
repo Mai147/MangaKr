@@ -2,6 +2,7 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import { Author } from "@/models/Author";
 import { Book, BookSnippet } from "@/models/Book";
+import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
 import { Review } from "@/models/Review";
 import {
@@ -21,6 +22,45 @@ import {
 } from "firebase/firestore";
 import { useState } from "react";
 
+export interface PaginationInput {
+    page: number;
+    totalPage: number;
+    pageCount: number;
+    isNext: boolean;
+    loading: boolean;
+    isFirst: boolean;
+}
+
+export type FilterValue = "rating" | "popularity" | "numberOfReviews";
+
+type FilterLabel = "Điểm Đánh Giá" | "Số Người Đọc" | "Số Bài Đánh Giá";
+
+export type Filter = {
+    label: FilterLabel;
+    value: FilterValue;
+};
+
+export const filterList: Filter[] = [
+    {
+        label: "Số Người Đọc",
+        value: "popularity",
+    },
+    {
+        label: "Số Bài Đánh Giá",
+        value: "numberOfReviews",
+    },
+    {
+        label: "Điểm Đánh Giá",
+        value: "rating",
+    },
+];
+
+export interface BookPaginationInput extends PaginationInput {
+    genreId?: string;
+    authorId?: string;
+    filter?: FilterValue;
+}
+
 interface PaginationInfo {
     page: number;
     pageCount: number;
@@ -39,6 +79,10 @@ interface UserBookSnippetPaginationInfo extends PaginationInfo {
     userId: string;
 }
 
+interface CommentPaginationInfo extends PaginationInfo {
+    commentDocsRef: CollectionReference<DocumentData>;
+}
+
 type DocPosition = {
     firstDoc: QueryDocumentSnapshot<DocumentData> | null;
     lastDoc: QueryDocumentSnapshot<DocumentData> | null;
@@ -51,6 +95,7 @@ type PaginationDocState = {
     community: DocPosition;
     writingBook: DocPosition;
     readingBook: DocPosition;
+    comment: DocPosition;
 };
 
 const defaultPaginationDocState: PaginationDocState = {
@@ -75,6 +120,10 @@ const defaultPaginationDocState: PaginationDocState = {
         lastDoc: null,
     },
     writingBook: {
+        firstDoc: null,
+        lastDoc: null,
+    },
+    comment: {
         firstDoc: null,
         lastDoc: null,
     },
@@ -105,7 +154,8 @@ const usePagination = () => {
             | "author"
             | "community"
             | "readingBook"
-            | "writingBook";
+            | "writingBook"
+            | "comment";
         isFirst?: boolean;
     }) => {
         const firstDoc = isFirst
@@ -330,6 +380,30 @@ const usePagination = () => {
         };
     };
 
+    const getComments = async ({
+        page,
+        pageCount,
+        isFirst,
+        isNext,
+        commentDocsRef,
+    }: CommentPaginationInfo) => {
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        const res = await pagination({
+            docsRef: commentDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "comment",
+            isFirst,
+        });
+        return {
+            comments: res?.res as Comment[],
+            totalPage: res?.totalPage,
+        };
+    };
+
     const getWritingBookSnippets = async ({
         page,
         pageCount,
@@ -387,6 +461,7 @@ const usePagination = () => {
         getReviews,
         getAuthors,
         getCommunities,
+        getComments,
         getReadingBookSnippets,
         getWritingBookSnippets,
     };

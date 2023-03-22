@@ -58,6 +58,7 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
                             objectFit={"cover"}
                             borderRadius={4}
                             alt="Book Image"
+                            w="100%"
                         />
                     </AspectRatio>
                     <Box px="4" pb={4}>

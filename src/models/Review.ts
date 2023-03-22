@@ -1,4 +1,4 @@
-import { Timestamp } from "firebase/firestore";
+import { serverTimestamp, Timestamp } from "firebase/firestore";
 
 export type TagReview = "RECOMMENDED" | "NOT RECOMMENDED";
 
@@ -34,3 +34,18 @@ export interface Review {
     numberOfDislikes: number;
     createdAt: Timestamp;
 }
+
+export const defaultReviewForm: Review = {
+    bookId: "",
+    bookName: "",
+    content: "",
+    creatorId: "",
+    creatorDisplayName: "",
+    numberOfComments: 0,
+    numberOfDislikes: 0,
+    numberOfLikes: 0,
+    tagReview: "RECOMMENDED",
+    title: "",
+    rating: 0,
+    createdAt: serverTimestamp() as Timestamp,
+};

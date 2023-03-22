@@ -14,13 +14,20 @@ type BookDetailProps = {
 const BookDetail: React.FC<BookDetailProps> = ({ book }) => {
     const { user } = useAuth();
     return (
-        <Flex position="relative" alignItems="flex-start">
+        <Flex
+            position="relative"
+            alignItems="flex-start"
+            bg="white"
+            p={6}
+            borderRadius={4}
+            boxShadow="lg"
+        >
             <BookDetailSidebar book={book} />
             <Box
                 flexGrow={1}
                 pl={5}
                 borderLeft="1px solid"
-                borderColor="gray.200"
+                borderColor="gray.400"
             >
                 <BookDetailHeader book={book} user={user} />
                 <Divider my={4} />

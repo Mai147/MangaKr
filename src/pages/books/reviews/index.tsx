@@ -1,8 +1,8 @@
-import BookSnippetHorizontalSkeleton from "@/components/Book/Snippet/BookSnippetHorizontalSkeleton";
 import PageContent from "@/components/Layout/PageContent";
 import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
 import Pagination from "@/components/Pagination";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
+import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { getBookReviewDetailPage } from "@/constants/routes";
@@ -115,10 +115,10 @@ const ReviewPage: React.FC<ReviewPageProps> = () => {
                 <Text fontSize={24} fontWeight={600}>
                     Bài đánh giá
                 </Text>
-                <Divider my={4} />
+                <Divider my={4} borderColor="gray.400" />
                 {reviewLoading ? (
                     [1, 2, 3, 4].map((e, idx) => (
-                        <BookSnippetHorizontalSkeleton key={idx} />
+                        <HorizontalSkeleton key={idx} />
                     ))
                 ) : reviews.length <= 0 ? (
                     <Text align="center" mt={10}>

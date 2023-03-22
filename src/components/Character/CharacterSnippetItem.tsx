@@ -23,13 +23,14 @@ const CharacterSnippetItem: React.FC<CharacterSnippetItemProps> = ({
         <Link _hover={{ textDecoration: "none" }} href={href}>
             <VStack
                 border="1px solid"
-                borderColor="gray.300"
+                borderColor="gray.400"
+                bg="white"
                 p={2}
                 borderRadius={4}
                 direction="column"
                 align="center"
                 spacing={2}
-                _hover={{ bg: "gray.100" }}
+                _hover={{ bg: "gray.50" }}
                 transition="all 0.5s"
             >
                 <AspectRatio ratio={1} w="100%">

@@ -1,6 +1,5 @@
-import ImageUpload from "@/components/Review/Form/ImageUpload";
+import ImageUpload from "@/components/ImageUpload";
 import useBookCreate from "@/hooks/useBookCreate";
-import useSelectFile from "@/hooks/useSelectFile";
 import React, { useEffect } from "react";
 
 type BookFormImageTabProps = {

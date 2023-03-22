@@ -13,14 +13,7 @@ import {
     VStack,
 } from "@chakra-ui/react";
 import {
-    getCountFromServer,
-    query,
-    startAfter,
-    limit,
-    orderBy,
-    getDocs,
     DocumentData,
-    QueryDocumentSnapshot,
     doc,
     increment,
     serverTimestamp,
@@ -31,6 +24,7 @@ import {
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import RequiredLoginContainer from "../Book/Detail/Action/RequiredLoginContainer";
+import usePagination, { PaginationInput } from "@/hooks/usePagination";
 
 type CommentSectionProps = {
     commentDocsRef: CollectionReference<DocumentData>;
@@ -38,19 +32,30 @@ type CommentSectionProps = {
     user?: UserModel | null;
 };
 
+interface CommentPaginationInput extends PaginationInput {
+    commentList: Comment[];
+}
+
+const defaultCommentPaginationInfo: CommentPaginationInput = {
+    page: 1,
+    totalPage: 1,
+    pageCount: COMMENT_PAGE_COUNT,
+    isFirst: false,
+    isNext: true,
+    loading: false,
+    commentList: [],
+};
+
 const CommentSection: React.FC<CommentSectionProps> = ({
     commentDocsRef,
     rootDocRef,
     user,
 }) => {
-    const [page, setPage] = useState(1);
-    const [totalPage, setTotalPage] = useState(1);
     const [commentText, setCommentText] = useState("");
-    const [commentList, setCommentList] = useState<Comment[]>([]);
     const [commentLoading, setCommentLoading] = useState(false);
-    const [getCommentLoading, setGetCommentLoading] = useState(false);
-    const [lastCommentDoc, setLastCommentDoc] =
-        useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [commentPagination, setCommentPagination] =
+        useState<CommentPaginationInput>(defaultCommentPaginationInfo);
+    const { getComments } = usePagination();
 
     const handleComment = async () => {
         setCommentLoading(true);
@@ -64,84 +69,83 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 creatorDisplayName: user.displayName!,
                 creatorImageUrl: user.photoURL,
                 text: commentText,
+                numberOfDislikes: 0,
+                numberOfLikes: 0,
                 createdAt: serverTimestamp() as Timestamp,
+                numberOfReplies: 0,
             };
-            // const commentDocRef = doc(
-            //     collection(fireStore, firebaseRoute.getBookCommentRoute(bookId))
-            // );
             const commentDocRef = doc(commentDocsRef);
-            // const bookDocRef = doc(
-            //     collection(fireStore, firebaseRoute.getAllBookRoute()),
-            //     bookId
-            // );
             batch.set(commentDocRef, newComment);
             batch.update(rootDocRef, {
                 numberOfComments: increment(1),
             });
             await batch.commit();
             setCommentText("");
-            setCommentList((prev) => [
-                {
-                    ...newComment,
-                    id: commentDocRef.id,
-                    createdAt: Timestamp.fromDate(new Date()),
-                },
+            setCommentPagination((prev) => ({
                 ...prev,
-            ]);
+                commentList: [
+                    {
+                        ...newComment,
+                        id: commentDocRef.id,
+                        createdAt: Timestamp.fromDate(new Date()),
+                    },
+                    ...prev.commentList,
+                ],
+            }));
         } catch (error) {
             console.log(error);
         }
         setCommentLoading(false);
     };
 
-    const getComments = async ({
-        page,
-        pageCount,
-    }: {
-        page: number;
-        pageCount: number;
-    }) => {
-        setGetCommentLoading(true);
-        // const commentDocsRef = collection(
-        //     fireStore,
-        //     firebaseRoute.getBookCommentRoute(bookId)
-        // );
-        const queryConstraints = [];
-        const snapShot = await getCountFromServer(commentDocsRef);
-        const ttPage = Math.ceil(snapShot.data().count / pageCount);
-        setTotalPage(ttPage);
-        if (lastCommentDoc) {
-            if (page <= ttPage) {
-                queryConstraints.push(startAfter(lastCommentDoc));
-                queryConstraints.push(limit(pageCount));
-            } else return;
-        }
-        const commentQuery = query(
-            commentDocsRef,
-            orderBy("createdAt", "desc"),
-            limit(pageCount),
-            ...queryConstraints
-        );
-        const commentDocs = await getDocs(commentQuery);
-        let comments: Comment[] = [];
-        for (const commentDoc of commentDocs.docs) {
-            const comment = commentDoc.data() as Comment;
-            comments = [
-                ...comments,
-                {
-                    id: commentDoc.id,
-                    ...comment,
-                },
-            ];
-        }
-        setLastCommentDoc(commentDocs.docs[commentDocs.docs.length - 1]);
-        setCommentList((prev) => [...prev, ...comments]);
-        setGetCommentLoading(false);
+    const onChangeCommentLike = (
+        commentId: string,
+        likeIncrement: number,
+        dislikeIncrement: number
+    ) => {
+        setCommentPagination((prev) => {
+            const idx = prev.commentList.findIndex(
+                (comment) => comment.id === commentId
+            );
+            prev.commentList[idx].numberOfLikes += likeIncrement;
+            prev.commentList[idx].numberOfDislikes += dislikeIncrement;
+            return prev;
+        });
+    };
+
+    const onChangeReplyNumber = (commentId: string) => {
+        setCommentPagination((prev) => {
+            const idx = prev.commentList.findIndex(
+                (comment) => comment.id === commentId
+            );
+            prev.commentList[idx].numberOfReplies += 1;
+            return prev;
+        });
+    };
+
+    const getCommentList = async () => {
+        setCommentPagination((prev) => ({
+            ...prev,
+            loading: true,
+        }));
+        const res = await getComments({
+            page: commentPagination.page,
+            pageCount: commentPagination.pageCount,
+            isFirst: false,
+            isNext: commentPagination.isNext,
+            commentDocsRef: commentDocsRef,
+        });
+        setCommentPagination((prev) => ({
+            ...prev,
+            commentList: [...prev.commentList, ...(res?.comments as Comment[])],
+            totalPage: res?.totalPage || 0,
+            loading: false,
+        }));
     };
 
     useEffect(() => {
-        getComments({ page, pageCount: COMMENT_PAGE_COUNT });
-    }, [page]);
+        getCommentList();
+    }, [commentPagination.page]);
 
     return (
         <>
@@ -158,18 +162,24 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     />
                     <VStack spacing={2} align="center">
                         <Flex alignSelf="stretch" direction="column">
-                            {commentList.map((comment) => {
+                            {commentPagination.commentList.map((comment) => {
                                 return (
                                     <CommentItem
                                         key={comment.id}
                                         comment={comment}
-                                        loadingDelete={false}
-                                        onDeleteComment={() => {}}
-                                        userId={user.uid}
+                                        commentDocsRef={commentDocsRef}
+                                        rootDocRef={rootDocRef}
+                                        onChangeCommentLike={
+                                            onChangeCommentLike
+                                        }
+                                        onChangeReplyNumber={
+                                            onChangeReplyNumber
+                                        }
+                                        user={user}
                                     />
                                 );
                             })}
-                            {getCommentLoading && (
+                            {commentPagination.loading && (
                                 <Box padding="6" boxShadow="lg" bg="white">
                                     <SkeletonCircle size="10" />
                                     <SkeletonText
@@ -183,11 +193,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                 </Box>
                             )}
                         </Flex>
-                        {page < totalPage && (
+                        {commentPagination.page <
+                            commentPagination.totalPage && (
                             <Button
                                 variant={"link"}
                                 color="brand.100"
-                                onClick={() => setPage((prev) => prev + 1)}
+                                onClick={() =>
+                                    setCommentPagination((prev) => ({
+                                        ...prev,
+                                        page: prev.page + 1,
+                                    }))
+                                }
                             >
                                 Xem thêm
                             </Button>

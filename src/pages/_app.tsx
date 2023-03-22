@@ -7,15 +7,18 @@ import "@/styles/ckeditor.css";
 import { ChakraProvider } from "@chakra-ui/react";
 
 import type { AppProps } from "next/app";
+import { CommunityProvider } from "@/context/CommunityContext";
 
 export default function App({ Component, pageProps }: AppProps) {
     return (
         <ChakraProvider theme={theme}>
             <AuthProvider>
                 <ModalProvider>
-                    <Layout>
-                        <Component {...pageProps} />
-                    </Layout>
+                    <CommunityProvider>
+                        <Layout>
+                            <Component {...pageProps} />
+                        </Layout>
+                    </CommunityProvider>
                 </ModalProvider>
             </AuthProvider>
         </ChakraProvider>

@@ -1,8 +1,8 @@
+import VerticalSkeleton from "@/components/Skeleton/VerticalSkeleton";
 import { BookSnippet } from "@/models/Book";
-import { Flex, Box, Text } from "@chakra-ui/react";
+import { Flex, Text } from "@chakra-ui/react";
 import React from "react";
 import BookSnippetItem from "./BookSnippetItem";
-import BookSnippetSkeleton from "./BookSnippetSkeleton";
 import BookCarousel from "./Carousel";
 
 type BookLibraryCarouselProps = {
@@ -29,7 +29,7 @@ const BookLibraryCarousel: React.FC<BookLibraryCarouselProps> = ({
     return loading ? (
         <Flex>
             {[1, 2, 3].map((idx) => (
-                <BookSnippetSkeleton key={idx} loading={loading} />
+                <VerticalSkeleton />
             ))}
         </Flex>
     ) : books.length <= 0 ? (

@@ -9,7 +9,7 @@ type LibrarySectionProps = {
 const LibrarySection: React.FC<LibrarySectionProps> = ({ children, title }) => {
     return (
         <VStack spacing={2} align="flex-start">
-            <Text fontWeight={600} fontSize={24}>
+            <Text fontWeight={600} fontSize={24} lineHeight={1}>
                 {title}
             </Text>
             {children}

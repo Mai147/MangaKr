@@ -3,8 +3,8 @@ import { ValidationError } from "@/constants/validation";
 import { fireStore, storage } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import { AuthorSnippet } from "@/models/Author";
-import { Book } from "@/models/Book";
-import { Character } from "@/models/Character";
+import { Book, defaultBookForm } from "@/models/Book";
+import { Character, defaultCharacterForm } from "@/models/Character";
 import { GenreSnippet } from "@/models/Genre";
 import ModelUtils from "@/utils/ModelUtils";
 import { validateCreateBook } from "@/validation/bookValidation";
@@ -17,6 +17,9 @@ import {
     collection,
     serverTimestamp,
     Timestamp,
+    query,
+    where,
+    getDocs,
 } from "firebase/firestore";
 import {
     deleteObject,
@@ -56,38 +59,6 @@ type RemovedAndInsertedSnippet = {
         inserted: Character[];
         updated: Character[];
     };
-};
-
-const defaultBookForm: Book = {
-    name: "",
-    description: "",
-    chapters: "",
-    characters: "",
-    authorIds: [],
-    genreIds: [],
-    genreSnippets: [],
-    authorSnippets: [],
-    characterIds: [],
-    characterSnippets: [],
-    plot: "",
-    publishedDate: undefined,
-    status: "",
-    volumes: "",
-    rating: 0,
-    popularity: 0,
-    numberOfRates: 0,
-    numberOfComments: 0,
-    numberOfReviews: 0,
-    writerId: "1",
-};
-
-const defaultCharacterForm: Character = {
-    bookId: "",
-    name: "",
-    numberOfDislikes: 0,
-    numberOfLikes: 0,
-    bio: ``,
-    role: "",
 };
 
 const defaultBookState: BookState = {
@@ -484,6 +455,41 @@ export const BookCreateProvider = ({ children }: any) => {
             batch.update(userWritingDocRef, {
                 ...ModelUtils.toBookSnippet(bookForm),
                 imageUrl: downloadUrl,
+            });
+
+            // Update bookName in reviews and communities
+            const reviewDocsRef = collection(
+                fireStore,
+                firebaseRoute.getAllReviewRoute()
+            );
+            const reviewQuery = query(
+                reviewDocsRef,
+                where("bookId", "==", book.id)
+            );
+            const reviewDocs = await getDocs(reviewQuery);
+            reviewDocs.docs.forEach((doc) => {
+                if (doc.exists()) {
+                    batch.update(doc.ref, {
+                        bookName: bookForm.name,
+                    });
+                }
+            });
+
+            const communityDocsRef = collection(
+                fireStore,
+                firebaseRoute.getAllCommunityRoute()
+            );
+            const commnunityQuery = query(
+                communityDocsRef,
+                where("bookId", "==", book.id)
+            );
+            const communityDocs = await getDocs(commnunityQuery);
+            communityDocs.docs.forEach((doc) => {
+                if (doc.exists()) {
+                    batch.update(doc.ref, {
+                        bookName: bookForm.name,
+                    });
+                }
             });
 
             // Update image

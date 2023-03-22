@@ -23,14 +23,14 @@ const edit: React.FC<editProps> = ({ review, user }) => {
         );
     }
     return (
-        <Box p={6} boxShadow="lg">
+        <Box p={6} bg="white" borderRadius={4} boxShadow="lg">
             <ReviewForm user={user} bookId={review.bookId} review={review} />
         </Box>
     );
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-    const { token, user } = cookies(context) || null;
+    const { token, user, user_id } = cookies(context) || null;
     const { rid } = context.query;
     if (!token) {
         context.res.writeHead(302, { Location: HOME_PAGE });
@@ -49,7 +49,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 id: reviewDoc.id,
                 ...reviewDoc.data(),
             } as Review)
-        );
+        ) as Review;
+        if (review.creatorId !== user_id) {
+            context.res.writeHead(302, { Location: HOME_PAGE });
+            context.res.end();
+        }
         return {
             props: {
                 user: us,

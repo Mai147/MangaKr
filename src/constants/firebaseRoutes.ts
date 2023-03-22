@@ -11,11 +11,14 @@ const CHARACTER_ROUTE = `characters`;
 const CHARACTER_SNIPPET_ROUTE = `characterSnippets`;
 const GENRE_ROUTE = `genres`;
 const COMMENT_ROUTE = `comments`;
+const COMMENT_VOTE_ROUTE = `commentVotes`;
 const REVIEW_ROUTE = `reviews`;
 const REVIEW_VOTE_ROUTE = `reviewVotes`;
 const IMAGE_ROUTE = `image`;
 const COMMUNITY_ROUTE = `communities`;
 const COMMUNITY_SNIPPET_ROUTE = `communitySnippets`;
+const COMMUNITY_MODERATOR_SNIPPET = `moderatorSnippets`;
+const POST_ROUTE = `posts`;
 
 export const firebaseRoute = {
     getAllUserRoute() {
@@ -39,11 +42,17 @@ export const firebaseRoute = {
     getUserReviewVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${REVIEW_VOTE_ROUTE}`;
     },
+    getUserCommentVoteRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${COMMENT_VOTE_ROUTE}`;
+    },
     getUserAuthorVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${AUTHOR_VOTE_ROUTE}`;
     },
     getAllAuthorRoute() {
         return AUTHOR_ROUTE;
+    },
+    getAuthorImageRoute(authorId: string) {
+        return `${AUTHOR_ROUTE}/${authorId}/${IMAGE_ROUTE}`;
     },
     getAllGenreRoute() {
         return GENRE_ROUTE;
@@ -83,5 +92,20 @@ export const firebaseRoute = {
     },
     getAllCommunityRoute() {
         return `${COMMUNITY_ROUTE}`;
+    },
+    getCommunityModeratorSnippetRoute(communityId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${COMMUNITY_MODERATOR_SNIPPET}`;
+    },
+    getCommunityPostRoute(communityId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}`;
+    },
+    getReplyCommentRoute(parentRoute: string, parentId: string) {
+        return `${parentRoute}/${parentId}/${COMMENT_ROUTE}`;
+    },
+    getAllPostRoute() {
+        return `${POST_ROUTE}`;
+    },
+    getPostImageRoute(postId: string) {
+        return `${POST_ROUTE}/${postId}/${IMAGE_ROUTE}`;
     },
 };

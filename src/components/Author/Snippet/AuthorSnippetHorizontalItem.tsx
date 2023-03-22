@@ -29,6 +29,7 @@ const AuthorSnippetHorizontalItem: React.FC<
                 border="1px solid"
                 borderColor="gray.200"
                 borderRadius={4}
+                bg="white"
                 _hover={{ bg: "gray.50" }}
                 transition="all 0.5s"
             >

@@ -1,4 +1,13 @@
-import { Stack, Box, Text, Flex, Icon, Divider, Link } from "@chakra-ui/react";
+import {
+    Stack,
+    Box,
+    Text,
+    Flex,
+    Icon,
+    Divider,
+    Link,
+    Avatar,
+} from "@chakra-ui/react";
 import React from "react";
 import { IconType } from "react-icons";
 import { BsChevronRight } from "react-icons/bs";
@@ -9,6 +18,7 @@ export type NavItemProps = {
     children?: Array<NavItemProps>;
     href?: string;
     leftIcon?: IconType;
+    leftImage?: string;
     divider?: boolean;
     onClick?: () => void;
 };
@@ -18,6 +28,7 @@ const NavItem: React.FC<NavItemProps> = ({
     href,
     subLabel,
     leftIcon,
+    leftImage,
     divider,
     onClick,
 }) => {
@@ -35,6 +46,7 @@ const NavItem: React.FC<NavItemProps> = ({
             >
                 <Stack direction={"row"} align={"center"}>
                     {leftIcon && <Icon as={leftIcon} fontSize={20} mr={2} />}
+                    {leftImage && <Avatar src={leftImage} size="sm" mr={2} />}
                     <Box>
                         <Text transition={"all .3s ease"} fontWeight={500}>
                             {label}

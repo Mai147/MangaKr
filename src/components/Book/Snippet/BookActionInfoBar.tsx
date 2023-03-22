@@ -24,7 +24,7 @@ const BookActionInfoBar: React.FC<BookActionInfoBarProps> = ({
                 </Text>
                 <RatingBar rate={book.rating / 2} size={textSize} readonly />
             </Flex>
-            <Flex align="center" mx={10}>
+            <Flex align="center" mx={6}>
                 <Text color="gray.600" fontSize={textSize} mr={2}>
                     {book.numberOfComments || 0}
                 </Text>

@@ -10,18 +10,22 @@ import {
     Button,
     Alert,
     AlertIcon,
+    Text,
+    VStack,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 
 type ConfirmModalProps = {
     title: string;
     content: string;
+    subContent?: string;
     onSubmit: () => Promise<void>;
 };
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
     title,
     content,
+    subContent,
     onSubmit,
 }) => {
     const { view, isOpen, closeModal } = useModal();
@@ -41,7 +45,12 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 <ModalBody>
                     <Alert status="error">
                         <AlertIcon />
-                        {content}
+                        <VStack align="flex-start" spacing={0}>
+                            <Text>{content}</Text>
+                            <Text color="gray.400" fontSize={13}>
+                                {subContent}
+                            </Text>
+                        </VStack>
                     </Alert>
                 </ModalBody>
 

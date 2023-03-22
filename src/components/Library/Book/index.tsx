@@ -4,8 +4,7 @@ import { BOOK_PAGE, getEditBookPage } from "@/constants/routes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import usePagination from "@/hooks/usePagination";
-import { Book, BookSnippet, ReadingBookSnippet } from "@/models/Book";
+import { BookSnippet } from "@/models/Book";
 import { Divider, Box, Flex, Spinner, useToast } from "@chakra-ui/react";
 import {
     collection,
@@ -19,35 +18,10 @@ import { ref, deleteObject } from "firebase/storage";
 import React, { SetStateAction, useEffect, useState } from "react";
 import LibrarySection from "../Section";
 
-// interface PaginationInfo {
-//     page: number;
-//     totalPage: number;
-//     pageCount: number;
-//     isNext: boolean;
-//     loading: boolean;
-// }
-
-// interface BookPaginationInfo extends PaginationInfo {
-//     books: BookSnippet[];
-// }
-
-// const defaultPaginationInfoState: PaginationInfo = {
-//     page: 1,
-//     totalPage: 1,
-//     isNext: true,
-//     loading: false,
-//     pageCount: 0,
-// };
-
-// const defaultBookPaginationState: BookPaginationInfo = {
-//     ...defaultPaginationInfoState,
-//     books: [],
-//     pageCount: 5,
-// };
-
 type LibraryBookProps = {
     setConfirmTitle: React.Dispatch<SetStateAction<string>>;
     setConfirmContent: React.Dispatch<SetStateAction<string>>;
+    setConfirmSubContent: React.Dispatch<SetStateAction<string>>;
     setConfirmSubmitFunc: React.Dispatch<
         SetStateAction<() => () => Promise<void>>
     >;
@@ -55,6 +29,7 @@ type LibraryBookProps = {
 
 const LibraryBook: React.FC<LibraryBookProps> = ({
     setConfirmContent,
+    setConfirmSubContent,
     setConfirmSubmitFunc,
     setConfirmTitle,
 }) => {
@@ -65,52 +40,6 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
     const [readingBooks, setReadingBooks] = useState<BookSnippet[]>([]);
     const [writingBooksLoading, setWritingBooksLoading] = useState(false);
     const [readingBooksLoading, setReadingBooksLoading] = useState(false);
-    // const [writingBooks, setWritingBooks] = useState<BookPaginationInfo>(
-    //     defaultBookPaginationState
-    // );
-    // const [readingBooks, setReadingBooks] = useState<BookPaginationInfo>(
-    //     defaultBookPaginationState
-    // );
-    // const { getWritingBookSnippets, getReadingBookSnippets } = usePagination();
-
-    // const getWritingBook = async (userId: string) => {
-    //     setWritingBooks((prev) => ({
-    //         ...prev,
-    //         loading: true,
-    //     }));
-    //     const res = await getWritingBookSnippets({
-    //         page: writingBooks.page,
-    //         isNext: writingBooks.isNext,
-    //         pageCount: writingBooks.pageCount,
-    //         userId,
-    //     });
-    //     console.log(res);
-    //     setWritingBooks((prev) => ({
-    //         ...prev,
-    //         books: [...prev.books, ...res?.books],
-    //         totalPage: res?.totalPage || 0,
-    //         loading: false,
-    //     }));
-    // };
-
-    // const getReadingBook = async (userId: string) => {
-    //     setReadingBooks((prev) => ({
-    //         ...prev,
-    //         loading: true,
-    //     }));
-    //     const res = await getReadingBookSnippets({
-    //         page: readingBooks.page,
-    //         isNext: readingBooks.isNext,
-    //         pageCount: readingBooks.pageCount,
-    //         userId,
-    //     });
-    //     setReadingBooks((prev) => ({
-    //         ...prev,
-    //         books: res?.books,
-    //         totalPage: res?.totalPage || 0,
-    //         loading: false,
-    //     }));
-    // };
 
     const getWritingBook = async (userId: string) => {
         setWritingBooksLoading(true);
@@ -350,7 +279,7 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
                     href={(bookId) => `${BOOK_PAGE}/${bookId}`}
                 />
             </LibrarySection>
-            <Divider my={4} />
+            <Divider my={4} borderColor="gray.400" />
             <LibrarySection title="Manga đã viết">
                 <BookLibraryCarousel
                     length={writingBooks.length}
@@ -359,6 +288,7 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
                     onDelete={(book) => {
                         setConfirmTitle("Xác nhận xóa truyện");
                         setConfirmContent("Bạn chắc chắn muốn xóa truyện này?");
+                        setConfirmSubContent("");
                         setConfirmSubmitFunc(() => async () => {
                             await handleDeleteBook(book);
                         });

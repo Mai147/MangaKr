@@ -1,3 +1,4 @@
+import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { WRITER_ROLE } from "@/constants/roles";
 import {
     BOOK_PAGE,
@@ -9,8 +10,10 @@ import {
     NEWS_PAGE,
     PROFILE_LIBRARY_PAGE,
 } from "@/constants/routes";
+import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
+import { Community } from "@/models/Community";
 import {
     useColorModeValue,
     Stack,
@@ -20,6 +23,7 @@ import {
     Box,
     Link,
 } from "@chakra-ui/react";
+import { collection, getDocs, limit, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { FiPlus } from "react-icons/fi";
 import NavItem, { NavItemProps } from "./NavItem";

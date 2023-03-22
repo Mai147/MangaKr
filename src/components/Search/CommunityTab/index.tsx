@@ -1,6 +1,6 @@
-import BookSnippetHorizontalSkeleton from "@/components/Book/Snippet/BookSnippetHorizontalSkeleton";
 import CommunitySnippetHorizontalItem from "@/components/Community/Snippet/CommunitySnippetHorizontalItem";
 import Pagination from "@/components/Pagination";
+import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import useSearch from "@/hooks/useSearch";
 import { Box, Grid, GridItem, Text } from "@chakra-ui/react";
 import React from "react";
@@ -12,11 +12,13 @@ const SearchCommunityTab: React.FC<SearchCommunityTabProps> = () => {
     return (
         <Box w="100%">
             {community.loading ? (
-                [1, 2, 3].map((idx) => (
-                    <BookSnippetHorizontalSkeleton key={idx} />
-                ))
+                [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
             ) : community.communities.length > 0 ? (
-                <Grid templateColumns={"repeat(2, 1fr)"} gap={2} mb={4}>
+                <Grid
+                    templateColumns={"repeat(2, minmax(0, 1fr))"}
+                    gap={2}
+                    mb={4}
+                >
                     {community.communities.map((community) => (
                         <GridItem key={community.id}>
                             <CommunitySnippetHorizontalItem

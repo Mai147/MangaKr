@@ -1,12 +1,14 @@
 import useDebounce from "@/hooks/useDebounce";
 import { Flex, Input, Box, Text } from "@chakra-ui/react";
 import { Option } from "chakra-multiselect";
-import React, { useEffect, useRef, useState } from "react";
+import React, { SetStateAction, useEffect, useRef, useState } from "react";
 
 type SearchDropdownProps = {
     options: Option[];
     onSearch: () => Promise<void>;
     search: string;
+    isSearching: boolean;
+    setIsSearching: React.Dispatch<SetStateAction<boolean>>;
     setSearch: (value: string) => void;
     setSelected: (value: string) => void;
     size?: string;
@@ -16,11 +18,13 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
     onSearch,
     options,
     search,
+    isSearching,
+    setIsSearching,
     setSearch,
     setSelected,
     size,
 }) => {
-    const [isSearching, setIsSearching] = useState(true);
+    // const [isSearching, setIsSearching] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const searchRef = useRef<HTMLInputElement>(null);
     const resultRef = useRef<HTMLDivElement>(null);

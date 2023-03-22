@@ -5,10 +5,10 @@ export interface Comment {
     creatorId: string;
     creatorDisplayName: string;
     creatorImageUrl: string | null;
+    numberOfLikes: number;
+    numberOfDislikes: number;
     text: string;
     createdAt: Timestamp;
+    replyComments?: Comment[];
+    numberOfReplies: number;
 }
-
-// export interface BookComment extends Comment {
-//     bookId: string;
-// }

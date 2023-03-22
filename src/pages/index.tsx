@@ -2,44 +2,14 @@ import Head from "next/head";
 import { Inter } from "@next/font/google";
 import useAuth from "@/hooks/useAuth";
 import { useEffect } from "react";
-import { fireStore } from "@/firebase/clientApp";
-import { Book } from "@/models/Book";
-import {
-    collection,
-    collectionGroup,
-    getDoc,
-    getDocs,
-    limit,
-    orderBy,
-    query,
-    where,
-    writeBatch,
-} from "firebase/firestore";
-import { GetServerSidePropsContext } from "next";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { Author } from "@/models/Author";
-import BookUtils from "@/utils/BookUtils";
 import Home from "@/components/Home";
-import { Button } from "@chakra-ui/react";
-import { Review } from "@/models/Review";
+import { HomeProvider } from "@/context/HomeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
-type HomePageProps = {
-    bannerBooks: Book[];
-    newestMangas: Book[];
-    mostPopularMangas: Book[];
-    mostFavoriteAuthors: Author[];
-    newestReviews: Review[];
-};
+type HomePageProps = {};
 
-const HomePage: React.FC<HomePageProps> = ({
-    bannerBooks,
-    mostFavoriteAuthors,
-    mostPopularMangas,
-    newestMangas,
-    newestReviews,
-}) => {
+const HomePage: React.FC<HomePageProps> = () => {
     const { setNeedAuth } = useAuth();
     useEffect(() => {
         setNeedAuth(false);
@@ -56,29 +26,6 @@ const HomePage: React.FC<HomePageProps> = ({
     //                 batch.update(doc.ref, {
     //                     name: "New name",
     //                     description: "New description",
-    //                 });
-    //             }
-    //         });
-    //         await batch.commit();
-    //         console.log(1);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
-
-    // const testFunction = async () => {
-    //     try {
-    //         const batch = writeBatch(fireStore);
-    //         const res = collectionGroup(fireStore, "bookComments");
-    //         const res2 = query(
-    //             res,
-    //             where("creatorId", "==", "Gw6Fcbm7yWV5zcr5ORlJlwP1lQw1")
-    //         );
-    //         const docs = await getDocs(res2);
-    //         docs.docs.forEach((doc) => {
-    //             if (doc.exists()) {
-    //                 batch.update(doc.ref, {
-    //                     creatorDisplayName: "KKKKKKK",
     //                 });
     //             }
     //         });
@@ -133,6 +80,25 @@ const HomePage: React.FC<HomePageProps> = ({
     //     }
     // };
 
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const commentDocsRef = collectionGroup(fireStore, "comments");
+    //         const commentDocs = await getDocs(commentDocsRef);
+    //         commentDocs.docs.forEach((doc) => {
+    //             if (doc.exists()) {
+    //                 batch.update(doc.ref, {
+    //                     numberOfReplies: 0,
+    //                 });
+    //             }
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
     return (
         <>
             <Head>
@@ -149,90 +115,12 @@ const HomePage: React.FC<HomePageProps> = ({
             </Head>
             <main>
                 {/* <Button onClick={testFunction}>Test</Button> */}
-                <Home
-                    bannerBooks={bannerBooks}
-                    newestMangas={newestMangas}
-                    mostPopularMangas={mostPopularMangas}
-                    newestReviews={newestReviews}
-                    mostFavoriteAuthors={mostFavoriteAuthors}
-                />
+                <HomeProvider>
+                    <Home />
+                </HomeProvider>
             </main>
         </>
     );
 };
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-    const bookDocsRef = collection(fireStore, firebaseRoute.getAllBookRoute());
-    const authorDocRef = collection(
-        fireStore,
-        firebaseRoute.getAllAuthorRoute()
-    );
-    const reviewDocsRef = collection(
-        fireStore,
-        firebaseRoute.getAllReviewRoute()
-    );
-    const bannerBookQuery = query(
-        bookDocsRef,
-        orderBy("rating", "desc"),
-        limit(5)
-    );
-    const newestMangaQuery = query(
-        bookDocsRef,
-        orderBy("publishedDate", "desc"),
-        limit(6)
-    );
-    const mostPopularMangaQuery = query(
-        bookDocsRef,
-        orderBy("popularity", "desc"),
-        limit(6)
-    );
-    const mostFavoriteAuthorQuery = query(
-        authorDocRef,
-        orderBy("numberOfLikes", "desc"),
-        limit(6)
-    );
-    const newestReviewQuery = query(
-        reviewDocsRef,
-        orderBy("createdAt", "desc"),
-        limit(6)
-    );
-
-    const bannerDocs = await getDocs(bannerBookQuery);
-    const newestMangaDocs = await getDocs(newestMangaQuery);
-    const mostPopularMangaDocs = await getDocs(mostPopularMangaQuery);
-    const mostFavoriteAuthorDocs = await getDocs(mostFavoriteAuthorQuery);
-    const newestReviewDocs = await getDocs(newestReviewQuery);
-    const bannerBooks: Book[] = BookUtils.fromDocs(bannerDocs.docs);
-    const newestMangas: Book[] = BookUtils.fromDocs(newestMangaDocs.docs);
-    const mostPopularMangas: Book[] = BookUtils.fromDocs(
-        mostPopularMangaDocs.docs
-    );
-    const mostFavoriteAuthors: Author[] = mostFavoriteAuthorDocs.docs.map(
-        (doc) =>
-            ({
-                id: doc.id,
-                ...doc.data(),
-            } as Author)
-    );
-    const newestReviews: Review[] = newestReviewDocs.docs.map(
-        (doc) =>
-            JSON.parse(
-                JSON.stringify({
-                    id: doc.id,
-                    ...doc.data(),
-                })
-            ) as Review
-    );
-
-    return {
-        props: {
-            bannerBooks,
-            mostFavoriteAuthors,
-            mostPopularMangas,
-            newestMangas,
-            newestReviews,
-        },
-    };
-}
 
 export default HomePage;

@@ -1,4 +1,5 @@
 import { WRITER_ROLE } from "@/constants/roles";
+import { AUTHOR_PAGE } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import {
     Flex,
@@ -58,10 +59,12 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                             <NavItem
                                 label="Thêm tác giả"
                                 leftIcon={IoPersonOutline}
+                                href={`${AUTHOR_PAGE}/create`}
                             />
                             <NavItem
                                 label="Thêm thể loại"
                                 leftIcon={AiOutlineTags}
+                                // href={`${GENRE_PAGE}/create`}
                             />
                             {/* {navItem.children.map((child) => (
                                 <NavItem key={child.label} {...child} />

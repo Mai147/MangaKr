@@ -1,34 +1,34 @@
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import usePagination from "@/hooks/usePagination";
+import usePagination, { PaginationInput } from "@/hooks/usePagination";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";
 import { Review } from "@/models/Review";
 import { useRouter } from "next/router";
-import { createContext, useEffect, useRef, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
-interface SearchInfo {
-    page: number;
-    totalPage: number;
-    pageCount: number;
-    isNext: boolean;
-    loading: boolean;
-    isFirst: boolean;
-}
+// interface SearchInfo {
+//     page: number;
+//     totalPage: number;
+//     pageCount: number;
+//     isNext: boolean;
+//     loading: boolean;
+//     isFirst: boolean;
+// }
 
-interface SearchBookState extends SearchInfo {
+interface SearchBookState extends PaginationInput {
     books: Book[];
 }
 
-interface SearchReviewState extends SearchInfo {
+interface SearchReviewState extends PaginationInput {
     reviews: Review[];
 }
 
-interface SearchAuthorState extends SearchInfo {
+interface SearchAuthorState extends PaginationInput {
     authors: Author[];
 }
 
-interface SearchCommunityState extends SearchInfo {
+interface SearchCommunityState extends PaginationInput {
     communities: Community[];
 }
 
@@ -44,7 +44,7 @@ type SearchState = {
     slideToPrevPage: (tab: tabList) => void;
 };
 
-const defaultSearchInfoState: SearchInfo = {
+const defaultSearchInfoState: PaginationInput = {
     page: 1,
     totalPage: 1,
     isNext: true,

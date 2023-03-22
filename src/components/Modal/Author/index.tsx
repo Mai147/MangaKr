@@ -2,8 +2,9 @@ import { UNKNOWN_ERROR } from "@/constants/errors";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
 import { fireStore } from "@/firebase/clientApp";
+import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import { Author, AuthorSnippet } from "@/models/Author";
+import { Author, AuthorSnippet, defaultAuthorForm } from "@/models/Author";
 import ModelUtils from "@/utils/ModelUtils";
 import { validateCreateAuthor } from "@/validation/authorValidation";
 import {
@@ -17,7 +18,7 @@ import {
     Flex,
 } from "@chakra-ui/react";
 import { addDoc, collection } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
 
@@ -25,29 +26,24 @@ type AuthorModalProps = {
     setAuthors: (value: AuthorSnippet) => void;
 };
 
-const defaultAuthorFormState: Author = {
-    name: "",
-    numberOfBooks: 0,
-    numberOfLikes: 0,
-    numberOfDislikes: 0,
-};
-
 const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
+    const { user } = useAuth();
     const { view, isOpen, closeModal } = useModal();
-    const [authorForm, setAuthorForm] = useState<Author>(
-        defaultAuthorFormState
-    );
+    const [authorForm, setAuthorForm] = useState<Author>(defaultAuthorForm);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [firebaseError, setFirebaseError] = useState<Error>();
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (errors) {
+        if (errors.length > 0) {
             setErrors([]);
         }
         if (firebaseError) {
             setFirebaseError(undefined);
+        }
+        if (!user) {
+            return;
         }
         setLoading(true);
         try {
@@ -62,6 +58,7 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
                 const nameLowerCase = authorForm.name.toLowerCase();
                 const res = await addDoc(authorsDocRef, {
                     name: authorForm.name,
+                    creatorId: authorForm.creatorId,
                     nameLowerCase,
                     numberOfBooks: authorForm.numberOfBooks,
                     numberOfLikes: authorForm.numberOfLikes,
@@ -74,7 +71,7 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
                             ...authorForm,
                         })
                     );
-                    setAuthorForm(defaultAuthorFormState);
+                    setAuthorForm(defaultAuthorForm);
                     closeModal();
                 } else {
                     setErrors([
@@ -103,6 +100,15 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
                 } as Author)
         );
     };
+
+    useEffect(() => {
+        if (user) {
+            setAuthorForm((prev) => ({
+                ...prev,
+                creatorId: user.uid,
+            }));
+        }
+    }, [user]);
 
     return (
         <>

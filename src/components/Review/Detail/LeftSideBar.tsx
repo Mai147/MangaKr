@@ -3,15 +3,8 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import { IconButton, VStack } from "@chakra-ui/react";
 import { doc, getDoc, increment, writeBatch } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import {
-    AiFillDislike,
-    AiFillLike,
-    AiOutlineDislike,
-    AiOutlineLike,
-} from "react-icons/ai";
 
 type ReviewLeftSideBarProps = {
     reviewId: string;

@@ -21,8 +21,8 @@ const BookSnippetHorizontalItem: React.FC<BookSnippetHorizontalItemProps> = ({
                 p={4}
                 borderRadius={4}
                 boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
-                // boxShadow="rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px"
                 mb={4}
+                bg="white"
                 _hover={{ bg: "gray.50" }}
                 transition="all 0.5s"
             >

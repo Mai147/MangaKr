@@ -1,4 +1,5 @@
 import { Timestamp } from "firebase/firestore";
+import { UserSnippet } from "./User";
 
 export type CommunityType = "public" | "restricted" | "private";
 
@@ -22,9 +23,22 @@ export interface Community {
     name: string;
     bookId: string;
     bookName: string;
+    description?: string;
     creatorId: string;
     numberOfMembers: number;
     privacyType: CommunityType;
     createdAt?: Timestamp;
     imageUrl?: string;
+    moderators?: UserSnippet[];
+    numberOfPosts: number;
 }
+
+export const defaultCommunityForm: Community = {
+    bookId: "",
+    bookName: "",
+    name: "",
+    creatorId: "",
+    numberOfMembers: 1,
+    privacyType: "public",
+    numberOfPosts: 0,
+};

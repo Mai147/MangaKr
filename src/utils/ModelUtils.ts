@@ -3,6 +3,7 @@ import { fireStore } from "@/firebase/clientApp";
 import { Author, AuthorSnippet } from "@/models/Author";
 import { Book, BookSnippet } from "@/models/Book";
 import { Character, CharacterSnippet } from "@/models/Character";
+import { Community } from "@/models/Community";
 import { Genre, GenreSnippet } from "@/models/Genre";
 import { Review } from "@/models/Review";
 import {
@@ -142,6 +143,32 @@ export default ModelUtils = {
             console.log(error);
         }
     },
+    async getCommunity(communityId: string) {
+        const communityDocRef = doc(
+            fireStore,
+            firebaseRoute.getAllCommunityRoute(),
+            communityId
+        );
+        const communityDoc = await getDoc(communityDocRef);
+        if (communityDoc.exists()) {
+            const moderatorSnippetDocsRef = collection(
+                fireStore,
+                firebaseRoute.getCommunityModeratorSnippetRoute(communityDoc.id)
+            );
+            const moderatorSnippetDocs = await getDocs(moderatorSnippetDocsRef);
+            const moderatorSnippets = moderatorSnippetDocs.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            return JSON.parse(
+                JSON.stringify({
+                    id: communityDoc.id,
+                    ...communityDoc.data(),
+                    moderators: moderatorSnippets,
+                })
+            ) as Community;
+        }
+    },
     toGenreSnippet(genre: Genre): GenreSnippet {
         return {
             id: genre.id,
@@ -161,6 +188,7 @@ export default ModelUtils = {
             name: character.name,
             imageUrl: character.imageUrl,
             role: character.role,
+            bio: character.bio,
         };
     },
     toBookSnippet(book: Book): BookSnippet {

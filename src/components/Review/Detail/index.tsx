@@ -30,7 +30,15 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
     return (
         <Flex align="flex-start">
             <ReviewLeftSideBar reviewId={review.id!} />
-            <VStack spacing={4} align="flex-start">
+            <VStack
+                spacing={4}
+                align="flex-start"
+                flexGrow={1}
+                bg="white"
+                borderRadius={4}
+                boxShadow="lg"
+                p={6}
+            >
                 <AspectRatio ratio={3 / 1} w="100%">
                     <Image
                         src={review.imageUrl || "/images/noImage.jpg"}

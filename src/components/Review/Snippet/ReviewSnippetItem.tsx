@@ -39,12 +39,13 @@ const ReviewSnippetItem: React.FC<ReviewSnippetItemProps> = ({
             <Flex
                 {...rest}
                 p={4}
+                bg="white"
                 border="1px solid"
-                borderColor="gray.300"
+                borderColor="gray.200"
                 borderRadius={4}
                 align="center"
                 justify="space-between"
-                _groupHover={{ bg: "gray.50" }}
+                _hover={{ bg: "gray.50" }}
                 transition="all 0.5s"
                 position="relative"
             >
@@ -90,7 +91,7 @@ const ReviewSnippetItem: React.FC<ReviewSnippetItemProps> = ({
                         position="absolute"
                         top={2}
                         right={2}
-                        size="sm"
+                        size="xs"
                         aria-label="Delete button"
                         bg="brand.400"
                         borderRadius="full"

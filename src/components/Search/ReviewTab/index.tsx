@@ -1,6 +1,6 @@
-import BookSnippetHorizontalSkeleton from "@/components/Book/Snippet/BookSnippetHorizontalSkeleton";
 import Pagination from "@/components/Pagination";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
+import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import { getBookReviewDetailPage } from "@/constants/routes";
 import useSearch from "@/hooks/useSearch";
 import { Box, Text } from "@chakra-ui/react";
@@ -13,9 +13,7 @@ const SearchReviewTab: React.FC<SearchReviewTabProps> = () => {
     return (
         <Box w="100%">
             {review.loading ? (
-                [1, 2, 3].map((idx) => (
-                    <BookSnippetHorizontalSkeleton key={idx} />
-                ))
+                [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
             ) : review.reviews.length > 0 ? (
                 review.reviews.map((review) => (
                     <ReviewSnippetItem

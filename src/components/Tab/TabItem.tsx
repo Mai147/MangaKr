@@ -28,7 +28,8 @@ const TabItem: React.FC<TabItemProps> = ({
             _hover={{ bg: "gray.50" }}
             color={selected ? "blue.500" : "gray.500"}
             borderWidth={selected ? "0px 1px 2px 0" : "0px 1px 1px 0px"}
-            borderBottomColor={selected ? "blue.500" : "gray.200"}
+            borderBottomColor={selected ? "blue.500" : "gray.300"}
+            borderRightColor="gray.300"
             onClick={() => setSelectedTab(item.title)}
         >
             <Flex align="center" height="20px" mr={2}>

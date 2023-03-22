@@ -7,7 +7,12 @@ import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import usePagination from "@/hooks/usePagination";
 import { Book } from "@/models/Book";
-import { Community, communityTypeList } from "@/models/Community";
+import {
+    Community,
+    communityTypeList,
+    defaultCommunityForm,
+} from "@/models/Community";
+import { UserCommunitySnippet } from "@/models/User";
 import { validateCreateCommunity } from "@/validation/communityValidation";
 import {
     Button,
@@ -63,23 +68,15 @@ const listType = [
     },
 ];
 
-const defaultCommunity: Community = {
-    bookId: "",
-    bookName: "",
-    name: "",
-    creatorId: "",
-    numberOfMembers: 1,
-    privacyType: "public",
-};
-
 const CreateCommunityModal: React.FC = () => {
     const { user } = useAuth();
     const { view, isOpen, closeModal, toggleView } = useModal();
     const [communityForm, setCommunityForm] =
-        useState<Community>(defaultCommunity);
+        useState<Community>(defaultCommunityForm);
     const [charRemaining, setCharRemaining] = useState(MAX_NAME_LENGTH);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
 
     const [books, setBooks] = useState<Book[]>();
     const { getBooks } = usePagination();
@@ -146,14 +143,27 @@ const CreateCommunityModal: React.FC = () => {
                 firebaseRoute.getUserCommunitySnippetRoute(user.uid),
                 communityDocRef.id
             );
-            batch.set(communityDocRef, {
-                ...communityForm,
-                creatorId: user?.uid,
-                createdAt: serverTimestamp() as Timestamp,
-            });
-            batch.set(userCommunitySnippetDocRef, {
+            const moderatorSnippetDocRef = doc(
+                fireStore,
+                firebaseRoute.getCommunityModeratorSnippetRoute(
+                    communityDocRef.id
+                ),
+                user.uid
+            );
+            const userCommunitySnippet: UserCommunitySnippet = {
                 id: communityDocRef.id,
                 name: communityForm.name,
+                role: COMMUNITY_ADMIN_ROLE,
+            };
+            batch.set(communityDocRef, {
+                ...communityForm,
+                creatorId: user.uid,
+                createdAt: serverTimestamp() as Timestamp,
+            });
+            batch.set(userCommunitySnippetDocRef, userCommunitySnippet);
+            batch.set(moderatorSnippetDocRef, {
+                displayName: user.displayName,
+                imageUrl: user.photoURL,
                 role: COMMUNITY_ADMIN_ROLE,
             });
             await batch.commit();
@@ -214,6 +224,7 @@ const CreateCommunityModal: React.FC = () => {
                         <Text fontWeight={600} fontSize={15} mt={2}>
                             Manga
                         </Text>
+
                         <SearchDropdown
                             options={
                                 books?.map((book) => ({
@@ -224,6 +235,8 @@ const CreateCommunityModal: React.FC = () => {
                             size="sm"
                             onSearch={getSearchBooks}
                             search={search}
+                            isSearching={isSearching}
+                            setIsSearching={setIsSearching}
                             setSearch={(value: string) => {
                                 setSearch(value);
                                 setCommunityForm((prev) => ({

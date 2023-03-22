@@ -28,7 +28,7 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
     const side = useBreakpointValue({
         base: "35%",
         sm: "40px",
-        md: "1.2rem",
+        md: "1rem",
     });
     return (
         <IconButton
@@ -43,7 +43,7 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
             zIndex={2}
             bg="gray.500"
             opacity="30%"
-            _hover={{ bg: "brand.400", opacity: "100%" }}
+            _hover={{ bg: "brand.700", opacity: "100%" }}
             transition="all 0.3s"
             size="md"
             onClick={async () => {

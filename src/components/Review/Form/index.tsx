@@ -1,9 +1,10 @@
+import ImageUpload from "@/components/ImageUpload";
 import TabItem from "@/components/Tab/TabItem";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
 import { fireStore, storage } from "@/firebase/clientApp";
 import useSelectFile from "@/hooks/useSelectFile";
-import { Review } from "@/models/Review";
+import { defaultReviewForm, Review } from "@/models/Review";
 import { UserModel } from "@/models/User";
 import { validateCreateReview } from "@/validation/reviewValidation";
 import { Flex, Button, Divider, Text, useToast } from "@chakra-ui/react";
@@ -20,7 +21,6 @@ import React, { useEffect, useState } from "react";
 import { IoImageOutline, IoDocument } from "react-icons/io5";
 import { MdOutlineRateReview } from "react-icons/md";
 import ReviewFormContent from "./Content";
-import ImageUpload from "./ImageUpload";
 import ReviewFormRate from "./Rate";
 
 type ReviewFormProps = {
@@ -44,27 +44,12 @@ const formTab = [
     },
 ];
 
-const defaultReview: Review = {
-    bookId: "",
-    bookName: "",
-    content: "",
-    creatorId: "",
-    creatorDisplayName: "",
-    numberOfComments: 0,
-    numberOfDislikes: 0,
-    numberOfLikes: 0,
-    tagReview: "RECOMMENDED",
-    title: "",
-    rating: 0,
-    createdAt: serverTimestamp() as Timestamp,
-};
-
 const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
     const { selectedFile, setSelectedFile, onSelectFile, onUploadFile } =
         useSelectFile();
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
     const [reviewForm, setReviewForm] = useState<Review>({
-        ...defaultReview,
+        ...defaultReviewForm,
         bookId,
         creatorId: user.uid,
         creatorDisplayName: user.displayName!,
@@ -81,6 +66,13 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
             }
         }
     }, []);
+
+    useEffect(() => {
+        setReviewForm((prev) => ({
+            ...prev,
+            imageUrl: selectedFile,
+        }));
+    }, [selectedFile]);
 
     const handleChange = (field: string, value: any) => {
         setReviewForm((prev) => ({
@@ -150,7 +142,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
             }
             await batch.commit();
             setReviewForm({
-                ...defaultReview,
+                ...defaultReviewForm,
                 bookId,
                 creatorId: user.uid,
             });

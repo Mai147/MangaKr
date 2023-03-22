@@ -19,7 +19,16 @@ import {
     AlertTitle,
     CloseButton,
 } from "@chakra-ui/react";
-import { doc, updateDoc } from "firebase/firestore";
+import {
+    collectionGroup,
+    doc,
+    getDocs,
+    query,
+    runTransaction,
+    updateDoc,
+    where,
+    writeBatch,
+} from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useUpdateProfile } from "react-firebase-hooks/auth";
 
@@ -50,7 +59,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
         defaultProfileFormState
     );
     const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
+    const [success, setSuccess] = useState<boolean | null>(null);
 
     useEffect(() => {
         setProfileForm({
@@ -65,8 +74,9 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
-        setSuccess(false);
+        setSuccess(null);
         try {
+            const batch = writeBatch(fireStore);
             let downloadUrl = profileForm.photoUrl;
             // Upload file
             if (selectedFile) {
@@ -85,12 +95,46 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                     firebaseRoute.getAllUserRoute(),
                     user.uid
                 );
-                await updateDoc(userDocRef, {
+                batch.update(userDocRef, {
                     displayName: profileForm.displayName,
                     photoURL: downloadUrl,
                     subBio: profileForm.subBio,
                     bio: profileForm.bio,
                 });
+                // Update username, image url in comments, reviews
+                const reviewDocsRef = collectionGroup(
+                    fireStore,
+                    firebaseRoute.getAllReviewRoute()
+                );
+                const reviewQuery = query(
+                    reviewDocsRef,
+                    where("creatorId", "==", user.uid)
+                );
+                const reviewDocs = await getDocs(reviewQuery);
+                reviewDocs.docs.forEach((doc) => {
+                    if (doc.exists()) {
+                        batch.update(doc.ref, {
+                            creatorDisplayName: profileForm.displayName,
+                        });
+                    }
+                });
+
+                const commentDocsRef = collectionGroup(fireStore, "comments");
+                const commentQuery = query(
+                    commentDocsRef,
+                    where("creatorId", "==", user.uid)
+                );
+                const commentDocs = await getDocs(commentQuery);
+                commentDocs.docs.forEach((doc) => {
+                    if (doc.exists()) {
+                        batch.update(doc.ref, {
+                            creatorDisplayName: profileForm.displayName,
+                            creatorImageUrl: downloadUrl,
+                        });
+                    }
+                });
+
+                await batch.commit();
                 // Update state
                 updateUser({
                     ...profileForm,
@@ -99,6 +143,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                 setSuccess(true);
             }
         } catch (error) {
+            setSuccess(false);
             console.log(error);
         }
         setLoading(false);
@@ -131,7 +176,27 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                         position="relative"
                         right={-1}
                         top={-1}
-                        onClick={() => setSuccess(false)}
+                        onClick={() => setSuccess(null)}
+                    />
+                </Alert>
+            )}
+            {success !== null && !success && (
+                <Alert status="error" mb={4} justifyContent="space-between">
+                    <Flex align="center">
+                        <AlertIcon />
+                        <Box>
+                            <AlertTitle>Thất bại!</AlertTitle>
+                            <AlertDescription>
+                                Có lỗi xảy ra vui lòng thử lại
+                            </AlertDescription>
+                        </Box>
+                    </Flex>
+                    <CloseButton
+                        alignSelf="flex-start"
+                        position="relative"
+                        right={-1}
+                        top={-1}
+                        onClick={() => setSuccess(null)}
                     />
                 </Alert>
             )}
@@ -225,7 +290,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                             onInputChange={handleChange}
                         />
                     </InputField>
-                    <InputField label="Bio">
+                    <InputField label="Mô tả">
                         <InputText
                             name="bio"
                             value={profileForm.bio || ""}

@@ -33,9 +33,9 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
             </Flex>
             <Divider my={4} />
             <VStack align="flex-start">
-                <Text fontSize={24} fontWeight={700}>
-                    Bio
-                </Text>
+                {/* <Text fontSize={24} fontWeight={700}>
+                    Về bản thân
+                </Text> */}
                 <Text>{user.bio || "Không"}</Text>
             </VStack>
         </Flex>

@@ -45,12 +45,13 @@ const InputText: React.FC<InputTextProps> = ({
                     isInvalid={isInvalid}
                     borderColor="gray.400"
                     flexGrow={1}
+                    h={height}
+                    bg={readonly ? "gray.200" : undefined}
                     name={name}
                     value={value}
                     placeholder={placeholder}
                     resize="none"
                     onChange={onInputChange}
-                    h={height}
                 />
             ) : (
                 <Input
@@ -59,6 +60,7 @@ const InputText: React.FC<InputTextProps> = ({
                     isInvalid={isInvalid}
                     borderColor="gray.400"
                     flexGrow={1}
+                    bg={readonly ? "gray.200" : undefined}
                     name={name}
                     type={type}
                     value={value}

@@ -1,17 +1,17 @@
-import { Box, Flex, Skeleton, SkeletonText } from "@chakra-ui/react";
+import { Flex, Skeleton, SkeletonText } from "@chakra-ui/react";
 import React from "react";
 
-type BookSnippetHorizontalSkeletonProps = {
+type HorizontalSkeletonProps = {
     size?: "sm" | "md" | "lg";
 };
 
-const BookSnippetHorizontalSkeleton: React.FC<
-    BookSnippetHorizontalSkeletonProps
-> = ({ size = "md" }) => {
+const HorizontalSkeleton: React.FC<HorizontalSkeletonProps> = ({
+    size = "md",
+}) => {
     return (
         <Flex
             padding={size === "sm" ? 2 : 6}
-            boxShadow="lg"
+            boxShadow="xs"
             bg="white"
             mb={4}
             w="100%"
@@ -39,4 +39,4 @@ const BookSnippetHorizontalSkeleton: React.FC<
         </Flex>
     );
 };
-export default BookSnippetHorizontalSkeleton;
+export default HorizontalSkeleton;

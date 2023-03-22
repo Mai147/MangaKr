@@ -5,6 +5,7 @@ export interface AuthorSnippet {
 }
 
 export interface Author extends AuthorSnippet {
+    creatorId: string;
     bio?: string;
     numberOfBooks: number;
     numberOfLikes: number;
@@ -15,4 +16,13 @@ export type AuthorVote = {
     id: string;
     authorId: string;
     value: number;
+};
+
+export const defaultAuthorForm: Author = {
+    name: "",
+    bio: "",
+    creatorId: "",
+    numberOfBooks: 0,
+    numberOfDislikes: 0,
+    numberOfLikes: 0,
 };

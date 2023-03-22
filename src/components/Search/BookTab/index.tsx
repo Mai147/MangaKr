@@ -1,6 +1,6 @@
 import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHorizontalItem";
-import BookSnippetHorizontalSkeleton from "@/components/Book/Snippet/BookSnippetHorizontalSkeleton";
 import Pagination from "@/components/Pagination";
+import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import useSearch from "@/hooks/useSearch";
 import { Box, Text } from "@chakra-ui/react";
 import React from "react";
@@ -12,9 +12,7 @@ const SearchBookTab: React.FC<SearchBookTabProps> = () => {
     return (
         <Box w="100%">
             {book.loading ? (
-                [1, 2, 3].map((idx) => (
-                    <BookSnippetHorizontalSkeleton key={idx} />
-                ))
+                [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
             ) : book.books.length > 0 ? (
                 book.books.map((book) => (
                     <BookSnippetHorizontalItem book={book} key={book.id} />

@@ -44,9 +44,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Flex
                     direction="column"
                     p={4}
-                    px={{ base: 4, md: 30, xl: 40 }}
+                    px={{ base: 4, md: 24, xl: 32 }}
                     flexGrow={1}
-                    bg="white"
+                    bg="gray.100"
                     pt={"100px"}
                 >
                     {children}
