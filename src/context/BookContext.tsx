@@ -3,6 +3,7 @@ import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { fireStore } from "@/firebase/clientApp";
 import usePagination, {
     BookPaginationInput,
+    defaultPaginationInput,
     FilterValue,
 } from "@/hooks/usePagination";
 import { Book } from "@/models/Book";
@@ -11,12 +12,8 @@ import { collection, getDocs } from "firebase/firestore";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
-const defaultPaginationInput: BookPaginationInput = {
-    page: 1,
-    totalPage: 1,
-    isFirst: true,
-    isNext: true,
-    loading: false,
+const defaultBookPaginationInput: BookPaginationInput = {
+    ...defaultPaginationInput,
     pageCount: BOOK_PAGE_COUNT,
     filter: "rating",
 };
@@ -53,7 +50,7 @@ export const BookContext = createContext<BookState>(defaultBookState);
 export const BookProvider = ({ children }: any) => {
     const [bookState, setBookState] = useState<BookState>(defaultBookState);
     const [paginationInput, setPaginationInput] = useState<BookPaginationInput>(
-        defaultPaginationInput
+        defaultBookPaginationInput
     );
     const router = useRouter();
     const { getBooks } = usePagination();
@@ -138,7 +135,7 @@ export const BookProvider = ({ children }: any) => {
             (genre) => genre.id === paginationInput.genreId
         );
         setPaginationInput((prev) => ({
-            ...defaultPaginationInput,
+            ...defaultBookPaginationInput,
             filter: undefined,
             genreId: prev.genreId,
         }));
@@ -150,7 +147,7 @@ export const BookProvider = ({ children }: any) => {
 
     useEffect(() => {
         setPaginationInput((prev) => ({
-            ...defaultPaginationInput,
+            ...defaultBookPaginationInput,
             filter: prev.filter,
         }));
     }, [paginationInput.filter]);

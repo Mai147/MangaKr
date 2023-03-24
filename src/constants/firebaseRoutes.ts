@@ -19,6 +19,7 @@ const COMMUNITY_ROUTE = `communities`;
 const COMMUNITY_SNIPPET_ROUTE = `communitySnippets`;
 const COMMUNITY_MODERATOR_SNIPPET = `moderatorSnippets`;
 const POST_ROUTE = `posts`;
+const POST_VOTE_ROUTE = `postVotes`;
 
 export const firebaseRoute = {
     getAllUserRoute() {
@@ -47,6 +48,9 @@ export const firebaseRoute = {
     },
     getUserAuthorVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${AUTHOR_VOTE_ROUTE}`;
+    },
+    getUserPostVoteRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${POST_VOTE_ROUTE}`;
     },
     getAllAuthorRoute() {
         return AUTHOR_ROUTE;
@@ -98,6 +102,9 @@ export const firebaseRoute = {
     },
     getCommunityPostRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}`;
+    },
+    getCommunityPostCommentRoute(communityId: string, postId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}/${postId}/${COMMENT_ROUTE}`;
     },
     getReplyCommentRoute(parentRoute: string, parentId: string) {
         return `${parentRoute}/${parentId}/${COMMENT_ROUTE}`;

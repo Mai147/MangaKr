@@ -21,6 +21,20 @@ export interface CommunityPost extends Post {
     communityId: string;
 }
 
+export interface LatestPost {
+    id: string;
+    communityId: string;
+    communityName: string;
+    creatorId: string;
+    creatorDisplayName: string;
+    imageUrl?: string;
+    createdAt: Timestamp;
+}
+
+export interface PostNotification extends LatestPost {
+    isReading: boolean;
+}
+
 export const defaultPostForm: Post = {
     caption: "",
     description: "",

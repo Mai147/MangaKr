@@ -7,7 +7,7 @@ import { fireStore, storage } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Author } from "@/models/Author";
-import { Flex, Text, useToast } from "@chakra-ui/react";
+import { Flex, GridItem, Text, useToast } from "@chakra-ui/react";
 import {
     collection,
     doc,
@@ -144,6 +144,7 @@ const LibraryAuthor: React.FC<LibraryAuthorProps> = ({
                             key={author.id}
                             author={author}
                             href={getEditAuthorPage(author.id!)}
+                            h="100%"
                             onDelete={(author) => {
                                 setConfirmTitle("Xác nhận xóa tác giả");
                                 setConfirmContent(

@@ -4,6 +4,7 @@ import { Author } from "@/models/Author";
 import { Book, BookSnippet } from "@/models/Book";
 import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
+import { Post } from "@/models/Post";
 import { Review } from "@/models/Review";
 import {
     collection,
@@ -30,6 +31,15 @@ export interface PaginationInput {
     loading: boolean;
     isFirst: boolean;
 }
+
+export const defaultPaginationInput = {
+    page: 1,
+    isNext: true,
+    isFirst: true,
+    pageCount: 1,
+    loading: false,
+    totalPage: 1,
+};
 
 export type FilterValue = "rating" | "popularity" | "numberOfReviews";
 
@@ -83,11 +93,16 @@ interface CommentPaginationInfo extends PaginationInfo {
     commentDocsRef: CollectionReference<DocumentData>;
 }
 
+interface PostPaginationInfo extends PaginationInfo {
+    communityId?: string;
+}
+
 type DocPosition = {
     firstDoc: QueryDocumentSnapshot<DocumentData> | null;
     lastDoc: QueryDocumentSnapshot<DocumentData> | null;
 };
 
+// Edit here
 type PaginationDocState = {
     book: DocPosition;
     review: DocPosition;
@@ -96,8 +111,10 @@ type PaginationDocState = {
     writingBook: DocPosition;
     readingBook: DocPosition;
     comment: DocPosition;
+    post: DocPosition;
 };
 
+// Edit here
 const defaultPaginationDocState: PaginationDocState = {
     book: {
         firstDoc: null,
@@ -127,6 +144,10 @@ const defaultPaginationDocState: PaginationDocState = {
         firstDoc: null,
         lastDoc: null,
     },
+    post: {
+        firstDoc: null,
+        lastDoc: null,
+    },
 };
 
 const usePagination = () => {
@@ -134,6 +155,7 @@ const usePagination = () => {
         defaultPaginationDocState
     );
 
+    // Edit here
     const pagination = async ({
         docsRef,
         queryConstraints,
@@ -155,7 +177,8 @@ const usePagination = () => {
             | "community"
             | "readingBook"
             | "writingBook"
-            | "comment";
+            | "comment"
+            | "post";
         isFirst?: boolean;
     }) => {
         const firstDoc = isFirst
@@ -399,7 +422,7 @@ const usePagination = () => {
             isFirst,
         });
         return {
-            comments: res?.res as Comment[],
+            comments: res ? (res.res as Comment[]) : [],
             totalPage: res?.totalPage,
         };
     };
@@ -456,6 +479,38 @@ const usePagination = () => {
         };
     };
 
+    const getPosts = async ({
+        isNext,
+        page,
+        pageCount,
+        isFirst,
+        communityId,
+    }: PostPaginationInfo) => {
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        const postDocsRef = collection(
+            fireStore,
+            communityId
+                ? firebaseRoute.getCommunityPostRoute(communityId)
+                : firebaseRoute.getAllPostRoute()
+        );
+        const res = await pagination({
+            docsRef: postDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "post",
+            isFirst,
+        });
+        return {
+            posts: res?.res as Post[],
+            totalPage: res?.totalPage,
+        };
+    };
+
+    // Edit Here
+
     return {
         getBooks,
         getReviews,
@@ -464,6 +519,7 @@ const usePagination = () => {
         getComments,
         getReadingBookSnippets,
         getWritingBookSnippets,
+        getPosts,
     };
 };
 

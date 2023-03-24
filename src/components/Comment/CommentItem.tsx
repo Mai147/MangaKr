@@ -1,15 +1,21 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import useModal from "@/hooks/useModal";
-import usePagination, { PaginationInput } from "@/hooks/usePagination";
+import usePagination, {
+    defaultPaginationInput,
+    PaginationInput,
+} from "@/hooks/usePagination";
 import { Comment } from "@/models/Comment";
 import { UserModel } from "@/models/User";
+import { basicVoteList, Vote } from "@/models/Vote";
+import VoteUtils from "@/utils/VoteUtils";
 import {
     Avatar,
     Box,
     Button,
     Flex,
     HStack,
+    Link,
     SkeletonCircle,
     SkeletonText,
     Stack,
@@ -28,11 +34,11 @@ import {
 } from "firebase/firestore";
 import moment from "moment";
 import "moment/locale/vi";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AiOutlineDislike, AiOutlineLike } from "react-icons/ai";
 import { BsReply } from "react-icons/bs";
+import VotePopup from "../Post/Item/ReactionBar/VotePopup";
 import CommentReaction from "./Reaction";
-import ReactionBtn from "./Reaction/ReactionBtn";
 import ReplyCommentInput from "./Reply/ReplyCommentInput";
 
 type CommentItemProps = {
@@ -53,13 +59,9 @@ interface CommentPaginationInput extends PaginationInput {
     commentList: Comment[];
 }
 
-const defaultCommentPaginationInfo: CommentPaginationInput = {
-    page: 1,
-    totalPage: 1,
-    pageCount: 1,
-    isFirst: false,
-    isNext: true,
-    loading: false,
+const defaultCommentPaginationInput: CommentPaginationInput = {
+    ...defaultPaginationInput,
+    pageCount: 3,
     commentList: [],
 };
 
@@ -73,14 +75,12 @@ const CommentItem: React.FC<CommentItemProps> = ({
     canReply = true,
 }) => {
     const { toggleView } = useModal();
-    const [userVote, setUserVote] = useState<1 | -1 | undefined>(undefined);
-    const [likeLoading, setLikeLoading] = useState(false);
-    const [dislikeLoading, setDislikeLoading] = useState(false);
+    const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
     const [showReplyComment, setShowReplyComment] = useState(false);
     const [replyCommentPagination, setReplyCommentPagination] =
-        useState<CommentPaginationInput>(defaultCommentPaginationInfo);
+        useState<CommentPaginationInput>(defaultCommentPaginationInput);
+    const [showReplyCommentList, setShowReplyCommentList] = useState(false);
     const { getComments } = usePagination();
-    const isFirst = useRef(true);
 
     const getReplyCommentList = async (
         commentDocsRef: CollectionReference<DocumentData>,
@@ -117,65 +117,64 @@ const CommentItem: React.FC<CommentItemProps> = ({
             firebaseRoute.getUserCommentVoteRoute(userId),
             comment.id!
         );
-        const userCommentVoteDoc = await getDoc(userCommentVoteDocRef);
-        if (userCommentVoteDoc.exists()) {
-            setUserVote(userCommentVoteDoc.data().value);
-        } else {
-            setUserVote(undefined);
-        }
+        const res = await VoteUtils.getUserVote({
+            voteDocRef: userCommentVoteDocRef,
+        });
+        setUserVote(res as Vote);
     };
 
-    const handleLikeComment = async (value: 1 | -1) => {
+    const onVoteComment = async (vote: Vote) => {
         if (!user) {
             toggleView("login");
-            return;
-        }
-        value === 1 ? setLikeLoading(true) : setDislikeLoading(true);
-        try {
-            const batch = writeBatch(fireStore);
-            const userCommentVoteRef = doc(
-                fireStore,
-                firebaseRoute.getUserCommentVoteRoute(user.uid),
-                comment.id!
-            );
-            const commentDocRef = doc(commentDocsRef, comment.id!);
-            let likeIncrement = 0;
-            let dislikeIncrement = 0;
-            if (!userVote) {
-                batch.set(userCommentVoteRef, {
-                    value,
+        } else {
+            try {
+                const { value } = vote;
+                await VoteUtils.onVote({
+                    voteDocRef: doc(
+                        fireStore,
+                        firebaseRoute.getUserCommentVoteRoute(user.uid),
+                        comment.id!
+                    ),
+                    rootDocRef: doc(commentDocsRef, comment.id!),
+                    userVote,
+                    vote,
                 });
-                value === 1 ? (likeIncrement = 1) : (dislikeIncrement = 1);
-            } else {
-                if (value === userVote) {
-                    batch.delete(userCommentVoteRef);
-                    value === 1
-                        ? (likeIncrement = -1)
-                        : (dislikeIncrement = -1);
-                } else {
-                    batch.update(userCommentVoteRef, {
-                        value,
-                    });
-                    if (value === 1) {
-                        likeIncrement = 1;
-                        dislikeIncrement = -1;
+                let likeIncrement = 0;
+                let dislikeIncrement = 0;
+                if (userVote) {
+                    if (userVote.value === "like") {
+                        if (value === "like") {
+                            likeIncrement = -1;
+                        } else {
+                            likeIncrement = -1;
+                            dislikeIncrement = 1;
+                        }
                     } else {
-                        likeIncrement = -1;
-                        dislikeIncrement = 1;
+                        if (value === "dislike") {
+                            dislikeIncrement = -1;
+                        } else {
+                            dislikeIncrement = -1;
+                            likeIncrement = 1;
+                        }
                     }
+                } else {
+                    if (value === "like") likeIncrement = 1;
+                    else dislikeIncrement = 1;
                 }
+                setUserVote((prev) =>
+                    prev?.value === value
+                        ? undefined
+                        : basicVoteList.find((item) => item.value === value)
+                );
+                onChangeCommentLike(
+                    comment.id!,
+                    likeIncrement,
+                    dislikeIncrement
+                );
+            } catch (error) {
+                console.log(error);
             }
-            batch.update(commentDocRef, {
-                numberOfLikes: increment(likeIncrement),
-                numberOfDislikes: increment(dislikeIncrement),
-            });
-            await batch.commit();
-            setUserVote((prev) => (prev === value ? undefined : value));
-            onChangeCommentLike(comment.id!, likeIncrement, dislikeIncrement);
-        } catch (error) {
-            console.log(error);
         }
-        value === 1 ? setLikeLoading(false) : setDislikeLoading(false);
     };
 
     const onChangeReplyCommentLike = (
@@ -200,14 +199,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
     }, [user]);
 
     useEffect(() => {
-        if (isFirst.current) {
-            setReplyCommentPagination((prev) => ({
-                ...prev,
-                pageCount: 3,
-            }));
-        } else {
-            isFirst.current === false;
-        }
         if (comment.numberOfReplies > 0) {
             getReplyCommentList(commentDocsRef, comment.id!);
         }
@@ -246,11 +237,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     </HStack>
                     <Text fontSize="10pt">{comment.text}</Text>
                     <Stack direction="row" align="center" spacing={2}>
-                        <ReactionBtn
-                            userVote={userVote}
-                            likeLoading={likeLoading}
-                            dislikeLoading={dislikeLoading}
-                            handleLikeComment={handleLikeComment}
+                        <VotePopup
+                            voteList={basicVoteList}
+                            triggerIconSize={20}
+                            userVoteValue={userVote}
+                            onVote={async (vote) => {
+                                await onVoteComment(vote as Vote);
+                            }}
                         />
                         <CommentReaction
                             icon={AiOutlineLike}
@@ -291,67 +284,88 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     </Stack>
                 </VStack>
                 {showReplyComment && (
-                    <ReplyCommentInput
-                        user={user!}
-                        parentCommentId={comment.id!}
-                        commentDocsRef={commentDocsRef}
-                        rootDocRef={rootDocRef}
-                        onHidden={(newComment) => {
-                            setShowReplyComment(false);
-                            setReplyCommentPagination((prev) => ({
-                                ...prev,
-                                commentList: [newComment, ...prev.commentList],
-                            }));
-                            onChangeReplyNumber &&
-                                onChangeReplyNumber(comment.id!);
-                        }}
-                    />
-                )}
-                {replyCommentPagination.loading && (
-                    <Box padding="6" boxShadow="lg" bg="white">
-                        <SkeletonCircle size="6" />
-                        <SkeletonText
-                            mt="4"
-                            noOfLines={1}
-                            spacing="4"
-                            skeletonHeight="2"
-                            fadeDuration={0.4}
-                            speed={0.8}
+                    <Box w="100%" mt={4}>
+                        <ReplyCommentInput
+                            user={user!}
+                            parentCommentId={comment.id!}
+                            commentDocsRef={commentDocsRef}
+                            rootDocRef={rootDocRef}
+                            onHidden={(newComment) => {
+                                setShowReplyComment(false);
+                                setReplyCommentPagination((prev) => ({
+                                    ...prev,
+                                    commentList: [
+                                        newComment,
+                                        ...prev.commentList,
+                                    ],
+                                }));
+                                onChangeReplyNumber &&
+                                    onChangeReplyNumber(comment.id!);
+                            }}
                         />
                     </Box>
                 )}
-                {replyCommentPagination.commentList.map((c) => (
-                    <CommentItem
-                        key={c.id}
-                        comment={c}
-                        commentDocsRef={collection(
-                            fireStore,
-                            firebaseRoute.getReplyCommentRoute(
-                                commentDocsRef.path,
-                                comment.id!
-                            )
+                {!showReplyCommentList &&
+                    replyCommentPagination.commentList.length > 0 && (
+                        <Link
+                            color="gray.600"
+                            fontSize={14}
+                            fontWeight={500}
+                            mt={2}
+                            onClick={() => setShowReplyCommentList(true)}
+                        >
+                            Xem phản hồi...
+                        </Link>
+                    )}
+                {showReplyCommentList && (
+                    <>
+                        {replyCommentPagination.loading && (
+                            <Box padding="6" boxShadow="lg" bg="white">
+                                <SkeletonCircle size="6" />
+                                <SkeletonText
+                                    mt="4"
+                                    noOfLines={1}
+                                    spacing="4"
+                                    skeletonHeight="2"
+                                    fadeDuration={0.4}
+                                    speed={0.8}
+                                />
+                            </Box>
                         )}
-                        rootDocRef={rootDocRef}
-                        onChangeCommentLike={onChangeReplyCommentLike}
-                        user={user}
-                        canReply={false}
-                    />
-                ))}
-                {replyCommentPagination.page <
-                    replyCommentPagination.totalPage && (
-                    <Button
-                        variant={"link"}
-                        color="brand.100"
-                        onClick={() =>
-                            setReplyCommentPagination((prev) => ({
-                                ...prev,
-                                page: prev.page + 1,
-                            }))
-                        }
-                        mt={2}
-                    >
-                        Xem thêm
-                    </Button>
+                        {replyCommentPagination.commentList.map((c) => (
+                            <CommentItem
+                                key={c.id}
+                                comment={c}
+                                commentDocsRef={collection(
+                                    fireStore,
+                                    firebaseRoute.getReplyCommentRoute(
+                                        commentDocsRef.path,
+                                        comment.id!
+                                    )
+                                )}
+                                rootDocRef={rootDocRef}
+                                onChangeCommentLike={onChangeReplyCommentLike}
+                                user={user}
+                                canReply={false}
+                            />
+                        ))}
+                        {replyCommentPagination.page <
+                            replyCommentPagination.totalPage && (
+                            <Button
+                                variant={"link"}
+                                color="brand.100"
+                                onClick={() =>
+                                    setReplyCommentPagination((prev) => ({
+                                        ...prev,
+                                        page: prev.page + 1,
+                                    }))
+                                }
+                                mt={2}
+                            >
+                                Xem thêm
+                            </Button>
+                        )}
+                    </>
                 )}
             </Flex>
         </Flex>

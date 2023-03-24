@@ -2,7 +2,10 @@ import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHori
 import BookCarousel from "@/components/Book/Snippet/Carousel";
 import Pagination from "@/components/Pagination";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import usePagination, { PaginationInput } from "@/hooks/usePagination";
+import usePagination, {
+    defaultPaginationInput,
+    PaginationInput,
+} from "@/hooks/usePagination";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import {
@@ -24,18 +27,14 @@ type AuthorDetailProps = {
     author: Author;
 };
 
-const defaultPaginationInput: PaginationInput = {
-    page: 1,
-    isNext: true,
-    isFirst: true,
+const defaultAuthorPaginationInput: PaginationInput = {
+    ...defaultPaginationInput,
     pageCount: 2,
-    loading: false,
-    totalPage: 1,
 };
 
 const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
     const [paginationInput, setPaginationInput] = useState(
-        defaultPaginationInput
+        defaultAuthorPaginationInput
     );
     const [totalPage, setTotalPage] = useState(0);
     const [books, setBooks] = useState<Book[]>([]);

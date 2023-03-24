@@ -157,6 +157,7 @@ const CreateCommunityModal: React.FC = () => {
             };
             batch.set(communityDocRef, {
                 ...communityForm,
+                id: communityDocRef.id,
                 creatorId: user.uid,
                 createdAt: serverTimestamp() as Timestamp,
             });

@@ -1,11 +1,37 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { CommunityRequestedRole, CommunityRole } from "@/constants/roles";
 import { fireStore } from "@/firebase/clientApp";
-import { CommunityType } from "@/models/Community";
+import { Community, CommunityType } from "@/models/Community";
 import { UserCommunitySnippet } from "@/models/User";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
 
 let CommunityUtils = {};
+
+const getCommunity = async (communityId: string) => {
+    const communityDocRef = doc(
+        fireStore,
+        firebaseRoute.getAllCommunityRoute(),
+        communityId
+    );
+    const communityDoc = await getDoc(communityDocRef);
+    if (communityDoc.exists()) {
+        const moderatorSnippetDocsRef = collection(
+            fireStore,
+            firebaseRoute.getCommunityModeratorSnippetRoute(communityDoc.id)
+        );
+        const moderatorSnippetDocs = await getDocs(moderatorSnippetDocsRef);
+        const moderatorSnippets = moderatorSnippetDocs.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+        const community = {
+            id: communityDoc.id,
+            ...communityDoc.data(),
+            moderators: moderatorSnippets,
+        } as Community;
+        return community;
+    }
+};
 
 const checkCommunityTypeAuthorization = (
     communityRequestedRole: CommunityRole[],
@@ -79,4 +105,5 @@ const getUserCommunityRole = async (communityId: string, userId: string) => {
 export default CommunityUtils = {
     canCreatePosts,
     getUserCommunityRole,
+    getCommunity,
 };

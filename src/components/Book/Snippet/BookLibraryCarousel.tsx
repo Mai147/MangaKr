@@ -29,7 +29,7 @@ const BookLibraryCarousel: React.FC<BookLibraryCarouselProps> = ({
     return loading ? (
         <Flex>
             {[1, 2, 3].map((idx) => (
-                <VerticalSkeleton />
+                <VerticalSkeleton key={idx} />
             ))}
         </Flex>
     ) : books.length <= 0 ? (

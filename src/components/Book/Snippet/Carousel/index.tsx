@@ -92,7 +92,7 @@ const BookCarousel: React.FC<Props> = ({
     return (
         <>
             {slidesToShow! >= length ? (
-                <Flex w={"full"}>
+                <Flex w={"full"} align="stretch">
                     {children.map((child: any) => (
                         <Box
                             w={
@@ -105,7 +105,7 @@ const BookCarousel: React.FC<Props> = ({
                             py={2}
                             key={child.key}
                         >
-                            <Box>{child}</Box>
+                            <Box h="100%">{child}</Box>
                         </Box>
                     ))}
                 </Flex>

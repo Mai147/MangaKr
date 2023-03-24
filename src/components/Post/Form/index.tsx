@@ -4,16 +4,20 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
 import { fireStore } from "@/firebase/clientApp";
 import useSelectFile from "@/hooks/useSelectFile";
-import { defaultPostForm, Post } from "@/models/Post";
+import { Community } from "@/models/Community";
+import { defaultPostForm, LatestPost, Post } from "@/models/Post";
 import { UserModel } from "@/models/User";
 import { validateCreatePost } from "@/validation/postValidation";
 import { Flex, Button, Divider, Text, useToast } from "@chakra-ui/react";
 import {
     collection,
+    collectionGroup,
     doc,
     increment,
+    query,
     serverTimestamp,
     Timestamp,
+    where,
     writeBatch,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
@@ -21,7 +25,7 @@ import { IoImageOutline, IoDocument } from "react-icons/io5";
 import PostFormContent from "./Content";
 
 type PostFormProps = {
-    communityId?: string;
+    community?: Community;
     user: UserModel;
 };
 
@@ -36,7 +40,7 @@ const formTab = [
     },
 ];
 
-const PostForm: React.FC<PostFormProps> = ({ communityId, user }) => {
+const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
     const [postForm, setPostForm] = useState<Post>({
         ...defaultPostForm,
         creatorId: user.uid,
@@ -80,20 +84,30 @@ const PostForm: React.FC<PostFormProps> = ({ communityId, user }) => {
             }
             const batch = writeBatch(fireStore);
             let postDocRef;
-            if (communityId) {
+            if (community) {
                 postDocRef = doc(
                     collection(
                         fireStore,
-                        firebaseRoute.getCommunityPostRoute(communityId)
+                        firebaseRoute.getCommunityPostRoute(community.id!)
                     )
                 );
                 const communityDocRef = doc(
                     fireStore,
                     firebaseRoute.getAllCommunityRoute(),
-                    communityId
+                    community.id!
                 );
+                const latestPost: LatestPost = {
+                    id: postDocRef.id,
+                    communityId: community.id!,
+                    communityName: community.name,
+                    creatorId: postForm.creatorId,
+                    creatorDisplayName: postForm.creatorDisplayName,
+                    imageUrl: community.imageUrl,
+                    createdAt: serverTimestamp() as Timestamp,
+                };
                 batch.update(communityDocRef, {
                     numberOfPosts: increment(1),
+                    latestPost,
                 });
             } else {
                 postDocRef = doc(
@@ -106,7 +120,7 @@ const PostForm: React.FC<PostFormProps> = ({ communityId, user }) => {
             const captionLowerCase = postForm.caption.toLowerCase();
             batch.set(postDocRef, {
                 ...postForm,
-                communityId,
+                communityId: community?.id,
                 captionLowerCase,
                 createdAt: serverTimestamp() as Timestamp,
             });

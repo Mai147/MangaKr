@@ -20,10 +20,10 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
     community,
     user,
 }) => {
-    const { setSelectedCommunity } = useCommunity();
+    const { communityAction } = useCommunity();
 
     useEffect(() => {
-        setSelectedCommunity(community);
+        communityAction.setSelectedCommunity(community);
     }, [community]);
 
     if (!community) {
@@ -36,7 +36,7 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
     }
     return (
         <Box p={6} boxShadow="lg" bg="white" borderRadius={4}>
-            <PostForm user={user} communityId={community.id} />
+            <PostForm user={user} community={community} />
         </Box>
     );
 };

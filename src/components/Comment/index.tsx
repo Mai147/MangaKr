@@ -1,7 +1,6 @@
 import CommentItem from "@/components/Comment/CommentItem";
 import CommentInputs from "@/components/Comment/CommentInput";
 import { COMMENT_PAGE_COUNT } from "@/constants/pagination";
-import { fireStore } from "@/firebase/clientApp";
 import { Comment } from "@/models/Comment";
 import { UserModel } from "@/models/User";
 import {
@@ -15,16 +14,17 @@ import {
 import {
     DocumentData,
     doc,
-    increment,
-    serverTimestamp,
-    Timestamp,
-    writeBatch,
     CollectionReference,
     DocumentReference,
 } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import RequiredLoginContainer from "../Book/Detail/Action/RequiredLoginContainer";
-import usePagination, { PaginationInput } from "@/hooks/usePagination";
+import usePagination, {
+    defaultPaginationInput,
+    PaginationInput,
+} from "@/hooks/usePagination";
+import useModal from "@/hooks/useModal";
+import CommentUtils from "@/utils/CommentUtils";
 
 type CommentSectionProps = {
     commentDocsRef: CollectionReference<DocumentData>;
@@ -32,18 +32,9 @@ type CommentSectionProps = {
     user?: UserModel | null;
 };
 
-interface CommentPaginationInput extends PaginationInput {
-    commentList: Comment[];
-}
-
-const defaultCommentPaginationInfo: CommentPaginationInput = {
-    page: 1,
-    totalPage: 1,
+const defaultCommentPaginationInput: PaginationInput = {
+    ...defaultPaginationInput,
     pageCount: COMMENT_PAGE_COUNT,
-    isFirst: false,
-    isNext: true,
-    loading: false,
-    commentList: [],
 };
 
 const CommentSection: React.FC<CommentSectionProps> = ({
@@ -53,45 +44,28 @@ const CommentSection: React.FC<CommentSectionProps> = ({
 }) => {
     const [commentText, setCommentText] = useState("");
     const [commentLoading, setCommentLoading] = useState(false);
-    const [commentPagination, setCommentPagination] =
-        useState<CommentPaginationInput>(defaultCommentPaginationInfo);
+    const [commentPagination, setCommentPagination] = useState<PaginationInput>(
+        defaultCommentPaginationInput
+    );
+    const [commentList, setCommentList] = useState<Comment[]>([]);
     const { getComments } = usePagination();
+    const { toggleView } = useModal();
 
     const handleComment = async () => {
         setCommentLoading(true);
         try {
             if (!user) {
+                toggleView("login");
                 return;
             }
-            const batch = writeBatch(fireStore);
-            const newComment: Comment = {
-                creatorId: user.uid,
-                creatorDisplayName: user.displayName!,
-                creatorImageUrl: user.photoURL,
-                text: commentText,
-                numberOfDislikes: 0,
-                numberOfLikes: 0,
-                createdAt: serverTimestamp() as Timestamp,
-                numberOfReplies: 0,
-            };
-            const commentDocRef = doc(commentDocsRef);
-            batch.set(commentDocRef, newComment);
-            batch.update(rootDocRef, {
-                numberOfComments: increment(1),
+            const res = await CommentUtils.onComment({
+                user,
+                commentText,
+                commentDocRef: doc(commentDocsRef),
+                rootDocRef,
             });
-            await batch.commit();
             setCommentText("");
-            setCommentPagination((prev) => ({
-                ...prev,
-                commentList: [
-                    {
-                        ...newComment,
-                        id: commentDocRef.id,
-                        createdAt: Timestamp.fromDate(new Date()),
-                    },
-                    ...prev.commentList,
-                ],
-            }));
+            setCommentList((prev) => [res!, ...prev]);
         } catch (error) {
             console.log(error);
         }
@@ -103,24 +77,31 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         likeIncrement: number,
         dislikeIncrement: number
     ) => {
-        setCommentPagination((prev) => {
-            const idx = prev.commentList.findIndex(
-                (comment) => comment.id === commentId
-            );
-            prev.commentList[idx].numberOfLikes += likeIncrement;
-            prev.commentList[idx].numberOfDislikes += dislikeIncrement;
-            return prev;
-        });
+        setCommentList((prev) =>
+            prev.map((item) =>
+                item.id !== commentId
+                    ? item
+                    : {
+                          ...item,
+                          numberOfLikes: item.numberOfLikes + likeIncrement,
+                          numberOfReplies:
+                              item.numberOfDislikes + dislikeIncrement,
+                      }
+            )
+        );
     };
 
     const onChangeReplyNumber = (commentId: string) => {
-        setCommentPagination((prev) => {
-            const idx = prev.commentList.findIndex(
-                (comment) => comment.id === commentId
-            );
-            prev.commentList[idx].numberOfReplies += 1;
-            return prev;
-        });
+        setCommentList((prev) =>
+            prev.map((item) =>
+                item.id !== commentId
+                    ? item
+                    : {
+                          ...item,
+                          numberOfReplies: item.numberOfReplies + 1,
+                      }
+            )
+        );
     };
 
     const getCommentList = async () => {
@@ -137,10 +118,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         });
         setCommentPagination((prev) => ({
             ...prev,
-            commentList: [...prev.commentList, ...(res?.comments as Comment[])],
             totalPage: res?.totalPage || 0,
             loading: false,
         }));
+        setCommentList((prev) => [...prev, ...res.comments]);
     };
 
     useEffect(() => {
@@ -162,7 +143,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                     />
                     <VStack spacing={2} align="center">
                         <Flex alignSelf="stretch" direction="column">
-                            {commentPagination.commentList.map((comment) => {
+                            {commentList.map((comment) => {
                                 return (
                                     <CommentItem
                                         key={comment.id}

@@ -1,20 +1,14 @@
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import usePagination, { PaginationInput } from "@/hooks/usePagination";
+import usePagination, {
+    defaultPaginationInput,
+    PaginationInput,
+} from "@/hooks/usePagination";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";
 import { Review } from "@/models/Review";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
-
-// interface SearchInfo {
-//     page: number;
-//     totalPage: number;
-//     pageCount: number;
-//     isNext: boolean;
-//     loading: boolean;
-//     isFirst: boolean;
-// }
 
 interface SearchBookState extends PaginationInput {
     books: Book[];
@@ -44,35 +38,26 @@ type SearchState = {
     slideToPrevPage: (tab: tabList) => void;
 };
 
-const defaultSearchInfoState: PaginationInput = {
-    page: 1,
-    totalPage: 1,
-    isNext: true,
-    loading: false,
-    pageCount: 0,
-    isFirst: true,
-};
-
 const defaultSearchBookState: SearchBookState = {
-    ...defaultSearchInfoState,
+    ...defaultPaginationInput,
     books: [],
     pageCount: BOOK_PAGE_COUNT,
 };
 
 const defaultSearchReviewState: SearchReviewState = {
-    ...defaultSearchInfoState,
+    ...defaultPaginationInput,
     reviews: [],
     pageCount: BOOK_PAGE_COUNT,
 };
 
 const defaultSearchAuthorState: SearchAuthorState = {
-    ...defaultSearchInfoState,
+    ...defaultPaginationInput,
     authors: [],
     pageCount: BOOK_PAGE_COUNT,
 };
 
 const defaultSearchCommunityState: SearchCommunityState = {
-    ...defaultSearchInfoState,
+    ...defaultPaginationInput,
     communities: [],
     pageCount: BOOK_PAGE_COUNT,
 };

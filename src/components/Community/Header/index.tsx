@@ -24,7 +24,7 @@ type CommunityHeaderProps = {
 };
 
 const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
-    const { userCommunityRole } = useCommunity();
+    const { communityState } = useCommunity();
 
     return (
         <Flex
@@ -137,7 +137,7 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                     visibility="hidden"
                     _groupHover={{ opacity: 1, visibility: "visible" }}
                 >
-                    {userCommunityRole ? (
+                    {communityState.userCommunityRole ? (
                         <Button variant="unstyled">
                             <Flex align="center">
                                 Rời khỏi cộng đồng
@@ -158,7 +158,7 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                     )}
                     {CommunityUtils.canCreatePosts(
                         community.privacyType,
-                        userCommunityRole
+                        communityState.userCommunityRole
                     ) && (
                         <Link
                             _hover={{ textDecoration: "none" }}

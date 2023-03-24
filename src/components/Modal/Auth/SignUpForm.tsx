@@ -30,19 +30,26 @@ const SignUpForm: React.FC<Props> = () => {
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (errors) setErrors([]);
-        const res = validateSignUp(
-            signUpForm.email,
-            signUpForm.password,
-            signUpForm.confirmPassword
-        );
-        if (!res.result) {
-            setErrors(res.errors);
-        } else {
-            await createUserWithEmailAndPassword(
+        try {
+            const res = validateSignUp(
                 signUpForm.email,
-                signUpForm.password
+                signUpForm.password,
+                signUpForm.confirmPassword
             );
-            toggleView("login");
+            if (!res.result) {
+                setErrors(res.errors);
+            } else {
+                const userCred = await createUserWithEmailAndPassword(
+                    signUpForm.email,
+                    signUpForm.password
+                );
+                if (userCred) {
+                    await createUserDocument(userCred.user);
+                    toggleView("login");
+                }
+            }
+        } catch (error) {
+            console.log(error);
         }
     };
 
@@ -74,11 +81,11 @@ const SignUpForm: React.FC<Props> = () => {
         );
     };
 
-    useEffect(() => {
-        if (userCred) {
-            createUserDocument(userCred.user);
-        }
-    }, [userCred]);
+    // useEffect(() => {
+    //     if (userCred) {
+    //         createUserDocument(userCred.user);
+    //     }
+    // }, [userCred]);
 
     return (
         <form onSubmit={onSubmit} style={{ width: "100%" }}>

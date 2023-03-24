@@ -4,15 +4,11 @@ import {
     MenuButton,
     HStack,
     Avatar,
-    VStack,
     MenuList,
     useColorModeValue,
-    MenuItem,
     MenuDivider,
     Box,
     Text,
-    Icon,
-    Button,
     IconButton,
 } from "@chakra-ui/react";
 import React from "react";
@@ -33,7 +29,7 @@ const NavUser: React.FC<NavUserProps> = () => {
     const { toggleView } = useModal();
     const { user, logout } = useAuth();
     return (
-        <Flex alignItems={"center"}>
+        <Flex alignItems={"center"} ml={2}>
             {user ? (
                 <Menu>
                     <MenuButton

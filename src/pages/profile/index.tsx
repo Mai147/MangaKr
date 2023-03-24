@@ -29,7 +29,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
     }
 
     return (
-        <Flex align="flex-start" direction={{ base: "column", md: "row" }}>
+        <Flex
+            align="flex-start"
+            direction={{ base: "column", md: "row" }}
+            bg="white"
+            p={6}
+            boxShadow="lg"
+            borderRadius={4}
+        >
             <ProfileSidebar tab={tab} setTab={setTab} />
             <Box
                 borderLeft="1px solid"

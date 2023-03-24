@@ -2,7 +2,6 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import { Comment } from "@/models/Comment";
 import { UserModel } from "@/models/User";
-import { Avatar, Flex, IconButton, Input } from "@chakra-ui/react";
 import {
     collection,
     CollectionReference,
@@ -15,7 +14,7 @@ import {
     writeBatch,
 } from "firebase/firestore";
 import React, { useState } from "react";
-import { AiOutlineSend } from "react-icons/ai";
+import CommentInputBasic from "../CommentInputBasic";
 
 type ReplyCommentInputProps = {
     user: UserModel;
@@ -32,11 +31,9 @@ const ReplyCommentInput: React.FC<ReplyCommentInputProps> = ({
     rootDocRef,
     onHidden,
 }) => {
-    const [commentText, setCommentText] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (commentText: string) => {
         try {
             if (commentText) {
                 setLoading(true);
@@ -72,7 +69,6 @@ const ReplyCommentInput: React.FC<ReplyCommentInputProps> = ({
                     numberOfComments: increment(1),
                 });
                 await batch.commit();
-                setCommentText("");
                 setLoading(false);
                 onHidden({
                     ...newComment,
@@ -86,41 +82,7 @@ const ReplyCommentInput: React.FC<ReplyCommentInputProps> = ({
     };
 
     return (
-        <form onSubmit={onSubmit}>
-            <Flex mt={4} w="100%" position="relative">
-                <Input
-                    autoFocus
-                    flexGrow={1}
-                    bg="white"
-                    px={12}
-                    borderRadius="100"
-                    boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                />
-                <Avatar
-                    src={user.photoURL || "/images/noImage.jpg"}
-                    size="sm"
-                    position="absolute"
-                    top={1}
-                    left={1}
-                    zIndex={10}
-                />
-                <IconButton
-                    aria-label="Send button"
-                    variant="ghost"
-                    type="submit"
-                    icon={<AiOutlineSend />}
-                    position="absolute"
-                    fontSize={20}
-                    color="gray.500"
-                    top={0}
-                    right={0}
-                    zIndex={10}
-                    isLoading={loading}
-                />
-            </Flex>
-        </form>
+        <CommentInputBasic onSubmit={onSubmit} loading={loading} user={user} />
     );
 };
 export default ReplyCommentInput;
