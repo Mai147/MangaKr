@@ -1,19 +1,17 @@
 import CommunityHeader from "@/components/Community/Header";
+import CommunityLeftSideBar from "@/components/Community/LeftSideBar";
 import CommunityPostTab from "@/components/Community/PostTab";
 import NotAvailable from "@/components/Error/NotAvailable";
-import InfiniteScroll from "@/components/InfiniteScroll";
-import PostItem from "@/components/Post/Item";
 import TabItem from "@/components/Tab/TabItem";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
+import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
-import ModelUtils from "@/utils/ModelUtils";
-import { Box, Flex, Spinner, Tab } from "@chakra-ui/react";
-import { doc } from "firebase/firestore";
+import CommunityService from "@/services/CommunityService";
+import { Box, Flex, Icon, Spinner, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BsFillFileEarmarkPostFill } from "react-icons/bs";
+import { IoBanOutline } from "react-icons/io5";
 import { VscPreview } from "react-icons/vsc";
 
 type CommunityDetailPageProps = {
@@ -34,13 +32,18 @@ const communityTab = [
 const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
     community,
 }) => {
-    const { communityAction } = useCommunity();
+    const { setNeedAuth, user } = useAuth();
+    const { communityAction, communityState } = useCommunity();
     const [selectedTab, setSelectedTab] = useState(communityTab[0].title);
     const [scrollHeight, setScrollHeight] = useState<number[]>([0, 0]);
 
     useEffect(() => {
         communityAction.setSelectedCommunity(community);
     }, [community]);
+
+    useEffect(() => {
+        setNeedAuth(false);
+    }, []);
 
     if (!community) {
         return (
@@ -68,58 +71,84 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
     return (
         <Flex direction="column" flexGrow={1} bg="white" borderRadius={4}>
             <CommunityHeader community={community} />
-            <Flex position="relative">
+            <Flex position="relative" flexGrow={1}>
                 <Box
-                    w="25%"
+                    w="30%"
                     p={6}
+                    py={8}
                     position="sticky"
-                    top={24}
+                    top={20}
                     alignSelf="flex-start"
                     flexShrink={0}
                 >
-                    Left Sidebar
+                    <CommunityLeftSideBar />
                 </Box>
                 <Box bg="white" p={6} flexGrow={1} position="relative">
-                    {/* {community.privacyType === "private" && (
-                        <Text>Bạn cần tham gia cộng đồng này để xem bài viết</Text>
-                    )} */}
-                    <Flex
-                        width="100%"
-                        py={4}
-                        position="sticky"
-                        top={20}
-                        zIndex={100}
-                        bg="white"
-                    >
-                        {communityTab.map((item) => (
-                            <TabItem
-                                key={item.title}
-                                item={item}
-                                selected={item.title === selectedTab}
-                                setSelectedTab={onChangeTab}
-                            />
-                        ))}
-                    </Flex>
-                    <Flex
-                        direction="column"
-                        align="center"
-                        w="100%"
-                        px={12}
-                        mt={4}
-                    >
-                        <Flex
-                            display={
-                                selectedTab === communityTab[1].title
-                                    ? "flex"
-                                    : "none"
-                            }
-                            direction="column"
-                            align="center"
-                            w="100%"
-                        >
-                            <CommunityPostTab />
+                    {communityState.communityLoading ? (
+                        <Flex align="center" justify="center">
+                            <Spinner my={4} />
                         </Flex>
-                    </Flex>
+                    ) : CommunityService.canViewPosts({
+                          communityType:
+                              communityState.selectedCommunity?.privacyType!,
+                          userRole: communityState.userCommunityRole?.role,
+                          user,
+                      }) ? (
+                        <>
+                            <Flex
+                                width="100%"
+                                py={4}
+                                position="sticky"
+                                top={20}
+                                zIndex={100}
+                                bg="white"
+                            >
+                                {communityTab.map((item) => (
+                                    <TabItem
+                                        key={item.title}
+                                        item={item}
+                                        selected={item.title === selectedTab}
+                                        setSelectedTab={onChangeTab}
+                                    />
+                                ))}
+                            </Flex>
+                            <Flex
+                                direction="column"
+                                align="center"
+                                w="100%"
+                                px={12}
+                                mt={4}
+                            >
+                                <Flex
+                                    display={
+                                        selectedTab === communityTab[1].title
+                                            ? "flex"
+                                            : "none"
+                                    }
+                                    direction="column"
+                                    align="center"
+                                    w="100%"
+                                >
+                                    <CommunityPostTab />
+                                </Flex>
+                            </Flex>
+                        </>
+                    ) : (
+                        <Flex
+                            align="center"
+                            justify="center"
+                            direction="column"
+                        >
+                            <Icon
+                                as={IoBanOutline}
+                                color="brand.100"
+                                fontSize={150}
+                            />
+                            <Text fontSize={24} fontWeight={500}>
+                                Vui lòng gia nhập cộng đồng để xem bài viết
+                            </Text>
+                        </Flex>
+                    )}
                 </Box>
             </Flex>
         </Flex>
@@ -128,7 +157,9 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { cid } = context.query;
-    const community = await ModelUtils.getCommunity(cid as string);
+    const community = await CommunityService.get({
+        communityId: cid as string,
+    });
     if (community) {
         return {
             props: {

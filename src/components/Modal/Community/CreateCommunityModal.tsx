@@ -1,8 +1,5 @@
 import SearchDropdown from "@/components/Search/Dropdown";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { COMMUNITY_ADMIN_ROLE } from "@/constants/roles";
 import { ValidationError } from "@/constants/validation";
-import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import usePagination from "@/hooks/usePagination";
@@ -12,7 +9,7 @@ import {
     communityTypeList,
     defaultCommunityForm,
 } from "@/models/Community";
-import { UserCommunitySnippet } from "@/models/User";
+import CommunityService from "@/services/CommunityService";
 import { validateCreateCommunity } from "@/validation/communityValidation";
 import {
     Button,
@@ -32,13 +29,6 @@ import {
     Flex,
     Icon,
 } from "@chakra-ui/react";
-import {
-    collection,
-    doc,
-    serverTimestamp,
-    Timestamp,
-    writeBatch,
-} from "firebase/firestore";
 import React, { useState } from "react";
 import { BsFillEyeFill, BsFillPersonFill } from "react-icons/bs";
 import { HiLockClosed } from "react-icons/hi";
@@ -131,43 +121,8 @@ const CreateCommunityModal: React.FC = () => {
 
         setLoading(true);
 
-        // Create the community in firestore
         try {
-            // Check if community is not taken
-            const batch = writeBatch(fireStore);
-            const communityDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllCommunityRoute())
-            );
-            const userCommunitySnippetDocRef = doc(
-                fireStore,
-                firebaseRoute.getUserCommunitySnippetRoute(user.uid),
-                communityDocRef.id
-            );
-            const moderatorSnippetDocRef = doc(
-                fireStore,
-                firebaseRoute.getCommunityModeratorSnippetRoute(
-                    communityDocRef.id
-                ),
-                user.uid
-            );
-            const userCommunitySnippet: UserCommunitySnippet = {
-                id: communityDocRef.id,
-                name: communityForm.name,
-                role: COMMUNITY_ADMIN_ROLE,
-            };
-            batch.set(communityDocRef, {
-                ...communityForm,
-                id: communityDocRef.id,
-                creatorId: user.uid,
-                createdAt: serverTimestamp() as Timestamp,
-            });
-            batch.set(userCommunitySnippetDocRef, userCommunitySnippet);
-            batch.set(moderatorSnippetDocRef, {
-                displayName: user.displayName,
-                imageUrl: user.photoURL,
-                role: COMMUNITY_ADMIN_ROLE,
-            });
-            await batch.commit();
+            await CommunityService.create({ communityForm, user });
             closeModal();
         } catch (err: any) {
             console.log("Create community Error", err);

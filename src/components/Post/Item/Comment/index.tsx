@@ -1,8 +1,7 @@
 import { CommunityPostCommentData } from "@/context/CommunityContext";
 import useCommunity from "@/hooks/useCommunity";
-import { Comment } from "@/models/Comment";
 import { Post } from "@/models/Post";
-import { Box, Link, Spinner, Text } from "@chakra-ui/react";
+import { Box, Link, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import PostCommentItem from "./PostCommentItem";
 import PostCommentSkeleton from "./PostCommentSkeleton";
@@ -48,7 +47,7 @@ const PostComments: React.FC<PostCommentsProps> = ({ post }) => {
                     (item) => item.state.postId === post.id
                 )?.state.inputState.loading ? (
                     [1, 2, 3].map((e) => (
-                        <Box key={e} mb={4}>
+                        <Box key={e} mb={4} px={2}>
                             <PostCommentSkeleton
                                 width={`${Math.floor(
                                     Math.random() * 300 + 150
@@ -63,9 +62,7 @@ const PostComments: React.FC<PostCommentsProps> = ({ post }) => {
                         fontWeight={500}
                         color="gray.600"
                     >
-                        Xem thêm{" "}
-                        {post.numberOfComments - (commentDatas?.length || 0)}{" "}
-                        bình luận...
+                        Xem thêm bình luận...
                     </Link>
                 ))}
         </Box>

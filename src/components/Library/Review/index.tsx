@@ -1,24 +1,13 @@
 import BookCarousel from "@/components/Book/Snippet/Carousel";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { getEditBookReviewPage } from "@/constants/routes";
-import { fireStore, storage } from "@/firebase/clientApp";
+import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Review } from "@/models/Review";
+import ReviewService from "@/services/ReviewService";
 import { Box, Grid, Text, useToast } from "@chakra-ui/react";
-import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    increment,
-    query,
-    where,
-    writeBatch,
-} from "firebase/firestore";
-import { deleteObject, ref } from "firebase/storage";
 import React, { SetStateAction, useEffect, useState } from "react";
 import LibrarySection from "../Section";
 
@@ -64,22 +53,7 @@ const LibraryReview: React.FC<LibraryReviewProps> = ({
     const getBookReviews = async (userId: string) => {
         setLoading(true);
         try {
-            const bookReviewDocsRef = collection(
-                fireStore,
-                firebaseRoute.getAllReviewRoute()
-            );
-            const bookReviewQuery = query(
-                bookReviewDocsRef,
-                where("creatorId", "==", userId)
-            );
-            const bookReviewDocs = await getDocs(bookReviewQuery);
-            const bookReviews = bookReviewDocs.docs.map(
-                (doc) =>
-                    ({
-                        id: doc.id,
-                        ...doc.data(),
-                    } as Review)
-            );
+            const bookReviews = await ReviewService.getAll({ userId });
             setReviews(bookReviews);
         } catch (error) {
             console.log(error);
@@ -89,39 +63,13 @@ const LibraryReview: React.FC<LibraryReviewProps> = ({
 
     const handleDeleteReview = async (review: Review) => {
         try {
-            const batch = writeBatch(fireStore);
-            // Delete image
-            if (review.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getReviewImageRoute(review.id!)
-                );
-                await deleteObject(imageRef);
-            }
-            const reviewDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllReviewRoute()),
-                review.id
-            );
-            const bookDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllBookRoute()),
-                review.bookId
-            );
-            const bookDoc = await getDoc(bookDocRef);
-            if (bookDoc.exists()) {
-                batch.update(bookDocRef, {
-                    numberOfReviews: increment(-1),
-                });
-            }
-            batch.delete(reviewDocRef);
-            await batch.commit();
+            await ReviewService.delete({ review });
             setReviews((prev) => prev.filter((item) => item.id !== review.id));
             closeModal();
             toast({
+                ...toastOption,
                 title: "Xóa thành công!",
                 status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
         } catch (error) {
             console.log(error);

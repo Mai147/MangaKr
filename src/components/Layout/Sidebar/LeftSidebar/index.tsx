@@ -1,70 +1,43 @@
-import { VStack, IconButton } from "@chakra-ui/react";
-import React from "react";
-import { IconType } from "react-icons";
-import {
-    AiFillLike,
-    AiOutlineLike,
-    AiFillDislike,
-    AiOutlineDislike,
-} from "react-icons/ai";
+import ReactionItem from "@/components/Post/Item/ReactionBar/ReactionItem";
+import { Vote } from "@/models/Vote";
+import { VStack } from "@chakra-ui/react";
+import React, { useState } from "react";
 
 type LeftSidebarProps = {
-    handleLike: (value: 1 | -1) => Promise<void>;
-    userVote: 1 | -1 | undefined;
-    likeLoading: boolean;
-    dislikeLoading: boolean;
-    LikeOutlineIcon?: IconType;
-    DislikeOutlineIcon?: IconType;
-    LikeFillIcon?: IconType;
-    DislikeFillIcon?: IconType;
+    voteList: Vote[];
+    userVote?: Vote;
+    onVote: (value: Vote) => Promise<void>;
 };
 
 const LeftSidebar: React.FC<LeftSidebarProps> = ({
-    handleLike,
+    voteList,
     userVote,
-    dislikeLoading,
-    likeLoading,
-    LikeOutlineIcon = AiOutlineLike,
-    LikeFillIcon = AiFillLike,
-    DislikeOutlineIcon = AiOutlineDislike,
-    DislikeFillIcon = AiFillDislike,
+    onVote,
 }) => {
+    const [loading, setLoading] = useState(false);
+    const [selectedReaction, setSelectedReaction] = useState<
+        Vote | undefined
+    >();
     return (
         <VStack position="sticky" top={24} mr={4} spacing={4}>
-            <IconButton
-                aria-label="like-button"
-                icon={
-                    userVote === 1 ? (
-                        <LikeFillIcon fontSize={30} />
-                    ) : (
-                        <LikeOutlineIcon fontSize={30} />
-                    )
-                }
-                color={userVote === 1 ? "brand.100" : "gray.700"}
-                variant="ghost"
-                borderRadius="full"
-                size="lg"
-                onClick={() => handleLike(1)}
-                isDisabled={dislikeLoading}
-                isLoading={likeLoading}
-            />
-            <IconButton
-                aria-label="like-button"
-                icon={
-                    userVote === -1 ? (
-                        <DislikeFillIcon fontSize={30} />
-                    ) : (
-                        <DislikeOutlineIcon fontSize={30} />
-                    )
-                }
-                color={userVote === -1 ? "brand.100" : "gray.700"}
-                variant="ghost"
-                borderRadius="full"
-                size="lg"
-                onClick={() => handleLike(-1)}
-                isDisabled={likeLoading}
-                isLoading={dislikeLoading}
-            />
+            {voteList.map((e) => (
+                <ReactionItem
+                    key={e.value}
+                    icon={e.icon}
+                    color={e.color}
+                    iconSize={24}
+                    isActive={userVote?.value === e.value}
+                    isLoading={loading && e === selectedReaction}
+                    isDisabled={loading}
+                    value={e}
+                    onClick={async (value) => {
+                        setLoading(true);
+                        setSelectedReaction(e);
+                        await onVote(value as Vote);
+                        setLoading(false);
+                    }}
+                />
+            ))}
         </VStack>
     );
 };

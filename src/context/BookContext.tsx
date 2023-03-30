@@ -1,6 +1,4 @@
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import { fireStore } from "@/firebase/clientApp";
 import usePagination, {
     BookPaginationInput,
     defaultPaginationInput,
@@ -8,7 +6,7 @@ import usePagination, {
 } from "@/hooks/usePagination";
 import { Book } from "@/models/Book";
 import { Genre } from "@/models/Genre";
-import { collection, getDocs } from "firebase/firestore";
+import GenreService from "@/services/GenreService";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
@@ -84,21 +82,10 @@ export const BookProvider = ({ children }: any) => {
             ...prev,
             genreLoading: true,
         }));
-        const genreDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllGenreRoute()
-        );
-        const genreDocs = await getDocs(genreDocsRef);
-        const genres = genreDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Genre)
-        );
+        const genres = await GenreService.getAll({});
         setBookState((prev) => ({
             ...prev,
-            genreList: genres,
+            genreList: genres as Genre[],
             genreLoading: false,
         }));
     };

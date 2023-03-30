@@ -1,11 +1,11 @@
 import NotAvailable from "@/components/Error/NotAvailable";
 import PostForm from "@/components/Post/Form";
 import { HOME_PAGE } from "@/constants/routes";
+import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
 import { UserModel } from "@/models/User";
-import CommunityUtils from "@/utils/CommunityUtils";
-import ModelUtils from "@/utils/ModelUtils";
+import CommunityService from "@/services/CommunityService";
 import { Box } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
@@ -20,7 +20,13 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
     community,
     user,
 }) => {
+    const { setNeedAuth, setDefaultPath } = useAuth();
     const { communityAction } = useCommunity();
+
+    useEffect(() => {
+        setNeedAuth(true);
+        setDefaultPath(HOME_PAGE);
+    }, []);
 
     useEffect(() => {
         communityAction.setSelectedCommunity(community);
@@ -48,17 +54,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         context.res.end();
     } else {
         const { cid } = context.query;
-        const community = await ModelUtils.getCommunity(cid as string);
+        const community = await CommunityService.get({
+            communityId: cid as string,
+        });
         if (community) {
             const us = JSON.parse(JSON.stringify(user));
-            const userRole = await CommunityUtils.getUserCommunityRole(
-                community.id!,
-                user_id as string
-            );
-            const res = CommunityUtils.canCreatePosts(
-                community.privacyType,
-                userRole
-            );
+            const userRole = await CommunityService.getUserRole({
+                communityId: community.id!,
+                userId: user_id as string,
+            });
+            const res = CommunityService.canCreatePosts({
+                communityType: community.privacyType,
+                userRole: userRole?.role,
+                user: us,
+            });
             if (!res) {
                 context.res.writeHead(302, { Location: HOME_PAGE });
                 context.res.end();

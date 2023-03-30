@@ -3,7 +3,7 @@ import PageContent from "@/components/Layout/PageContent";
 import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
 import ReviewDetail from "@/components/Review/Detail";
 import { Review } from "@/models/Review";
-import ModelUtils from "@/utils/ModelUtils";
+import ReviewService from "@/services/ReviewService";
 import { GetServerSidePropsContext } from "next";
 import React from "react";
 
@@ -27,7 +27,7 @@ const ReviewDetailPage: React.FC<ReviewDetailPageProps> = ({ review }) => {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { rid } = context.query;
-    const res = await ModelUtils.getReview(rid as string);
+    const res = await ReviewService.get({ reviewId: rid as string });
     if (res)
         return {
             props: {

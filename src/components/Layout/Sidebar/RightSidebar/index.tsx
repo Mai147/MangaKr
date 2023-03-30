@@ -1,13 +1,12 @@
 import RatingBar from "@/components/RatingBar";
 import CircleHorizontalSkeleton from "@/components/Skeleton/CircleHorizontalSkeleton";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { COMMUNITY_PAGE } from "@/constants/routes";
-import { fireStore } from "@/firebase/clientApp";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";
+import BookService from "@/services/BookService";
+import CommunityService from "@/services/CommunityService";
 import { Box, Flex, Text } from "@chakra-ui/react";
-import { collection, getDocs, limit, orderBy, query } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import RightSidebarItem from "./RightSidebarItem";
 
@@ -21,46 +20,20 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
 
     const getTopBooks = async () => {
         setTopBooksLoading(true);
-        const bookDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllBookRoute()
-        );
-        const bookQuery = query(
-            bookDocsRef,
-            orderBy("rating", "desc"),
-            limit(3)
-        );
-        const bookDocs = await getDocs(bookQuery);
-        const books = bookDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Book)
-        );
+        const books = await BookService.getAll({
+            bookLimit: 3,
+            bookOrderBy: "rating",
+        });
         setTopBooks(books);
         setTopBooksLoading(false);
     };
 
     const getTopCommunities = async () => {
         setTopCommunitiesLoading(true);
-        const communityDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllCommunityRoute()
-        );
-        const communityQuery = query(
-            communityDocsRef,
-            orderBy("numberOfMembers", "desc"),
-            limit(3)
-        );
-        const communityDocs = await getDocs(communityQuery);
-        const communities = communityDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Community)
-        );
+        const communities = await CommunityService.getAll({
+            communityLimit: 3,
+            communityOrderBy: "numberOfMembers",
+        });
         setTopCommunities(communities);
         setTopCommunitiesLoading(false);
     };

@@ -3,7 +3,6 @@ import RatingBar from "@/components/RatingBar";
 import Tag from "@/components/Tag";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE } from "@/constants/routes";
-import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import { Review, tagReviewList } from "@/models/Review";
 import {
@@ -16,7 +15,6 @@ import {
     Divider,
     Flex,
 } from "@chakra-ui/react";
-import { collection, doc } from "firebase/firestore";
 import React from "react";
 import ReviewActionInfoBar from "./ActionInfoBar";
 import ReviewLeftSideBar from "./LeftSideBar";
@@ -96,15 +94,11 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
                 </Flex>
 
                 <CommentSection
-                    commentDocsRef={collection(
-                        fireStore,
-                        firebaseRoute.getReviewCommentRoute(review.id!)
-                    )}
-                    rootDocRef={doc(
-                        fireStore,
-                        firebaseRoute.getAllReviewRoute(),
+                    commentRoute={firebaseRoute.getReviewCommentRoute(
                         review.id!
                     )}
+                    rootRoute={firebaseRoute.getAllReviewRoute()}
+                    rootId={review.id!}
                     user={user}
                 />
             </VStack>

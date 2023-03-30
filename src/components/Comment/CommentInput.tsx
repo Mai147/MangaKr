@@ -1,11 +1,11 @@
+import { UserModel } from "@/models/User";
 import { Flex, Textarea, Button, Text } from "@chakra-ui/react";
-import { User } from "firebase/auth";
 import React, { useRef } from "react";
 
 type CommentInputProps = {
     commentText: string;
     setCommentText: (value: string) => void;
-    user?: User | null;
+    user?: UserModel | null;
     createLoading: boolean;
     onCreateComment: (commentText: string) => void;
 };

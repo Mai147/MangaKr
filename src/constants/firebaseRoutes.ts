@@ -3,6 +3,7 @@ const BOOK_VOTE_ROUTE = `bookVotes`;
 const READING_BOOK_SNIPPET_ROUTE = `readingBookSnippets`;
 const WRITING_BOOK_SNIPPET_ROUTE = `writingBookSnippets`;
 const USER_ROUTE = `users`;
+const USER_SNIPPET_ROUTE = `userSnippets`;
 const AUTHOR_ROUTE = `authors`;
 const AUTHOR_SNIPPET_ROUTE = `authorSnippets`;
 const AUTHOR_VOTE_ROUTE = `authorVotes`;
@@ -16,12 +17,12 @@ const REVIEW_ROUTE = `reviews`;
 const REVIEW_VOTE_ROUTE = `reviewVotes`;
 const IMAGE_ROUTE = `image`;
 const COMMUNITY_ROUTE = `communities`;
-const COMMUNITY_SNIPPET_ROUTE = `communitySnippets`;
 const COMMUNITY_MODERATOR_SNIPPET = `moderatorSnippets`;
 const POST_ROUTE = `posts`;
 const POST_VOTE_ROUTE = `postVotes`;
 
 export const firebaseRoute = {
+    COMMUNITY_SNIPPET_ROUTE: `communitySnippets`,
     getAllUserRoute() {
         return USER_ROUTE;
     },
@@ -38,7 +39,7 @@ export const firebaseRoute = {
         return `${USER_ROUTE}/${userId}/${WRITING_BOOK_SNIPPET_ROUTE}`;
     },
     getUserCommunitySnippetRoute(userId: string) {
-        return `${USER_ROUTE}/${userId}/${COMMUNITY_SNIPPET_ROUTE}`;
+        return `${USER_ROUTE}/${userId}/${this.COMMUNITY_SNIPPET_ROUTE}`;
     },
     getUserReviewVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${REVIEW_VOTE_ROUTE}`;
@@ -100,11 +101,17 @@ export const firebaseRoute = {
     getCommunityModeratorSnippetRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${COMMUNITY_MODERATOR_SNIPPET}`;
     },
+    getCommunityUserRoute(communityId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${USER_SNIPPET_ROUTE}`;
+    },
     getCommunityPostRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}`;
     },
     getCommunityPostCommentRoute(communityId: string, postId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}/${postId}/${COMMENT_ROUTE}`;
+    },
+    getCommunityImageRoute(communityId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${IMAGE_ROUTE}`;
     },
     getReplyCommentRoute(parentRoute: string, parentId: string) {
         return `${parentRoute}/${parentId}/${COMMENT_ROUTE}`;

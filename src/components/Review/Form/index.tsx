@@ -1,22 +1,13 @@
 import ImageUpload from "@/components/ImageUpload";
 import TabItem from "@/components/Tab/TabItem";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
-import { fireStore, storage } from "@/firebase/clientApp";
 import useSelectFile from "@/hooks/useSelectFile";
 import { defaultReviewForm, Review } from "@/models/Review";
 import { UserModel } from "@/models/User";
+import ReviewService from "@/services/ReviewService";
 import { validateCreateReview } from "@/validation/reviewValidation";
 import { Flex, Button, Divider, Text, useToast } from "@chakra-ui/react";
-import {
-    writeBatch,
-    doc,
-    collection,
-    serverTimestamp,
-    Timestamp,
-    increment,
-} from "firebase/firestore";
-import { deleteObject, ref } from "firebase/storage";
 import React, { useEffect, useState } from "react";
 import { IoImageOutline, IoDocument } from "react-icons/io5";
 import { MdOutlineRateReview } from "react-icons/md";
@@ -83,64 +74,20 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
 
     const onSubmit = async () => {
         setLoading(true);
-        if (review) {
-            await onUpdate();
-        } else {
-            await onCreate();
+        if (errors) setErrors([]);
+        const res = validateCreateReview(reviewForm);
+        if (!res.result) {
+            setErrors(res.errors);
+            toast({
+                ...toastOption,
+                title: "Nhập thiếu thông tin, vui lòng thử lại",
+                status: "error",
+            });
+            setLoading(false);
+            return;
         }
-        setLoading(false);
-    };
-
-    const onCreate = async () => {
-        try {
-            if (errors) setErrors([]);
-            const res = validateCreateReview(reviewForm);
-            if (!res.result) {
-                setErrors(res.errors);
-                toast({
-                    title: "Nhập thiếu thông tin, vui lòng thử lại",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-                setLoading(false);
-                return;
-            }
-            const batch = writeBatch(fireStore);
-            const reviewDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllReviewRoute())
-            );
-            const bookDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllBookRoute()),
-                bookId
-            );
-            const reviewImageUrl = await onUploadFile(
-                firebaseRoute.getReviewImageRoute(reviewDocRef.id)
-            );
-            const titleLowerCase = reviewForm.title.toLowerCase();
-            batch.set(reviewDocRef, {
-                ...reviewForm,
-                titleLowerCase,
-                createdAt: serverTimestamp() as Timestamp,
-            });
-            batch.update(bookDocRef, {
-                numberOfReviews: increment(1),
-            });
-            // Update image
-            if (reviewImageUrl) {
-                batch.update(
-                    doc(
-                        fireStore,
-                        firebaseRoute.getAllReviewRoute(),
-                        reviewDocRef.id
-                    ),
-                    {
-                        imageUrl: reviewImageUrl,
-                    }
-                );
-            }
-            await batch.commit();
+        if (!review) {
+            await ReviewService.create({ bookId, reviewForm });
             setReviewForm({
                 ...defaultReviewForm,
                 bookId,
@@ -148,84 +95,19 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
             });
             setSelectedFile(undefined);
             toast({
+                ...toastOption,
                 title: "Viết bài thành công!",
                 status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    const onUpdate = async () => {
-        try {
-            if (errors) setErrors([]);
-            const res = validateCreateReview(reviewForm);
-            if (!res.result) {
-                setErrors(res.errors);
-                toast({
-                    title: "Nhập thiếu thông tin, vui lòng thử lại",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-                setLoading(false);
-                return;
-            }
-            const batch = writeBatch(fireStore);
-            const reviewDocRef = doc(
-                fireStore,
-                firebaseRoute.getAllReviewRoute(),
-                review?.id!
-            );
-            let reviewImageUrl;
-            if (
-                reviewForm.imageUrl &&
-                reviewForm.imageUrl !== review?.imageUrl
-            ) {
-                reviewImageUrl = await onUploadFile(
-                    firebaseRoute.getReviewImageRoute(review?.id!)
-                );
-            } else if (!reviewForm.imageUrl && review?.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getReviewImageRoute(review.id!)
-                );
-                await deleteObject(imageRef);
-            }
-            const titleLowerCase = reviewForm.title.toLowerCase();
-            batch.update(reviewDocRef, {
-                ...reviewForm,
-                titleLowerCase,
-                createdAt: serverTimestamp() as Timestamp,
-            });
-            // Update image
-            if (reviewForm.imageUrl !== review?.imageUrl) {
-                batch.update(
-                    doc(
-                        fireStore,
-                        firebaseRoute.getAllReviewRoute(),
-                        review?.id!
-                    ),
-                    {
-                        imageUrl: reviewImageUrl,
-                    }
-                );
-            }
-            await batch.commit();
+        } else {
+            await ReviewService.update({ review, reviewForm });
             toast({
+                ...toastOption,
                 title: "Sửa thành công!",
                 status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
-        } catch (error) {
-            console.log(error);
         }
+        setLoading(false);
     };
 
     return (

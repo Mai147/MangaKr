@@ -1,25 +1,15 @@
 import ImageMultipleUpload from "@/components/ImageUpload/ImageMultipleUpload";
 import TabItem from "@/components/Tab/TabItem";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { COMMUNITY_PAGE } from "@/constants/routes";
+import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
-import { fireStore } from "@/firebase/clientApp";
 import useSelectFile from "@/hooks/useSelectFile";
 import { Community } from "@/models/Community";
-import { defaultPostForm, LatestPost, Post } from "@/models/Post";
+import { defaultPostForm, Post } from "@/models/Post";
 import { UserModel } from "@/models/User";
+import PostService from "@/services/PostService";
 import { validateCreatePost } from "@/validation/postValidation";
-import { Flex, Button, Divider, Text, useToast } from "@chakra-ui/react";
-import {
-    collection,
-    collectionGroup,
-    doc,
-    increment,
-    query,
-    serverTimestamp,
-    Timestamp,
-    where,
-    writeBatch,
-} from "firebase/firestore";
+import { Flex, Button, Divider, Text, useToast, Link } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { IoImageOutline, IoDocument } from "react-icons/io5";
 import PostFormContent from "./Content";
@@ -73,63 +63,14 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
             if (!res.result) {
                 setErrors(res.errors);
                 toast({
+                    ...toastOption,
                     title: "Nhập thiếu thông tin, vui lòng thử lại",
                     status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
                 });
                 setLoading(false);
                 return;
             }
-            const batch = writeBatch(fireStore);
-            let postDocRef;
-            if (community) {
-                postDocRef = doc(
-                    collection(
-                        fireStore,
-                        firebaseRoute.getCommunityPostRoute(community.id!)
-                    )
-                );
-                const communityDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllCommunityRoute(),
-                    community.id!
-                );
-                const latestPost: LatestPost = {
-                    id: postDocRef.id,
-                    communityId: community.id!,
-                    communityName: community.name,
-                    creatorId: postForm.creatorId,
-                    creatorDisplayName: postForm.creatorDisplayName,
-                    imageUrl: community.imageUrl,
-                    createdAt: serverTimestamp() as Timestamp,
-                };
-                batch.update(communityDocRef, {
-                    numberOfPosts: increment(1),
-                    latestPost,
-                });
-            } else {
-                postDocRef = doc(
-                    collection(fireStore, firebaseRoute.getAllPostRoute())
-                );
-            }
-            const postImageUrls = await onUploadMultipleFile(
-                firebaseRoute.getPostImageRoute(postDocRef.id)
-            );
-            const captionLowerCase = postForm.caption.toLowerCase();
-            batch.set(postDocRef, {
-                ...postForm,
-                communityId: community?.id,
-                captionLowerCase,
-                createdAt: serverTimestamp() as Timestamp,
-            });
-            if (postImageUrls) {
-                batch.update(postDocRef, {
-                    imageUrls: postImageUrls,
-                });
-            }
-            await batch.commit();
+            await PostService.create({ postForm, community });
             setPostForm({
                 ...defaultPostForm,
                 creatorId: user.uid,
@@ -138,11 +79,9 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
             });
             setSelectedListFile([]);
             toast({
+                ...toastOption,
                 title: "Đăng bài thành công!",
                 status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
         } catch (error) {
             console.log(error);
@@ -171,6 +110,17 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
                     >
                         Lưu
                     </Button>
+                    {community && (
+                        <Link
+                            ml={4}
+                            href={`${COMMUNITY_PAGE}/${community.id!}`}
+                            _hover={{ textDecoration: "none" }}
+                        >
+                            <Button variant="outline">
+                                Quay lại cộng đồng
+                            </Button>
+                        </Link>
+                    )}
                 </Flex>
                 <Divider my={4} />
                 <Flex width="100%">

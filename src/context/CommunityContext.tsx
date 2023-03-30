@@ -1,7 +1,6 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { POST_PAGE_COUNT } from "@/constants/pagination";
-import { CommunityRole } from "@/constants/roles";
-import { fireStore } from "@/firebase/clientApp";
+import { CommunityRole, COMMUNITY_USER_ROLE } from "@/constants/roles";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import usePagination, {
@@ -11,21 +10,11 @@ import usePagination, {
 import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
 import { CommunityPost } from "@/models/Post";
-import { PostVote, postVoteList, Vote } from "@/models/Vote";
-import CommentUtils from "@/utils/CommentUtils";
-import CommunityUtils from "@/utils/CommunityUtils";
-import VoteUtils from "@/utils/VoteUtils";
-import {
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    increment,
-    serverTimestamp,
-    Timestamp,
-    updateDoc,
-    writeBatch,
-} from "firebase/firestore";
+import { PostVote, Vote } from "@/models/Vote";
+import CommentService from "@/services/CommentService";
+import CommunityService from "@/services/CommunityService";
+import VoteService from "@/services/VoteService";
+import { validateCreateCommunity } from "@/validation/communityValidation";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
@@ -80,18 +69,34 @@ type CommunityPostComment = {
 
 type CommunityState = {
     selectedCommunity?: Community | null;
+    relatedCommunities?: Community[];
     communityPosts?: CommunityPost[];
     communityPostVotes?: CommunityPostVote[];
     communityPostComments?: CommunityPostComment[];
     communityPostPagination?: CommunityPostPagination;
     communityPostCommentPaginations?: CommunityPostCommentPagination[];
-    userCommunityRole?: CommunityRole;
+    userCommunityRole?: {
+        isAccept: boolean;
+        role?: CommunityRole;
+    };
+    communityLoading: boolean;
 };
 
 type CommunityAction = {
     setSelectedCommunity: (community: Community) => void;
+    updateCommunityImage: (imageUrl: string) => Promise<void>;
+    updateCommunityName: (name: string) => Promise<void>;
+    updateCommunityDescription: (description: string) => Promise<void>;
+    joinCommunity: () => Promise<void>;
+    leaveCommunity: () => Promise<void>;
+    toUserRole: () => Promise<void>;
     onPostVote: (vote: PostVote, postId: string) => Promise<void>;
     onPostComment: (commentText: string, postId: string) => Promise<void>;
+    onPostCommentReply: (
+        commentText: string,
+        postId: string,
+        commentId: string
+    ) => Promise<Comment | undefined>;
     onPostCommentVote: (
         vote: Vote,
         commentId: string,
@@ -104,12 +109,27 @@ type CommunityContextState = {
     communityAction: CommunityAction;
 };
 
+const defaultCommunityState: CommunityState = {
+    communityLoading: true,
+};
+
 const defaultCommunityContextState: CommunityContextState = {
-    communityState: {},
+    communityState: {
+        ...defaultCommunityState,
+    },
     communityAction: {
         setSelectedCommunity: () => {},
+        joinCommunity: async () => {},
+        leaveCommunity: async () => {},
+        toUserRole: async () => {},
+        updateCommunityImage: async () => {},
+        updateCommunityName: async () => {},
+        updateCommunityDescription: async () => {},
         onPostVote: async () => {},
         onPostComment: async () => {},
+        onPostCommentReply: async () => {
+            return undefined;
+        },
         onPostCommentVote: async () => {},
     },
 };
@@ -122,8 +142,8 @@ export const CommunityProvider = ({ children }: any) => {
     const { toggleView } = useModal();
     const { user } = useAuth();
     const router = useRouter();
-    const [communityState, setCommunityState] = useState<CommunityContextState>(
-        defaultCommunityContextState
+    const [communityState, setCommunityState] = useState<CommunityState>(
+        defaultCommunityState
     );
     const [communityPostPaginationInput, setCommunityPostPaginationInput] =
         useState<CommunityPostPaginationInput>(
@@ -137,13 +157,10 @@ export const CommunityProvider = ({ children }: any) => {
     const { getPosts, getComments } = usePagination();
 
     const getCommunity = async (communityId: string) => {
-        const res = await CommunityUtils.getCommunity(communityId);
+        const res = await CommunityService.get({ communityId });
         setCommunityState((prev) => ({
             ...prev,
-            communityState: {
-                ...prev.communityState,
-                selectedCommunity: res ? res : null,
-            },
+            selectedCommunity: res ? res : null,
         }));
     };
 
@@ -151,16 +168,13 @@ export const CommunityProvider = ({ children }: any) => {
         communityId: string,
         userId: string
     ) => {
-        const userCommunityRole = await CommunityUtils.getUserCommunityRole(
+        const userCommunityRole = await CommunityService.getUserRole({
             communityId,
-            userId
-        );
+            userId,
+        });
         setCommunityState((prev) => ({
             ...prev,
-            communityState: {
-                ...prev.communityState,
-                userCommunityRole,
-            },
+            userCommunityRole,
         }));
     };
 
@@ -176,6 +190,7 @@ export const CommunityProvider = ({ children }: any) => {
             isFirst: false,
             isNext,
             communityId,
+            isAccept: true,
         });
         let postVotes: CommunityPostVote[] = [];
         let postComments: CommunityPostComment[] = [];
@@ -190,13 +205,9 @@ export const CommunityProvider = ({ children }: any) => {
                     comments: commentDatas,
                 });
                 if (user) {
-                    const userPostVoteDocRef = doc(
-                        fireStore,
-                        firebaseRoute.getUserPostVoteRoute(user.uid),
-                        post.id!
-                    );
-                    const postVote = await VoteUtils.getUserVote({
-                        voteDocRef: userPostVoteDocRef,
+                    const postVote = await VoteService.get({
+                        voteRoute: firebaseRoute.getUserPostVoteRoute(user.uid),
+                        voteId: post.id!,
                     });
                     postVotes.push({
                         postId: post.id!,
@@ -212,19 +223,15 @@ export const CommunityProvider = ({ children }: any) => {
         }));
         setCommunityState((prev) => ({
             ...prev,
-            communityState: {
-                ...prev.communityState,
-
-                communityPosts: [
-                    ...(prev.communityState.communityPosts || []),
-                    ...(res.posts.map((post) => ({
-                        ...post,
-                        communityId,
-                    })) as CommunityPost[]),
-                ],
-                communityPostVotes: postVotes,
-                communityPostComments: postComments,
-            },
+            communityPosts: [
+                ...(prev.communityPosts || []),
+                ...(res.posts.map((post) => ({
+                    ...post,
+                    communityId,
+                })) as CommunityPost[]),
+            ],
+            communityPostVotes: postVotes,
+            communityPostComments: postComments,
         }));
     };
 
@@ -274,21 +281,17 @@ export const CommunityProvider = ({ children }: any) => {
             pageCount,
             isFirst: false,
             isNext,
-            commentDocsRef: collection(
-                fireStore,
-                firebaseRoute.getCommunityPostCommentRoute(communityId, postId)
+            commentRoute: firebaseRoute.getCommunityPostCommentRoute(
+                communityId,
+                postId
             ),
         });
         let commentDatas: CommunityPostCommentData[] = [];
         for (const e of res.comments) {
             if (user) {
-                const userCommentVoteDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getUserCommentVoteRoute(user.uid),
-                    e.id!
-                );
-                const userVote = await VoteUtils.getUserVote({
-                    voteDocRef: userCommentVoteDocRef,
+                const userVote = await VoteService.get({
+                    voteRoute: firebaseRoute.getUserCommentVoteRoute(user.uid),
+                    voteId: e.id!,
                 });
                 const commentData: CommunityPostCommentData = {
                     comment: e,
@@ -317,23 +320,146 @@ export const CommunityProvider = ({ children }: any) => {
         return commentDatas;
     };
 
-    const updateUserLatestPost = async (
-        userId: string,
-        community: Community
-    ) => {
+    const joinCommunity = async () => {
+        if (!user) {
+            toggleView("login");
+            return;
+        }
         try {
-            const userCommunityDocRef = doc(
-                fireStore,
-                firebaseRoute.getUserCommunitySnippetRoute(userId),
-                community.id!
+            if (communityState.selectedCommunity) {
+                const res = await CommunityService.join({
+                    user,
+                    community: communityState.selectedCommunity,
+                });
+                if (res) {
+                    setCommunityState((prev) => ({
+                        ...prev,
+                        userCommunityRole: res,
+                    }));
+                }
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const leaveCommunity = async () => {
+        if (!user) {
+            toggleView("login");
+            return;
+        }
+        try {
+            if (communityState.selectedCommunity) {
+                await CommunityService.leave({
+                    communityId: communityState.selectedCommunity.id!,
+                    userId: user.uid,
+                    userRole: communityState.userCommunityRole?.role,
+                });
+                setCommunityState((prev) => ({
+                    ...prev,
+                    selectedCommunity: {
+                        ...prev.selectedCommunity!,
+                        numberOfMembers:
+                            (prev.selectedCommunity?.numberOfMembers || 1) - 1,
+                    },
+                    userCommunityRole: undefined,
+                }));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const toUserRole = async () => {
+        if (user && communityState.selectedCommunity) {
+            await CommunityService.changeUserRole({
+                communityId: communityState.selectedCommunity.id!,
+                newRole: COMMUNITY_USER_ROLE,
+                userId: user.uid,
+            });
+            setCommunityState((prev) => ({
+                ...prev,
+                userCommunityRole: {
+                    ...prev.userCommunityRole!,
+                    role: COMMUNITY_USER_ROLE,
+                },
+            }));
+        }
+    };
+
+    const updateCommunityImage = async (imageUrl: string) => {
+        try {
+            const currentCommunity = communityState.selectedCommunity!;
+            const res = await CommunityService.update({
+                community: currentCommunity,
+                communityForm: {
+                    ...currentCommunity,
+                    imageUrl,
+                },
+            });
+            if (res) {
+                setCommunityState((prev) => ({
+                    ...prev,
+                    selectedCommunity: {
+                        ...prev.selectedCommunity!,
+                        imageUrl: res.imageUrl,
+                    },
+                }));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const updateCommunityName = async (name: string) => {
+        try {
+            const currentCommunity = communityState.selectedCommunity!;
+            const res = await validateCreateCommunity(
+                { ...currentCommunity, name },
+                currentCommunity.name
             );
-            const res = await getDoc(userCommunityDocRef);
-            if (res.exists()) {
-                await updateDoc(
-                    userCommunityDocRef,
-                    "latestPost",
-                    community.latestPost
-                );
+            if (!res.result) {
+                throw Error("Name exists");
+            }
+            const updateRes = await CommunityService.update({
+                community: currentCommunity,
+                communityForm: {
+                    ...currentCommunity,
+                    name,
+                },
+            });
+            if (updateRes) {
+                setCommunityState((prev) => ({
+                    ...prev,
+                    selectedCommunity: {
+                        ...prev.selectedCommunity!,
+                        name: updateRes.name,
+                    },
+                }));
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const updateCommunityDescription = async (description: string) => {
+        try {
+            const currentCommunity = communityState.selectedCommunity!;
+            const updateRes = await CommunityService.update({
+                community: currentCommunity,
+                communityForm: {
+                    ...currentCommunity,
+                    description,
+                },
+            });
+            if (updateRes) {
+                setCommunityState((prev) => ({
+                    ...prev,
+                    selectedCommunity: {
+                        ...prev.selectedCommunity!,
+                        description: updateRes.description,
+                    },
+                }));
             }
         } catch (error) {
             console.log(error);
@@ -346,75 +472,66 @@ export const CommunityProvider = ({ children }: any) => {
         } else {
             try {
                 const { value } = vote;
-                const userPostVoteDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getUserPostVoteRoute(user.uid),
-                    postId
-                );
-                const postDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getCommunityPostRoute(
-                        communityState.communityState.selectedCommunity!.id!
-                    ),
-                    postId
-                );
-                const userPostVote =
-                    communityState.communityState.communityPostVotes?.find(
-                        (item) => item.postId === postId
-                    )?.voteValue;
-                await VoteUtils.onVote({
-                    voteDocRef: userPostVoteDocRef,
-                    rootDocRef: postDocRef,
-                    userVote: userPostVote,
-                    vote,
-                });
+                const userPostVote = communityState.communityPostVotes?.find(
+                    (item) => item.postId === postId
+                )?.voteValue;
+                if (!userPostVote) {
+                    await VoteService.create({
+                        voteRoute: firebaseRoute.getUserPostVoteRoute(user.uid),
+                        rootRoute: firebaseRoute.getCommunityPostRoute(
+                            communityState.selectedCommunity!.id!
+                        ),
+                        rootId: postId,
+                        voteId: postId,
+                        vote,
+                    });
+                } else {
+                    await VoteService.update({
+                        voteRoute: firebaseRoute.getUserPostVoteRoute(user.uid),
+                        rootRoute: firebaseRoute.getCommunityPostRoute(
+                            communityState.selectedCommunity!.id!
+                        ),
+                        rootId: postId,
+                        voteId: postId,
+                        userVote: userPostVote,
+                        vote,
+                    });
+                }
                 setCommunityState((prev) => ({
                     ...prev,
-                    communityState: {
-                        ...prev.communityState,
-                        communityPosts: prev.communityState.communityPosts?.map(
-                            (item) =>
-                                item.id !== postId
-                                    ? item
-                                    : {
-                                          ...item,
-                                          [vote.field]: item[vote.field] + 1,
-                                      }
-                        ),
-                        communityPostVotes:
-                            prev.communityState.communityPostVotes?.map(
-                                (item) =>
-                                    item.postId !== postId
-                                        ? item
-                                        : {
-                                              postId: item.postId,
-                                              voteValue:
-                                                  value === userPostVote?.value
-                                                      ? undefined
-                                                      : vote,
-                                          }
-                            ),
-                    },
+                    communityPosts: prev.communityPosts?.map((item) =>
+                        item.id !== postId
+                            ? item
+                            : {
+                                  ...item,
+                                  [vote.field]: item[vote.field] + 1,
+                              }
+                    ),
+                    communityPostVotes: prev.communityPostVotes?.map((item) =>
+                        item.postId !== postId
+                            ? item
+                            : {
+                                  postId: item.postId,
+                                  voteValue:
+                                      value === userPostVote?.value
+                                          ? undefined
+                                          : vote,
+                              }
+                    ),
                 }));
                 const changing = value === userPostVote?.value ? -2 : -1;
                 if (userPostVote && Object.keys(userPostVote).length !== 0) {
                     setCommunityState((prev) => ({
                         ...prev,
-                        communityState: {
-                            ...prev.communityState,
-                            communityPosts:
-                                prev.communityState.communityPosts?.map(
-                                    (item) =>
-                                        item.id !== postId
-                                            ? item
-                                            : {
-                                                  ...item,
-                                                  [userPostVote.field]:
-                                                      item[userPostVote.field] +
-                                                      changing,
-                                              }
-                                ),
-                        },
+                        communityPosts: prev.communityPosts?.map((item) =>
+                            item.id !== postId
+                                ? item
+                                : {
+                                      ...item,
+                                      [userPostVote.field]:
+                                          item[userPostVote.field] + changing,
+                                  }
+                        ),
                     }));
                 }
             } catch (error) {
@@ -429,58 +546,81 @@ export const CommunityProvider = ({ children }: any) => {
             return;
         }
         try {
-            const { selectedCommunity } = communityState.communityState;
-            const postCommentDocRef = doc(
-                collection(
-                    fireStore,
-                    firebaseRoute.getCommunityPostCommentRoute(
-                        selectedCommunity?.id!,
-                        postId
-                    )
-                )
-            );
-            const postDocRef = doc(
-                fireStore,
-                firebaseRoute.getCommunityPostRoute(selectedCommunity?.id!),
-                postId
-            );
-            const res = await CommentUtils.onComment({
+            const { selectedCommunity } = communityState;
+            const res = await CommentService.create({
                 user,
                 commentText,
-                commentDocRef: postCommentDocRef,
-                rootDocRef: postDocRef,
+                commentRoute: firebaseRoute.getCommunityPostCommentRoute(
+                    selectedCommunity?.id!,
+                    postId
+                ),
+                rootRoute: firebaseRoute.getCommunityPostRoute(
+                    selectedCommunity?.id!
+                ),
+                rootId: postId,
             });
             setCommunityState((prev) => ({
                 ...prev,
-                communityState: {
-                    ...prev.communityState,
-                    communityPosts: prev.communityState.communityPosts?.map(
-                        (post) =>
-                            post.id !== postId
-                                ? post
-                                : {
-                                      ...post,
-                                      numberOfComments:
-                                          post.numberOfComments + 1,
-                                  }
-                    ),
-                    communityPostComments:
-                        prev.communityState.communityPostComments?.map(
-                            (postComment) =>
-                                postComment.postId !== postId
-                                    ? postComment
-                                    : {
-                                          ...postComment,
-                                          comments: [
-                                              {
-                                                  comment: res!,
-                                              },
-                                              ...postComment.comments,
-                                          ],
-                                      }
-                        ),
-                },
+                communityPosts: prev.communityPosts?.map((post) =>
+                    post.id !== postId
+                        ? post
+                        : {
+                              ...post,
+                              numberOfComments: post.numberOfComments + 1,
+                          }
+                ),
+                communityPostComments: prev.communityPostComments?.map(
+                    (postComment) =>
+                        postComment.postId !== postId
+                            ? postComment
+                            : {
+                                  ...postComment,
+                                  comments: [
+                                      {
+                                          comment: res!,
+                                      },
+                                      ...postComment.comments,
+                                  ],
+                              }
+                ),
             }));
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    const onPostCommentReply = async (
+        commentText: string,
+        postId: string,
+        commentId: string
+    ) => {
+        if (!user) {
+            toggleView("login");
+            return;
+        }
+        try {
+            const { selectedCommunity } = communityState;
+            const commentRoute = firebaseRoute.getCommunityPostCommentRoute(
+                selectedCommunity?.id!,
+                postId
+            );
+            const res = await CommentService.create({
+                user,
+                commentText,
+                commentRoute: firebaseRoute.getReplyCommentRoute(
+                    commentRoute,
+                    commentId
+                ),
+                rootRoute: firebaseRoute.getCommunityPostRoute(
+                    selectedCommunity?.id!
+                ),
+                rootId: postId,
+                reply: {
+                    parentId: commentId,
+                    parentRoute: commentRoute,
+                },
+            });
+            return res;
         } catch (error) {
             console.log(error);
         }
@@ -497,33 +637,39 @@ export const CommunityProvider = ({ children }: any) => {
         } else {
             try {
                 const { value } = vote;
-                const userVote =
-                    communityState.communityState.communityPostComments
-                        ?.find((item) => item.postId === postId)
-                        ?.comments.find(
-                            (commentData) =>
-                                commentData.comment.id === commentId
-                        )?.userVote;
-                await VoteUtils.onVote({
-                    voteDocRef: doc(
-                        fireStore,
-                        firebaseRoute.getUserCommentVoteRoute(user.uid),
-                        commentId
-                    ),
-                    rootDocRef: doc(
-                        collection(
-                            fireStore,
-                            firebaseRoute.getCommunityPostCommentRoute(
-                                communityState.communityState.selectedCommunity!
-                                    .id!,
-                                postId
-                            )
+                const userVote = communityState.communityPostComments
+                    ?.find((item) => item.postId === postId)
+                    ?.comments.find(
+                        (commentData) => commentData.comment.id === commentId
+                    )?.userVote;
+                if (!userVote) {
+                    await VoteService.create({
+                        voteRoute: firebaseRoute.getUserCommentVoteRoute(
+                            user.uid
                         ),
-                        commentId
-                    ),
-                    userVote,
-                    vote,
-                });
+                        rootRoute: firebaseRoute.getCommunityPostCommentRoute(
+                            communityState.selectedCommunity!.id!,
+                            postId
+                        ),
+                        voteId: commentId,
+                        rootId: commentId,
+                        vote,
+                    });
+                } else {
+                    await VoteService.update({
+                        voteRoute: firebaseRoute.getUserCommentVoteRoute(
+                            user.uid
+                        ),
+                        rootRoute: firebaseRoute.getCommunityPostCommentRoute(
+                            communityState.selectedCommunity!.id!,
+                            postId
+                        ),
+                        voteId: commentId,
+                        rootId: commentId,
+                        vote,
+                        userVote,
+                    });
+                }
                 let likeIncrement = 0;
                 let dislikeIncrement = 0;
                 if (userVote) {
@@ -548,44 +694,40 @@ export const CommunityProvider = ({ children }: any) => {
                 }
                 setCommunityState((prev) => ({
                     ...prev,
-                    communityState: {
-                        ...prev.communityState,
-                        communityPostComments:
-                            prev.communityState.communityPostComments?.map(
-                                (item) =>
-                                    item.postId !== postId
-                                        ? item
-                                        : {
-                                              ...item,
-                                              comments: item.comments.map(
-                                                  (commentData) =>
-                                                      commentData.comment.id !==
-                                                      commentId
-                                                          ? commentData
-                                                          : {
-                                                                comment: {
-                                                                    ...commentData.comment,
-                                                                    numberOfLikes:
-                                                                        commentData
-                                                                            .comment
-                                                                            .numberOfLikes +
-                                                                        likeIncrement,
-                                                                    numberOfDislikes:
-                                                                        commentData
-                                                                            .comment
-                                                                            .numberOfDislikes +
-                                                                        dislikeIncrement,
-                                                                },
-                                                                userVote:
-                                                                    value ===
-                                                                    userVote?.value
-                                                                        ? undefined
-                                                                        : vote,
-                                                            }
-                                              ),
-                                          }
-                            ),
-                    },
+                    communityPostComments: prev.communityPostComments?.map(
+                        (item) =>
+                            item.postId !== postId
+                                ? item
+                                : {
+                                      ...item,
+                                      comments: item.comments.map(
+                                          (commentData) =>
+                                              commentData.comment.id !==
+                                              commentId
+                                                  ? commentData
+                                                  : {
+                                                        comment: {
+                                                            ...commentData.comment,
+                                                            numberOfLikes:
+                                                                commentData
+                                                                    .comment
+                                                                    .numberOfLikes +
+                                                                likeIncrement,
+                                                            numberOfDislikes:
+                                                                commentData
+                                                                    .comment
+                                                                    .numberOfDislikes +
+                                                                dislikeIncrement,
+                                                        },
+                                                        userVote:
+                                                            value ===
+                                                            userVote?.value
+                                                                ? undefined
+                                                                : vote,
+                                                    }
+                                      ),
+                                  }
+                    ),
                 }));
             } catch (error) {
                 console.log(error);
@@ -597,46 +739,61 @@ export const CommunityProvider = ({ children }: any) => {
         const res = await getCommunityPostComments(communityId, postId);
         setCommunityState((prev) => ({
             ...prev,
-            communityState: {
-                ...prev.communityState,
-                communityPostComments:
-                    prev.communityState.communityPostComments?.map((item) =>
-                        item.postId !== postId
-                            ? item
-                            : {
-                                  ...item,
-                                  comments: [...item.comments, ...res],
-                              }
-                    ),
-            },
+            communityPostComments: prev.communityPostComments?.map((item) =>
+                item.postId !== postId
+                    ? item
+                    : {
+                          ...item,
+                          comments: [...item.comments, ...res],
+                      }
+            ),
         }));
         setSelectedPostId(undefined);
     };
 
-    useEffect(() => {
-        const { selectedCommunity } = communityState.communityState;
-        if (selectedCommunity && user) {
-            getUserCommunityRole(selectedCommunity.id!, user.uid);
-            updateUserLatestPost(user.uid, selectedCommunity);
+    const getCommunityInfo = async (community: Community, userId?: string) => {
+        setCommunityState((prev) => ({
+            ...prev,
+            communityLoading: true,
+        }));
+        const res = await CommunityService.getRelated({ community });
+        setCommunityState((prev) => ({
+            ...prev,
+            relatedCommunities: res,
+        }));
+        if (userId) {
+            await getUserCommunityRole(community.id!, userId);
+            await CommunityService.updateUserLatestPost(userId, community);
         }
-    }, [communityState.communityState.selectedCommunity?.id, user]);
+        setCommunityState((prev) => ({
+            ...prev,
+            communityLoading: false,
+        }));
+    };
 
     useEffect(() => {
-        const { selectedCommunity } = communityState.communityState;
+        const { selectedCommunity } = communityState;
+        if (selectedCommunity) {
+            getCommunityInfo(selectedCommunity, user?.uid);
+        }
+    }, [communityState.selectedCommunity?.id, user]);
+
+    useEffect(() => {
+        const { selectedCommunity } = communityState;
         if (selectedCommunity) {
             getCommunityPosts(selectedCommunity.id!);
         }
     }, [
-        communityState.communityState.selectedCommunity?.id,
+        communityState.selectedCommunity?.id,
         communityPostPaginationInput.page,
     ]);
 
     useEffect(() => {
-        const { selectedCommunity } = communityState.communityState;
+        const { selectedCommunity } = communityState;
         if (selectedCommunity && selectedPostId) {
             updateListComment(selectedCommunity.id!, selectedPostId);
         }
-    }, [communityState.communityState.selectedCommunity?.id, selectedPostId]);
+    }, [communityState.selectedCommunity?.id, selectedPostId]);
 
     useEffect(() => {
         const { cid } = router.query;
@@ -645,10 +802,7 @@ export const CommunityProvider = ({ children }: any) => {
         } else {
             setCommunityState((prev) => ({
                 ...prev,
-                communityState: {
-                    ...prev,
-                    selectedCommunity: undefined,
-                },
+                selectedCommunity: undefined,
             }));
         }
     }, [router.query]);
@@ -657,21 +811,24 @@ export const CommunityProvider = ({ children }: any) => {
         <CommunityContext.Provider
             value={{
                 communityAction: {
-                    ...communityState.communityAction,
                     setSelectedCommunity: (community) =>
                         setCommunityState((prev) => ({
                             ...prev,
-                            communityState: {
-                                ...prev.communityState,
-                                selectedCommunity: community,
-                            },
+                            selectedCommunity: community,
                         })),
+                    updateCommunityImage,
+                    updateCommunityName,
+                    updateCommunityDescription,
                     onPostVote,
                     onPostComment,
+                    onPostCommentReply,
                     onPostCommentVote,
+                    joinCommunity,
+                    leaveCommunity,
+                    toUserRole,
                 },
                 communityState: {
-                    ...communityState.communityState,
+                    ...communityState,
                     communityPostPagination: {
                         state: communityPostPaginationInput,
                         onNext: () =>

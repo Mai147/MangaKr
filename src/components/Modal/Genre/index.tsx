@@ -1,10 +1,9 @@
 import { UNKNOWN_ERROR } from "@/constants/errors";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
-import { fireStore } from "@/firebase/clientApp";
 import useModal from "@/hooks/useModal";
 import { defaultGenreForm, Genre, GenreSnippet } from "@/models/Genre";
-import ModelUtils from "@/utils/ModelUtils";
+import GenreService from "@/services/GenreService";
+import GenreUtils from "@/utils/GenreUtils";
 import { validateCreateGenre } from "@/validation/genreValidation";
 import {
     Modal,
@@ -16,7 +15,6 @@ import {
     Button,
     Flex,
 } from "@chakra-ui/react";
-import { addDoc, collection } from "firebase/firestore";
 import React, { useState } from "react";
 import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
@@ -40,25 +38,17 @@ const GenreModal: React.FC<GenreModalProps> = ({ setGenres }) => {
         if (firebaseError) {
             setFirebaseError(undefined);
         }
+        setLoading(true);
         try {
-            setLoading(true);
             const valRes = await validateCreateGenre(genreForm);
             if (!valRes.result) {
                 setErrors(valRes.errors);
             } else {
-                const genresDocRef = collection(
-                    fireStore,
-                    firebaseRoute.getAllGenreRoute()
-                );
-                const res = await addDoc(genresDocRef, {
-                    name: genreForm.name,
-                    description: genreForm.description,
-                    numberOfBooks: genreForm.numberOfBooks,
-                });
+                const res = await GenreService.create({ genreForm });
                 if (res) {
                     setGenres(
-                        ModelUtils.toGenreSnippet({
-                            id: res.id,
+                        GenreUtils.toGenreSnippet({
+                            id: res,
                             ...genreForm,
                         })
                     );

@@ -1,11 +1,17 @@
 import { getRequiredError } from "@/constants/errors";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
-import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import { Book, BookStatus } from "@/models/Book";
-import ModelUtils from "@/utils/ModelUtils";
+import {
+    Book,
+    BookStatus,
+    bookStatusList,
+    defaultReadingBookSnippet,
+    ReadingBookSnippet,
+} from "@/models/Book";
+import BookService from "@/services/BookService";
+import BookUtils from "@/utils/BookUtils";
 import {
     Modal,
     ModalOverlay,
@@ -20,8 +26,7 @@ import {
     useToast,
 } from "@chakra-ui/react";
 import { MultiSelect } from "chakra-multiselect";
-import { collection, doc, increment, writeBatch } from "firebase/firestore";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
 
@@ -30,37 +35,25 @@ type AddLibraryModalProps = {
     setIsInLibrary: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-type BookStatusOption = {
-    label: string;
-    value: BookStatus;
-};
-
-const bookStatusOptions: BookStatusOption[] = [
-    {
-        label: "Hoàn thành",
-        value: "DONE",
-    },
-    {
-        label: "Chưa hoàn thành",
-        value: "GOING",
-    },
-    {
-        label: "Đã bỏ",
-        value: "DROP",
-    },
-];
-
 const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
     book,
     setIsInLibrary,
 }) => {
     const { user } = useAuth();
     const { isOpen, view, toggleView, closeModal } = useModal();
-    const [status, setStatus] = useState("");
-    const [chap, setChap] = useState("");
+    const [readingBookSnippetForm, setReadingBookSnippetForm] =
+        useState<ReadingBookSnippet>(defaultReadingBookSnippet);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [loading, setLoading] = useState(false);
     const toast = useToast();
+
+    useEffect(() => {
+        setReadingBookSnippetForm({
+            ...BookUtils.toBookSnippet(book),
+            status: defaultReadingBookSnippet.status,
+            chap: defaultReadingBookSnippet.chap,
+        });
+    }, [book]);
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -69,7 +62,7 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
             toggleView("login");
         } else {
             if (errors) setErrors([]);
-            if (!status) {
+            if (!readingBookSnippetForm.status) {
                 const error: ValidationError = {
                     field: "status",
                     message: getRequiredError("trạng thái"),
@@ -79,35 +72,37 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                 return;
             }
             try {
-                const batch = writeBatch(fireStore);
-                const userReadingBookDocRef = doc(
-                    collection(
-                        fireStore,
-                        firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
-                    ),
-                    book.id!
-                );
-                const bookDocRef = doc(
-                    collection(fireStore, firebaseRoute.getAllBookRoute()),
-                    book.id!
-                );
-                batch.set(userReadingBookDocRef, {
-                    ...ModelUtils.toBookSnippet(book),
-                    status,
-                    chap,
+                await BookService.addToLibrary({
+                    readingBookSnippetForm,
+                    userId: user.uid,
                 });
-                batch.update(bookDocRef, {
-                    popularity: increment(1),
-                });
-                await batch.commit();
+                // const batch = writeBatch(fireStore);
+                // const userReadingBookDocRef = doc(
+                //     collection(
+                //         fireStore,
+                //         firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
+                //     ),
+                //     book.id!
+                // );
+                // const bookDocRef = doc(
+                //     collection(fireStore, firebaseRoute.getAllBookRoute()),
+                //     book.id!
+                // );
+                // batch.set(userReadingBookDocRef, {
+                //     ...BookUtils.toBookSnippet(book),
+                //     status,
+                //     chap,
+                // });
+                // batch.update(bookDocRef, {
+                //     popularity: increment(1),
+                // });
+                // await batch.commit();
                 setIsInLibrary((prev) => !prev);
                 closeModal();
                 toast({
+                    ...toastOption,
                     title: "Thêm thành công",
                     status: "success",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
                 });
             } catch (error) {
                 console.log(error);
@@ -120,8 +115,11 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
             <Modal
                 isOpen={isOpen && view === "addToLibrary"}
                 onClose={() => {
-                    setStatus("");
-                    setChap("");
+                    setReadingBookSnippetForm({
+                        ...BookUtils.toBookSnippet(book),
+                        status: defaultReadingBookSnippet.status,
+                        chap: defaultReadingBookSnippet.chap,
+                    });
                     setErrors([]);
                     closeModal();
                 }}
@@ -147,11 +145,14 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                         >
                             <form onSubmit={onSubmit} style={{ width: "100%" }}>
                                 <MultiSelect
-                                    options={bookStatusOptions}
-                                    value={status}
+                                    options={bookStatusList}
+                                    value={readingBookSnippetForm.status}
                                     label="Trạng thái"
                                     onChange={(value) => {
-                                        setStatus(value as string);
+                                        setReadingBookSnippetForm((prev) => ({
+                                            ...prev,
+                                            status: value as BookStatus,
+                                        }));
                                         setErrors([]);
                                     }}
                                     required
@@ -169,9 +170,14 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                                     <ModalInputItem
                                         name="chap"
                                         type="text"
-                                        value={chap}
+                                        value={readingBookSnippetForm.chap}
                                         onChange={(e) => {
-                                            setChap(e.target.value);
+                                            setReadingBookSnippetForm(
+                                                (prev) => ({
+                                                    ...prev,
+                                                    chap: e.target.value,
+                                                })
+                                            );
                                         }}
                                     />
                                 </VStack>

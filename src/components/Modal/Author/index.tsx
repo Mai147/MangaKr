@@ -1,11 +1,10 @@
 import { UNKNOWN_ERROR } from "@/constants/errors";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { ValidationError } from "@/constants/validation";
-import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Author, AuthorSnippet, defaultAuthorForm } from "@/models/Author";
-import ModelUtils from "@/utils/ModelUtils";
+import AuthorService from "@/services/AuthorService";
+import AuthorUtils from "@/utils/AuthorUtils";
 import { validateCreateAuthor } from "@/validation/authorValidation";
 import {
     Modal,
@@ -17,7 +16,6 @@ import {
     Button,
     Flex,
 } from "@chakra-ui/react";
-import { addDoc, collection } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
@@ -51,23 +49,11 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
             if (!res.result) {
                 setErrors(res.errors);
             } else {
-                const authorsDocRef = collection(
-                    fireStore,
-                    firebaseRoute.getAllAuthorRoute()
-                );
-                const nameLowerCase = authorForm.name.toLowerCase();
-                const res = await addDoc(authorsDocRef, {
-                    name: authorForm.name,
-                    creatorId: authorForm.creatorId,
-                    nameLowerCase,
-                    numberOfBooks: authorForm.numberOfBooks,
-                    numberOfLikes: authorForm.numberOfLikes,
-                    numberOfDislikes: authorForm.numberOfDislikes,
-                });
+                const res = await AuthorService.create({ authorForm });
                 if (res) {
                     setAuthors(
-                        ModelUtils.toAuthorSnippet({
-                            id: res.id,
+                        AuthorUtils.toAuthorSnippet({
+                            id: res,
                             ...authorForm,
                         })
                     );

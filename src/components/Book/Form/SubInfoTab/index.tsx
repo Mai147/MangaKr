@@ -2,17 +2,15 @@ import InputField from "@/components/Input/InputField";
 import InputText from "@/components/Input/InputText";
 import AuthorModal from "@/components/Modal/Author";
 import GenreModal from "@/components/Modal/Genre";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
 import useBookCreate from "@/hooks/useBookCreate";
 import useModal from "@/hooks/useModal";
-import { Author, AuthorSnippet } from "@/models/Author";
+import { AuthorSnippet } from "@/models/Author";
 import { Book, bookStatusList } from "@/models/Book";
-import { Genre, GenreSnippet } from "@/models/Genre";
-import ModelUtils from "@/utils/ModelUtils";
+import { GenreSnippet } from "@/models/Genre";
+import AuthorService from "@/services/AuthorService";
+import GenreService from "@/services/GenreService";
 import { Box, Flex, HStack, VStack } from "@chakra-ui/react";
 import { MultiSelect } from "chakra-multiselect";
-import { collection, getDocs } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import SelectField from "../SelectField";
 
@@ -74,17 +72,7 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
     };
 
     const getAuthors = async () => {
-        const authorsDocRef = collection(
-            fireStore,
-            firebaseRoute.getAllAuthorRoute()
-        );
-        const authorsDocs = await getDocs(authorsDocRef);
-        const authors: AuthorSnippet[] = authorsDocs.docs.map((doc) =>
-            ModelUtils.toAuthorSnippet({
-                id: doc.id,
-                ...doc.data(),
-            } as Author)
-        );
+        const authors = await AuthorService.getAll({ isSnippet: true });
         setBookOtherValue((prev) => ({
             ...prev,
             authorSnippets: authors,
@@ -92,17 +80,7 @@ const BookFormSubInfoTab: React.FC<BookFormSubInfoTabProps> = ({
     };
 
     const getGenres = async () => {
-        const genresDocRef = collection(
-            fireStore,
-            firebaseRoute.getAllGenreRoute()
-        );
-        const genresDocs = await getDocs(genresDocRef);
-        const genres: GenreSnippet[] = genresDocs.docs.map((doc) =>
-            ModelUtils.toGenreSnippet({
-                id: doc.id,
-                ...doc.data(),
-            } as Genre)
-        );
+        const genres = await GenreService.getAll({ isSnippet: true });
         setBookOtherValue((prev) => ({
             ...prev,
             genreSnippets: genres,

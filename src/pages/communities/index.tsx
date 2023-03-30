@@ -16,7 +16,7 @@ import React, { useEffect, useState } from "react";
 type CommunityPageProps = {};
 
 const CommunityPage: React.FC<CommunityPageProps> = () => {
-    const { user } = useAuth();
+    const { user, setNeedAuth } = useAuth();
     const [communities, setCommunities] = useState<Community[]>([]);
     const { toggleView } = useModal();
     const [loading, setLoading] = useState(false);
@@ -56,6 +56,11 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
             getRelativeCommunities(user.uid);
         }
     }, [user]);
+
+    useEffect(() => {
+        setNeedAuth(false);
+    }, []);
+
     return (
         <PageContent>
             <VStack spacing={2} align="flex-start">

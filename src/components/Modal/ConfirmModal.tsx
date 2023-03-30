@@ -12,6 +12,7 @@ import {
     AlertIcon,
     Text,
     VStack,
+    AlertStatus,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 
@@ -20,6 +21,7 @@ type ConfirmModalProps = {
     content: string;
     subContent?: string;
     onSubmit: () => Promise<void>;
+    status?: AlertStatus;
 };
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -27,6 +29,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
     content,
     subContent,
     onSubmit,
+    status = "error",
 }) => {
     const { view, isOpen, closeModal } = useModal();
     const [loading, setLoading] = useState(false);
@@ -43,11 +46,11 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                 <ModalHeader>{title}</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    <Alert status="error">
+                    <Alert status={status}>
                         <AlertIcon />
                         <VStack align="flex-start" spacing={0}>
                             <Text>{content}</Text>
-                            <Text color="gray.400" fontSize={13}>
+                            <Text color="gray.500" fontSize={13}>
                                 {subContent}
                             </Text>
                         </VStack>

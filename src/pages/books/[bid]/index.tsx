@@ -2,7 +2,7 @@ import BookDetail from "@/components/Book/Detail";
 import BookError from "@/components/Book/Error";
 import useAuth from "@/hooks/useAuth";
 import { Book } from "@/models/Book";
-import ModelUtils from "@/utils/ModelUtils";
+import BookService from "@/services/BookService";
 import { GetServerSidePropsContext } from "next";
 import React, { useEffect } from "react";
 
@@ -25,7 +25,7 @@ const BookDetailPage: React.FC<BookDetailPageProps> = ({ book }) => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { bid } = context.query;
     let book = null;
-    const res = await ModelUtils.getBook(bid as string);
+    const res = await BookService.get({ bookId: bid as string });
     if (res) book = res.book;
     return {
         props: {

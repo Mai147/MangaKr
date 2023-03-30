@@ -1,12 +1,12 @@
 import InputField from "@/components/Input/InputField";
 import InputText from "@/components/Input/InputText";
 import ErrorText from "@/components/Modal/Auth/ErrorText";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
-import { fireStore, storage } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useSelectFile from "@/hooks/useSelectFile";
 import { Author, defaultAuthorForm } from "@/models/Author";
+import AuthorService from "@/services/AuthorService";
 import { validateCreateAuthor } from "@/validation/authorValidation";
 import {
     Avatar,
@@ -20,8 +20,6 @@ import {
     useToast,
     VStack,
 } from "@chakra-ui/react";
-import { collection, doc, writeBatch } from "firebase/firestore";
-import { deleteObject, ref } from "firebase/storage";
 import dynamic from "next/dynamic";
 import React, { useEffect, useRef, useState } from "react";
 import { AiFillEdit } from "react-icons/ai";
@@ -40,8 +38,7 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
     const [loading, setLoading] = useState(false);
     const [authorForm, setAuthorForm] = useState<Author>(defaultAuthorForm);
     const [errors, setErrors] = useState<ValidationError[]>([]);
-    const { selectedFile, onSelectFile, onUploadFile, setSelectedFile } =
-        useSelectFile();
+    const { selectedFile, onSelectFile, setSelectedFile } = useSelectFile();
     const selectedFileRef = useRef<HTMLInputElement>(null);
     const toast = useToast();
 
@@ -63,135 +60,38 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
             setErrors([]);
         }
         if (!user) {
+            setLoading(false);
             return;
         }
-        if (author) {
-            await onUpdate();
+        const res = await validateCreateAuthor(authorForm);
+        if (!res.result) {
+            setErrors(res.errors);
+            toast({
+                ...toastOption,
+                title: "Có lỗi xảy ra! Vui lòng thử lại.",
+                status: "error",
+            });
+            setLoading(false);
+            return;
+        }
+        if (!author) {
+            await AuthorService.create({ authorForm });
+            setAuthorForm(defaultAuthorForm);
+            setSelectedFile(undefined);
+            toast({
+                ...toastOption,
+                title: "Tạo tác giả thành công",
+                status: "success",
+            });
         } else {
-            await onCreate();
+            await AuthorService.update({ author, authorForm });
+            toast({
+                ...toastOption,
+                title: "Sửa thành công!",
+                status: "success",
+            });
         }
         setLoading(false);
-    };
-
-    const onCreate = async () => {
-        try {
-            const res = await validateCreateAuthor(authorForm);
-            if (!res.result) {
-                setErrors(res.errors);
-                toast({
-                    title: "Có lỗi xảy ra! Vui lòng thử lại.",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-                setLoading(false);
-                return;
-            } else {
-                const batch = writeBatch(fireStore);
-                const authorsDocRef = doc(
-                    collection(fireStore, firebaseRoute.getAllAuthorRoute())
-                );
-                const authorImageUrl = await onUploadFile(
-                    firebaseRoute.getAuthorImageRoute(authorsDocRef.id)
-                );
-                const nameLowerCase = authorForm.name.toLowerCase();
-                batch.set(authorsDocRef, {
-                    name: authorForm.name,
-                    bio: authorForm.bio,
-                    creatorId: authorForm.creatorId,
-                    nameLowerCase,
-                    numberOfBooks: authorForm.numberOfBooks,
-                    numberOfLikes: authorForm.numberOfLikes,
-                    numberOfDislikes: authorForm.numberOfDislikes,
-                });
-                if (authorImageUrl) {
-                    batch.update(authorsDocRef, {
-                        imageUrl: authorImageUrl,
-                    });
-                }
-                await batch.commit();
-                setAuthorForm(defaultAuthorForm);
-                setSelectedFile(undefined);
-                toast({
-                    title: "Tạo tác giả thành công",
-                    status: "success",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-            }
-        } catch (error: any) {
-            console.log(error);
-        }
-    };
-
-    const onUpdate = async () => {
-        try {
-            const res = await validateCreateAuthor(authorForm, author?.name);
-            if (!res.result) {
-                setErrors(res.errors);
-                toast({
-                    title: "Có lỗi xảy ra! Vui lòng thử lại.",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-                setLoading(false);
-                return;
-            } else {
-                const batch = writeBatch(fireStore);
-                const authorDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllAuthorRoute(),
-                    author?.id!
-                );
-                let authorImageUrl;
-                if (
-                    authorForm.imageUrl &&
-                    authorForm.imageUrl !== author?.imageUrl
-                ) {
-                    authorImageUrl = await onUploadFile(
-                        firebaseRoute.getAuthorImageRoute(author?.id!)
-                    );
-                } else if (!authorForm.imageUrl && author?.imageUrl) {
-                    const imageRef = ref(
-                        storage,
-                        firebaseRoute.getAuthorImageRoute(author.id!)
-                    );
-                    await deleteObject(imageRef);
-                }
-                const nameLowerCase = authorForm.name.toLowerCase();
-                batch.update(authorDocRef, {
-                    ...authorForm,
-                    nameLowerCase,
-                });
-                // Update image
-                if (authorForm.imageUrl !== author?.imageUrl) {
-                    batch.update(
-                        doc(
-                            fireStore,
-                            firebaseRoute.getAllAuthorRoute(),
-                            author?.id!
-                        ),
-                        {
-                            imageUrl: authorImageUrl,
-                        }
-                    );
-                }
-                await batch.commit();
-                toast({
-                    title: "Sửa thành công!",
-                    status: "success",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-            }
-        } catch (error) {
-            console.log(error);
-        }
     };
 
     useEffect(() => {

@@ -1,22 +1,13 @@
 import AuthorSnippetItem from "@/components/Author/Snippet/AuthorSnippetItem";
 import BookCarousel from "@/components/Book/Snippet/Carousel";
 import VerticalSkeleton from "@/components/Skeleton/VerticalSkeleton";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { getEditAuthorPage } from "@/constants/routes";
-import { fireStore, storage } from "@/firebase/clientApp";
+import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Author } from "@/models/Author";
-import { Flex, GridItem, Text, useToast } from "@chakra-ui/react";
-import {
-    collection,
-    doc,
-    getDocs,
-    query,
-    where,
-    writeBatch,
-} from "firebase/firestore";
-import { deleteObject, ref } from "firebase/storage";
+import AuthorService from "@/services/AuthorService";
+import { Flex, Text, useToast } from "@chakra-ui/react";
 import React, { SetStateAction, useEffect, useState } from "react";
 import LibrarySection from "../Section";
 
@@ -44,23 +35,10 @@ const LibraryAuthor: React.FC<LibraryAuthorProps> = ({
     const getAuthors = async (userId: string) => {
         setLoading(true);
         try {
-            const authorDocsRef = collection(
-                fireStore,
-                firebaseRoute.getAllAuthorRoute()
-            );
-            const authorQuery = query(
-                authorDocsRef,
-                where("creatorId", "==", userId)
-            );
-            const authorDocs = await getDocs(authorQuery);
-            const authors = authorDocs.docs.map(
-                (doc) =>
-                    ({
-                        id: doc.id,
-                        ...doc.data(),
-                    } as Author)
-            );
-            setAuthors(authors);
+            const authors = await AuthorService.getAll({ userId });
+            if (authors) {
+                setAuthors(authors as Author[]);
+            }
         } catch (error) {
             console.log(error);
         }
@@ -69,51 +47,23 @@ const LibraryAuthor: React.FC<LibraryAuthorProps> = ({
 
     const handleDeleteAuthor = async (author: Author) => {
         try {
-            const authorBookDocsRef = collection(
-                fireStore,
-                firebaseRoute.getAllBookRoute()
-            );
-            const authorBookQuery = query(
-                authorBookDocsRef,
-                where("authorIds", "array-contains", author.id)
-            );
-            const authorDocs = await getDocs(authorBookQuery);
-            if (authorDocs.docs.length > 0) {
-                closeModal();
-                toast({
-                    title: "Không thể xóa tác giả này!",
-                    status: "error",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
-                });
-                return;
-            } else {
-                const batch = writeBatch(fireStore);
-                // Delete image
-                if (author.imageUrl) {
-                    const imageRef = ref(
-                        storage,
-                        firebaseRoute.getAuthorImageRoute(author.id!)
-                    );
-                    await deleteObject(imageRef);
-                }
-                const authorDocRef = doc(
-                    collection(fireStore, firebaseRoute.getAllAuthorRoute()),
-                    author.id
-                );
-                batch.delete(authorDocRef);
-                await batch.commit();
+            const res = await AuthorService.delete({ author });
+            if (res) {
                 setAuthors((prev) =>
                     prev.filter((item) => item.id !== author.id)
                 );
                 closeModal();
                 toast({
+                    ...toastOption,
                     title: "Xóa thành công!",
                     status: "success",
-                    duration: 5000,
-                    isClosable: true,
-                    position: "top-right",
+                });
+            } else {
+                closeModal();
+                toast({
+                    ...toastOption,
+                    title: "Không thể xóa tác giả này!",
+                    status: "error",
                 });
             }
         } catch (error) {

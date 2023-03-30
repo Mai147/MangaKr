@@ -15,6 +15,7 @@ export interface Post {
     numberOfLaughs: number;
     numberOfAngrys: number;
     numberOfComments: number;
+    isAccept: boolean;
 }
 
 export interface CommunityPost extends Post {
@@ -47,4 +48,5 @@ export const defaultPostForm: Post = {
     numberOfFavorites: 0,
     numberOfLaughs: 0,
     numberOfLikes: 0,
+    isAccept: false,
 };

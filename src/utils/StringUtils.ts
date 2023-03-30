@@ -38,3 +38,19 @@ export const formatNumber = (num: number, digits: number = 1) => {
         ? (num / item.value).toFixed(digits).replace(rx, "$1") + item.symbol
         : "0";
 };
+
+export const triGram = (txt: string) => {
+    const obj: any = {};
+    const map = [];
+    const s1 = (txt || "").toLowerCase();
+    const n = 3;
+    for (let k = 0; k <= s1.length - n; k++) {
+        const x = s1.substring(k, k + n);
+        map.push(x);
+        obj[x] = true;
+    }
+    return {
+        obj,
+        map,
+    };
+};

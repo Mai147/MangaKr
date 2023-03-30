@@ -1,18 +1,10 @@
 import AddLibraryModal from "@/components/Modal/Book/AddLibraryModal";
 import RatingBar from "@/components/RatingBar";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
 import useModal from "@/hooks/useModal";
 import { Book } from "@/models/Book";
 import { UserModel } from "@/models/User";
+import BookService from "@/services/BookService";
 import { Button, Flex, Heading, Icon, VStack } from "@chakra-ui/react";
-import {
-    collection,
-    doc,
-    getDoc,
-    increment,
-    writeBatch,
-} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { BsBookHalf } from "react-icons/bs";
 import { FaRegComment } from "react-icons/fa";
@@ -32,19 +24,8 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
 
     const getBookLibrary = async (userId: string) => {
         setLoadingBookLibrary(true);
-        const readingBookDocRef = doc(
-            collection(
-                fireStore,
-                firebaseRoute.getUserReadingBookSnippetRoute(userId)
-            ),
-            book.id
-        );
-        const bookDoc = await getDoc(readingBookDocRef);
-        if (bookDoc.exists()) {
-            setIsInLibrary(true);
-        } else {
-            setIsInLibrary(false);
-        }
+        const res = await BookService.isInLibrary({ bookId: book.id!, userId });
+        setIsInLibrary(res);
         setLoadingBookLibrary(false);
     };
 
@@ -60,23 +41,10 @@ const BookDetailHeader: React.FC<BookDetailHeaderProps> = ({ book, user }) => {
         } else {
             setLoadingBookLibrary(true);
             try {
-                const batch = writeBatch(fireStore);
-                const userReadingBookDocRef = doc(
-                    collection(
-                        fireStore,
-                        firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
-                    ),
-                    book.id
-                );
-                const bookDocRef = doc(
-                    collection(fireStore, firebaseRoute.getAllBookRoute()),
-                    book.id!
-                );
-                batch.delete(userReadingBookDocRef);
-                batch.update(bookDocRef, {
-                    popularity: increment(-1),
+                await BookService.removeOutLibrary({
+                    bookId: book.id!,
+                    userId: user.uid,
                 });
-                await batch.commit();
                 setIsInLibrary((prev) => !prev);
             } catch (error) {
                 console.log(error);

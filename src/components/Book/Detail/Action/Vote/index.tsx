@@ -1,15 +1,8 @@
 import RatingBar from "@/components/RatingBar";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
+import useModal from "@/hooks/useModal";
 import { UserModel } from "@/models/User";
-import { Flex, Spinner, Text } from "@chakra-ui/react";
-import {
-    doc,
-    collection,
-    getDoc,
-    runTransaction,
-    increment,
-} from "firebase/firestore";
+import BookService from "@/services/BookService";
+import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import RequiredLoginContainer from "../RequiredLoginContainer";
 
@@ -19,21 +12,17 @@ type BookDetailVoteProps = {
 };
 
 const BookDetailVote: React.FC<BookDetailVoteProps> = ({ bookId, user }) => {
+    const { toggleView } = useModal();
     const [rateLoading, setRateLoading] = useState(false);
     const [userRate, setUserRate] = useState(0);
 
-    const getBookVote = async (userId: string) => {
+    const getBookRate = async (userId: string) => {
         try {
-            const bookVoteDocRef = doc(
-                collection(
-                    fireStore,
-                    firebaseRoute.getUserBookVoteRoute(userId)
-                ),
-                bookId
-            );
-            const bookVoteDoc = await getDoc(bookVoteDocRef);
-            if (bookVoteDoc.exists()) {
-                setUserRate(bookVoteDoc.data().value);
+            const rate = await BookService.getUserRate({ bookId, userId });
+            if (rate) {
+                setUserRate(rate);
+            } else {
+                setUserRate(0);
             }
         } catch (error) {
             console.log(error);
@@ -42,57 +31,24 @@ const BookDetailVote: React.FC<BookDetailVoteProps> = ({ bookId, user }) => {
 
     useEffect(() => {
         if (user) {
-            getBookVote(user.uid);
+            getBookRate(user.uid);
         }
     }, [user]);
 
     const handleRate = async (value: number) => {
         setRateLoading(true);
         try {
-            await runTransaction(fireStore, async (transaction) => {
-                if (user) {
-                    const bookVoteDocRef = doc(
-                        collection(
-                            fireStore,
-                            firebaseRoute.getUserBookVoteRoute(user.uid)
-                        ),
-                        bookId
-                    );
-                    const bookDocRef = doc(
-                        collection(fireStore, firebaseRoute.getAllBookRoute()),
-                        bookId
-                    );
-                    const bookDoc = await transaction.get(bookDocRef);
-                    if (!bookDoc.exists()) {
-                        throw "Không tìm thấy sách";
-                    }
-                    const { rating, numberOfRates } = bookDoc.data();
-                    let newRating = 0;
-                    if (userRate !== 0) {
-                        newRating =
-                            (rating * numberOfRates + value - userRate) /
-                            numberOfRates;
-                        transaction.update(bookVoteDocRef, {
-                            value,
-                        });
-                    } else {
-                        newRating =
-                            (rating * numberOfRates + value) /
-                            (numberOfRates + 1);
-                        transaction.set(bookVoteDocRef, {
-                            value,
-                        });
-                        transaction.update(bookDocRef, {
-                            numberOfRates: increment(1),
-                        });
-                    }
-                    transaction.update(bookDocRef, {
-                        rating: newRating,
-                    });
-
-                    setUserRate(value);
-                }
+            if (!user) {
+                toggleView("login");
+                return;
+            }
+            await BookService.handleRate({
+                userId: user.uid,
+                bookId,
+                value,
+                userRate,
             });
+            setUserRate(value);
         } catch (error) {
             console.log(error);
         }
@@ -100,11 +56,11 @@ const BookDetailVote: React.FC<BookDetailVoteProps> = ({ bookId, user }) => {
     };
 
     return (
-        <Flex align="flex-end" mb={4}>
+        <Box mb={4}>
             {!user ? (
                 <RequiredLoginContainer action="bình chọn" />
             ) : (
-                <>
+                <Flex align="flex-end">
                     <Text mr={4}>Để lại bình chọn</Text>
                     <Flex align="center">
                         <RatingBar
@@ -116,9 +72,9 @@ const BookDetailVote: React.FC<BookDetailVoteProps> = ({ bookId, user }) => {
                         />
                         {rateLoading && <Spinner ml={2} size={"sm"} />}
                     </Flex>
-                </>
+                </Flex>
             )}
-        </Flex>
+        </Box>
     );
 };
 export default BookDetailVote;

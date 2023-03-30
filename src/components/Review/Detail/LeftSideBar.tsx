@@ -1,9 +1,9 @@
 import LeftSidebar from "@/components/Layout/Sidebar/LeftSidebar";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import { doc, getDoc, increment, writeBatch } from "firebase/firestore";
+import { basicVoteList, Vote } from "@/models/Vote";
+import VoteService from "@/services/VoteService";
 import React, { useEffect, useState } from "react";
 
 type ReviewLeftSideBarProps = {
@@ -13,78 +13,53 @@ type ReviewLeftSideBarProps = {
 const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({ reviewId }) => {
     const { user } = useAuth();
     const { toggleView } = useModal();
-    const [userVote, setUserVote] = useState<1 | -1 | undefined>(undefined);
-    const [likeLoading, setLikeLoading] = useState(false);
-    const [dislikeLoading, setDislikeLoading] = useState(false);
+    const [userVote, setUserVote] = useState<Vote | undefined>();
 
     const getUserVote = async (userId: string) => {
-        const userReviewVoteDocRef = doc(
-            fireStore,
-            firebaseRoute.getUserReviewVoteRoute(userId),
-            reviewId
-        );
-        const userReviewVoteDoc = await getDoc(userReviewVoteDocRef);
-        if (userReviewVoteDoc.exists()) {
-            setUserVote(userReviewVoteDoc.data().value);
+        const userVote = await VoteService.get({
+            voteRoute: firebaseRoute.getUserAuthorVoteRoute(userId),
+            voteId: reviewId,
+        });
+        if (userVote) {
+            setUserVote(userVote as Vote);
         } else {
             setUserVote(undefined);
         }
     };
 
-    const handleLike = async (value: 1 | -1) => {
+    const onVote = async (vote: Vote) => {
         if (!user) {
             toggleView("login");
             return;
-        }
-        value === 1 ? setLikeLoading(true) : setDislikeLoading(true);
-        try {
-            const batch = writeBatch(fireStore);
-            const userReviewVoteRef = doc(
-                fireStore,
-                firebaseRoute.getUserReviewVoteRoute(user.uid),
-                reviewId
-            );
-            const reviewRef = doc(
-                fireStore,
-                firebaseRoute.getAllReviewRoute(),
-                reviewId
-            );
-            let likeIncrement = 0;
-            let dislikeIncrement = 0;
-            if (!userVote) {
-                batch.set(userReviewVoteRef, {
-                    value,
-                });
-                value === 1 ? (likeIncrement = 1) : (dislikeIncrement = 1);
-            } else {
-                if (value === userVote) {
-                    batch.delete(userReviewVoteRef);
-                    value === 1
-                        ? (likeIncrement = -1)
-                        : (dislikeIncrement = -1);
-                } else {
-                    batch.update(userReviewVoteRef, {
-                        value,
+        } else {
+            try {
+                if (!userVote) {
+                    await VoteService.create({
+                        voteRoute: firebaseRoute.getUserReviewVoteRoute(
+                            user.uid
+                        ),
+                        voteId: reviewId,
+                        rootRoute: firebaseRoute.getAllReviewRoute(),
+                        rootId: reviewId,
+                        vote,
                     });
-                    if (value === 1) {
-                        likeIncrement = 1;
-                        dislikeIncrement = -1;
-                    } else {
-                        likeIncrement = -1;
-                        dislikeIncrement = 1;
-                    }
+                } else {
+                    await VoteService.update({
+                        voteRoute: firebaseRoute.getUserReviewVoteRoute(
+                            user.uid
+                        ),
+                        voteId: reviewId,
+                        rootRoute: firebaseRoute.getAllReviewRoute(),
+                        rootId: reviewId,
+                        userVote,
+                        vote,
+                    });
                 }
+                setUserVote(vote);
+            } catch (error) {
+                console.log(error);
             }
-            batch.update(reviewRef, {
-                numberOfLikes: increment(likeIncrement),
-                numberOfDislikes: increment(dislikeIncrement),
-            });
-            await batch.commit();
-            setUserVote((prev) => (prev === value ? undefined : value));
-        } catch (error) {
-            console.log(error);
         }
-        value === 1 ? setLikeLoading(false) : setDislikeLoading(false);
     };
 
     useEffect(() => {
@@ -95,10 +70,9 @@ const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({ reviewId }) => {
 
     return (
         <LeftSidebar
-            handleLike={handleLike}
+            voteList={basicVoteList}
             userVote={userVote}
-            likeLoading={likeLoading}
-            dislikeLoading={dislikeLoading}
+            onVote={onVote}
         />
     );
 };

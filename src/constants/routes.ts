@@ -30,4 +30,13 @@ export const COMMUNITY_PAGE = "/communities";
 export const getCommunityCreatePostPage = (communityId: string) => {
     return `/communities/${communityId}/posts/create`;
 };
+export const getCommunityPostApprovePage = (communityId: string) => {
+    return `/communities/${communityId}/posts/approve`;
+};
+export const getCommunityUserApprovePage = (communityId: string) => {
+    return `/communities/${communityId}/users/approve`;
+};
+export const getCommunityUserAuthorizePage = (communityId: string) => {
+    return `/communities/${communityId}/users/authorize`;
+};
 export const SEARCH_PAGE = "/search";

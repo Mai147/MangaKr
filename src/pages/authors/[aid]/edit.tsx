@@ -1,12 +1,10 @@
 import AuthorForm from "@/components/Author/Form";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { WRITER_ROLE } from "@/constants/roles";
 import { HOME_PAGE } from "@/constants/routes";
-import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import { Author } from "@/models/Author";
+import AuthorService from "@/services/AuthorService";
 import { Box } from "@chakra-ui/react";
-import { doc, getDoc } from "firebase/firestore";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
 import React, { useEffect } from "react";
@@ -42,19 +40,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     const us = JSON.parse(JSON.stringify(user));
     const { aid } = context.query;
-    const authorDocRef = doc(
-        fireStore,
-        firebaseRoute.getAllAuthorRoute(),
-        aid as string
-    );
-    const authorDoc = await getDoc(authorDocRef);
-    if (authorDoc.exists()) {
-        const author = JSON.parse(
-            JSON.stringify({
-                id: authorDoc.id,
-                ...authorDoc.data(),
-            } as Author)
-        ) as Author;
+    const author = await AuthorService.get({ authorId: aid as string });
+    if (author) {
         if (author.creatorId !== user_id) {
             context.res.writeHead(302, { Location: HOME_PAGE });
             context.res.end();

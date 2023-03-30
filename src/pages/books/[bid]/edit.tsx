@@ -4,7 +4,7 @@ import { HOME_PAGE } from "@/constants/routes";
 import { BookCreateProvider } from "@/context/BookCreateContext";
 import useAuth from "@/hooks/useAuth";
 import { Book } from "@/models/Book";
-import ModelUtils from "@/utils/ModelUtils";
+import BookService from "@/services/BookService";
 import { Box } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
@@ -42,7 +42,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
 
     const { bid } = context.query;
-    const res = await ModelUtils.getBook(bid as string, user_id as string);
+    const res = await BookService.get({
+        bookId: bid as string,
+        userId: user_id,
+    });
     if (res) {
         if (res.book?.writerId !== user_id) {
             context.res.writeHead(302, { Location: HOME_PAGE });

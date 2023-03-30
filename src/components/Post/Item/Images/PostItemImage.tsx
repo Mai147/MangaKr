@@ -4,11 +4,13 @@ import React, { BaseSyntheticEvent, useState } from "react";
 type PostItemImageProps = {
     url: string;
     isShadow?: boolean;
+    size?: "sm" | "lg";
 };
 
 const PostItemImage: React.FC<PostItemImageProps> = ({
     url,
     isShadow = false,
+    size = "lg",
 }) => {
     const [ratio, setRatio] = useState<number | undefined>();
     const onImageLoad = (e: BaseSyntheticEvent) => {
@@ -27,7 +29,7 @@ const PostItemImage: React.FC<PostItemImageProps> = ({
         </AspectRatio>
     ) : (
         <>
-            <Skeleton w="100%" h="200px" />
+            <Skeleton w="100%" h={size === "sm" ? "30px" : "150px"} />
             <Image src={url} onLoad={onImageLoad} display="none" />
         </>
     );

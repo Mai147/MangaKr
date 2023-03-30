@@ -2,10 +2,8 @@ import AuthorDetail from "@/components/Author/Detail";
 import NotAvailable from "@/components/Error/NotAvailable";
 import PageContent from "@/components/Layout/PageContent";
 import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
 import { Author } from "@/models/Author";
-import { doc, getDoc } from "firebase/firestore";
+import AuthorService from "@/services/AuthorService";
 import { GetServerSidePropsContext } from "next";
 import React from "react";
 
@@ -28,19 +26,8 @@ const AuthorDetailPage: React.FC<AuthorDetailPageProps> = ({ author }) => {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { aid } = context.query;
-    const authorDocRef = doc(
-        fireStore,
-        firebaseRoute.getAllAuthorRoute(),
-        aid as string
-    );
-    const authorDoc = await getDoc(authorDocRef);
-    if (authorDoc.exists()) {
-        const author = JSON.parse(
-            JSON.stringify({
-                id: authorDoc.id,
-                ...authorDoc.data(),
-            } as Author)
-        );
+    const author = await AuthorService.get({ authorId: aid as string });
+    if (author) {
         return {
             props: {
                 author,

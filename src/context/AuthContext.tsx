@@ -1,10 +1,8 @@
 import { ProfileFormState } from "@/components/Profile/Detail";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { HOME_PAGE } from "@/constants/routes";
-import { fireStore } from "@/firebase/clientApp";
 import { UserModel } from "@/models/User";
+import UserService from "@/services/UserService";
 import { User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
@@ -64,16 +62,7 @@ export const AuthProvider = ({ children }: any) => {
 
     const getUserFromDb = async (user: User) => {
         try {
-            const userDocRef = doc(
-                fireStore,
-                firebaseRoute.getAllUserRoute(),
-                user.uid
-            );
-            const userDoc = await getDoc(userDocRef);
-            const loggedUser: UserModel = {
-                id: user.uid,
-                ...(userDoc.data() as UserModel),
-            } as UserModel;
+            const loggedUser = await UserService.get({ userId: user.uid });
             setUser(loggedUser);
             return loggedUser;
         } catch (error) {

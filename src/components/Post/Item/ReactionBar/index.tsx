@@ -20,10 +20,6 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
     setShowCommentInput,
 }) => {
     const { communityState, communityAction } = useCommunity();
-    const [loading, setLoading] = useState(false);
-    const [selectedReaction, setSelectedReaction] = useState<
-        PostVote | undefined
-    >();
     return (
         <VStack align="flex-start" w="100%" py={1} spacing={3}>
             <Flex px={6} justify="space-between" w="100%">
@@ -62,79 +58,6 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
                             await communityAction.onPostVote(value, post.id!);
                         }}
                     />
-                    {/* <Box position="relative" role="group">
-                        <Flex align="center" justify="center">
-                            <Icon
-                                as={RiEmotionHappyLine}
-                                fontSize={26}
-                                cursor="pointer"
-                            />
-                        </Flex>
-                        <Box
-                            position="absolute"
-                            bottom={`calc(100% + 16px)`}
-                            left={-4}
-                            bg="white"
-                            p={4}
-                            borderRadius={4}
-                            boxShadow="rgba(0, 0, 0, 0.24) 0px 3px 8px"
-                            _before={{
-                                content: '""',
-                                position: "absolute",
-                                top: "100%",
-                                left: 4,
-                                w: 0,
-                                h: 0,
-                                borderLeft: "12px solid transparent",
-                                borderRight: "12px solid transparent",
-                                borderTop: "12px solid white",
-                                filter: "drop-shadow(3px 3px 2px rgba(0,0,0,0.25))",
-                            }}
-                            _after={{
-                                content: '""',
-                                position: "absolute",
-                                top: "100%",
-                                left: 0,
-                                w: "100%",
-                                h: "24px",
-                                bg: "transparent",
-                            }}
-                            opacity={0}
-                            visibility="hidden"
-                            _groupHover={{ opacity: 1, visibility: "visible" }}
-                            transition="all 0.3s"
-                        >
-                            <HStack spacing={6} fontSize={24}>
-                                {postVoteList.map((e, idx) => (
-                                    <ReactionItem
-                                        key={idx}
-                                        icon={e.icon}
-                                        color={e.color}
-                                        isActive={
-                                            communityState.communityPostVotes?.find(
-                                                (item) =>
-                                                    item.postId === post.id
-                                            )?.voteValue?.value === e.value
-                                        }
-                                        isLoading={
-                                            loading && e === selectedReaction
-                                        }
-                                        isDisabled={loading}
-                                        value={e}
-                                        onClick={async (value) => {
-                                            setLoading(true);
-                                            setSelectedReaction(e);
-                                            await communityAction.onPostVote(
-                                                value,
-                                                post.id!
-                                            );
-                                            setLoading(false);
-                                        }}
-                                    />
-                                ))}
-                            </HStack>
-                        </Box>
-                    </Box> */}
                     <Icon
                         as={RiChat3Line}
                         cursor="pointer"

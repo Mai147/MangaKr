@@ -5,7 +5,7 @@ import { GenreSnippet } from "./Genre";
 
 export type BookStatus = "DONE" | "GOING" | "DROP";
 
-export const bookStatusList = [
+export const bookStatusList: BookStatusOption[] = [
     {
         label: "Hoàn thành",
         value: "DONE",
@@ -20,6 +20,11 @@ export const bookStatusList = [
     },
 ];
 
+export type BookStatusOption = {
+    label: string;
+    value: BookStatus;
+};
+
 export interface BookSnippet {
     id?: string;
     name: string;
@@ -28,6 +33,8 @@ export interface BookSnippet {
     authorIds?: string[];
     genreIds?: string[];
     characterIds?: string[];
+
+    writerId: string;
 }
 
 export interface Book extends BookSnippet {
@@ -45,7 +52,6 @@ export interface Book extends BookSnippet {
     numberOfRates: number;
     numberOfComments: number;
     numberOfReviews: number;
-    writerId: string;
     createdAt?: Timestamp;
 }
 
@@ -79,5 +85,12 @@ export const defaultBookForm: Book = {
     numberOfRates: 0,
     numberOfComments: 0,
     numberOfReviews: 0,
-    writerId: "1",
+    writerId: "",
+};
+
+export const defaultReadingBookSnippet: ReadingBookSnippet = {
+    chap: "",
+    name: "",
+    status: "DONE",
+    writerId: "",
 };

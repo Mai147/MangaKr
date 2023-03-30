@@ -7,7 +7,7 @@ import { LatestPost } from "./Post";
 export interface UserSnippet {
     id: string;
     displayName: string;
-    imageUrl?: string;
+    imageUrl?: string | null;
 }
 
 export interface UserModel extends User {
@@ -24,5 +24,15 @@ export interface UserCommunitySnippet {
     id: string;
     name: string;
     role: CommunityRole;
+    isAccept: boolean;
     latestPost?: LatestPost;
+}
+
+export interface CommunityUserSnippet {
+    id: string;
+    displayName: string;
+    imageUrl?: string | null;
+    role: CommunityRole;
+    isAccept: boolean;
+    createdAt?: Timestamp;
 }

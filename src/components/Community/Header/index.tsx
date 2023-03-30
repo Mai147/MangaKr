@@ -2,7 +2,7 @@ import { getCommunityCreatePostPage } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
-import CommunityUtils from "@/utils/CommunityUtils";
+import CommunityService from "@/services/CommunityService";
 import {
     Flex,
     Avatar,
@@ -12,8 +12,9 @@ import {
     Icon,
     Button,
     Link,
+    Spinner,
 } from "@chakra-ui/react";
-import React from "react";
+import React, { useState } from "react";
 import { BiMessageSquareAdd } from "react-icons/bi";
 import { FiMoreVertical } from "react-icons/fi";
 import { MdOutlineAddToPhotos } from "react-icons/md";
@@ -24,7 +25,9 @@ type CommunityHeaderProps = {
 };
 
 const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
-    const { communityState } = useCommunity();
+    const { communityState, communityAction } = useCommunity();
+    const [joinLoading, setJoinLoading] = useState(false);
+    const { user } = useAuth();
 
     return (
         <Flex
@@ -44,7 +47,10 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
         >
             <Flex align="center">
                 <Avatar
-                    src={community.imageUrl || "/images/noImage.jpg"}
+                    src={
+                        communityState.selectedCommunity?.imageUrl ||
+                        "/images/noImage.jpg"
+                    }
                     size="xl"
                 />
                 <Flex align="flex-end">
@@ -55,10 +61,12 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                             color="white"
                             lineHeight={1}
                         >
-                            {community.name}
+                            {communityState.selectedCommunity?.name}
                         </Text>
                         <Text fontSize={14} color="gray.200" lineHeight={1}>
-                            {community.numberOfMembers} thành viên
+                            {communityState.selectedCommunity
+                                ?.numberOfMembers || 0}{" "}
+                            thành viên
                         </Text>
                         <Flex align="flex-end">
                             <Text color="white" mr="2">
@@ -137,29 +145,48 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                     visibility="hidden"
                     _groupHover={{ opacity: 1, visibility: "visible" }}
                 >
-                    {communityState.userCommunityRole ? (
-                        <Button variant="unstyled">
-                            <Flex align="center">
-                                Rời khỏi cộng đồng
-                                <Icon as={VscSignOut} fontSize={18} ml={1} />
-                            </Flex>
-                        </Button>
+                    {joinLoading ? (
+                        <Flex align="center" justify="center" w="100%" py={2}>
+                            <Spinner size="sm" />
+                        </Flex>
                     ) : (
-                        <Button variant="unstyled">
-                            <Flex align="center">
-                                Yêu cầu tham gia
-                                <Icon
-                                    as={BiMessageSquareAdd}
-                                    fontSize={18}
-                                    ml={1}
-                                />
-                            </Flex>
-                        </Button>
+                        communityState.userCommunityRole?.isAccept !== false &&
+                        (communityState.userCommunityRole?.role ? (
+                            <Button variant="unstyled">
+                                <Flex align="center">
+                                    Rời khỏi cộng đồng
+                                    <Icon
+                                        as={VscSignOut}
+                                        fontSize={18}
+                                        ml={1}
+                                    />
+                                </Flex>
+                            </Button>
+                        ) : (
+                            <Button
+                                variant="unstyled"
+                                onClick={async () => {
+                                    setJoinLoading(true);
+                                    await communityAction.joinCommunity();
+                                    setJoinLoading(false);
+                                }}
+                            >
+                                <Flex align="center">
+                                    Yêu cầu tham gia
+                                    <Icon
+                                        as={BiMessageSquareAdd}
+                                        fontSize={18}
+                                        ml={1}
+                                    />
+                                </Flex>
+                            </Button>
+                        ))
                     )}
-                    {CommunityUtils.canCreatePosts(
-                        community.privacyType,
-                        communityState.userCommunityRole
-                    ) && (
+                    {CommunityService.canCreatePosts({
+                        communityType: community.privacyType,
+                        userRole: communityState.userCommunityRole?.role,
+                        user,
+                    }) && (
                         <Link
                             _hover={{ textDecoration: "none" }}
                             href={getCommunityCreatePostPage(community.id!)}

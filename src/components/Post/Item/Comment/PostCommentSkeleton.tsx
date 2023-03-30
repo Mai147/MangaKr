@@ -9,7 +9,7 @@ const PostCommentSkeleton: React.FC<PostCommentSkeletonProps> = ({
     width = "200px",
 }) => {
     return (
-        <Flex px={2}>
+        <Flex>
             <SkeletonCircle size="12" mr={2} fadeDuration={0.4} speed={1} />
             <Box w={width} bg="gray.100" borderRadius={8} p={4}>
                 <SkeletonText

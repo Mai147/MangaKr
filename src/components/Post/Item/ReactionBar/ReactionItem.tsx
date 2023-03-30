@@ -1,4 +1,4 @@
-import { PostVote } from "@/models/Vote";
+import { PostVote, Vote } from "@/models/Vote";
 import { Flex, Icon, Spinner } from "@chakra-ui/react";
 import React from "react";
 import { IconType } from "react-icons";
@@ -7,10 +7,11 @@ type ReactionItemProps = {
     icon: IconType;
     color: string;
     isActive?: boolean;
-    value: PostVote;
-    onClick?: (value: PostVote) => Promise<void>;
+    value: PostVote | Vote;
+    onClick?: (value: PostVote | Vote) => Promise<void>;
     isLoading?: boolean;
     isDisabled?: boolean;
+    iconSize?: number;
 };
 
 const ReactionItem: React.FC<ReactionItemProps> = ({
@@ -21,6 +22,7 @@ const ReactionItem: React.FC<ReactionItemProps> = ({
     value,
     isLoading = false,
     isDisabled = false,
+    iconSize,
 }) => {
     return (
         <Flex
@@ -29,6 +31,7 @@ const ReactionItem: React.FC<ReactionItemProps> = ({
             justify="center"
             p={isActive ? 2 : 0}
             rounded="full"
+            fontSize={iconSize}
         >
             {isLoading ? (
                 <Spinner />

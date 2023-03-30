@@ -57,7 +57,10 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                 top={6}
                 fontSize={24}
                 cursor="pointer"
-                onClick={onHidden}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onHidden();
+                }}
             />
             <Flex
                 position="absolute"

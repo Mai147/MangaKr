@@ -1,20 +1,11 @@
 import BookLibraryCarousel from "@/components/Book/Snippet/BookLibraryCarousel";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE, getEditBookPage } from "@/constants/routes";
-import { fireStore, storage } from "@/firebase/clientApp";
+import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { BookSnippet } from "@/models/Book";
+import BookService from "@/services/BookService";
 import { Divider, Box, Flex, Spinner, useToast } from "@chakra-ui/react";
-import {
-    collection,
-    getDocs,
-    getDoc,
-    doc,
-    writeBatch,
-    increment,
-} from "firebase/firestore";
-import { ref, deleteObject } from "firebase/storage";
 import React, { SetStateAction, useEffect, useState } from "react";
 import LibrarySection from "../Section";
 
@@ -43,18 +34,10 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
 
     const getWritingBook = async (userId: string) => {
         setWritingBooksLoading(true);
-        const writingBookSnippetDocRef = collection(
-            fireStore,
-            firebaseRoute.getUserWritingBookSnippetRoute(userId)
-        );
-        const writingBookSnippetDocs = await getDocs(writingBookSnippetDocRef);
-        const writingBooks = writingBookSnippetDocs.docs.map(
-            (doc) =>
-                ({
-                    ...doc.data(),
-                    id: doc.id,
-                } as BookSnippet)
-        );
+        const writingBooks = await BookService.getUserSnippetBook({
+            userId,
+            type: "writing",
+        });
 
         setWritingBooks(writingBooks);
         setWritingBooksLoading(false);
@@ -62,18 +45,10 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
 
     const getReadingBook = async (userId: string) => {
         setReadingBooksLoading(true);
-        const readingBookSnippetDocRef = collection(
-            fireStore,
-            firebaseRoute.getUserReadingBookSnippetRoute(userId)
-        );
-        const readingBookSnippetDocs = await getDocs(readingBookSnippetDocRef);
-        const readingBooks = readingBookSnippetDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as BookSnippet)
-        );
+        const readingBooks = await BookService.getUserSnippetBook({
+            userId,
+            type: "reading",
+        });
         setReadingBooks(readingBooks);
         setReadingBooksLoading(false);
     };
@@ -100,34 +75,13 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
             if (!user) {
                 throw Error("Not authenticated");
             }
-            const batch = writeBatch(fireStore);
-            const bookDocRef = doc(
-                collection(fireStore, firebaseRoute.getAllBookRoute()),
-                book.id
-            );
-            const userReadingDocRef = doc(
-                collection(
-                    fireStore,
-                    firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
-                ),
-                book.id
-            );
-            batch.delete(userReadingDocRef);
-            const bookDoc = await getDoc(bookDocRef);
-            if (bookDoc.exists()) {
-                batch.update(bookDocRef, {
-                    popularity: increment(-1),
-                });
-            }
-            await batch.commit();
-            // setReadingBooks((prev) => prev.filter((b) => b.id !== book.id));
+            await BookService.deleteReadingSnippet({ book, userId: user.uid });
+            setReadingBooks((prev) => prev.filter((b) => b.id !== book.id));
             closeModal();
             toast({
+                ...toastOption,
                 title: "Xóa thành công",
                 status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
         } catch (error) {
             console.log(error);
@@ -136,124 +90,26 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
 
     const handleDeleteBook = async (book: BookSnippet) => {
         try {
-            const batch = writeBatch(fireStore);
-            // Delete Book image
-            if (book.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getBookImageRoute(book.id!)
-                );
-                await deleteObject(imageRef);
+            if (user.uid !== book.writerId) {
+                return;
             }
-            // Decrease author and genre number
-            book.authorIds?.forEach((id) => {
-                const authorRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllAuthorRoute(),
-                    id
-                );
-                batch.update(authorRef, {
-                    numberOfBooks: increment(-1),
-                });
-            });
-            book.genreIds?.forEach((id) => {
-                const genreRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllGenreRoute(),
-                    id
-                );
-                batch.update(genreRef, {
-                    numberOfBooks: increment(-1),
-                });
-            });
-
-            // Delete character
-            if (book.characterIds) {
-                for (const id of book.characterIds) {
-                    const characterDocRef = doc(
-                        fireStore,
-                        firebaseRoute.getAllCharacterRoute(),
-                        id!
-                    );
-                    const imageRef = ref(
-                        storage,
-                        firebaseRoute.getCharacterImageRoute(id!)
-                    );
-                    await deleteObject(imageRef);
-                    batch.delete(characterDocRef);
-                }
-            }
-
-            // Delete author, genre, character sub collection
-            const bookAuthorDocsRef = collection(
-                fireStore,
-                firebaseRoute.getBookAuthorSnippetsRoute(book.id!)
-            );
-            const bookAuthorDocs = await getDocs(bookAuthorDocsRef);
-            bookAuthorDocs.docs.forEach((d) => {
-                batch.delete(doc(bookAuthorDocsRef, d.id));
-            });
-            const bookGenreDocsRef = collection(
-                fireStore,
-                firebaseRoute.getBookGenreSnippetsRoute(book.id!)
-            );
-            const bookGenreDocs = await getDocs(bookGenreDocsRef);
-            bookGenreDocs.docs.forEach((d) => {
-                batch.delete(doc(bookGenreDocsRef, d.id));
-            });
-            const bookCharacterDocsRef = collection(
-                fireStore,
-                firebaseRoute.getBookCharacterSnippetRoute(book.id!)
-            );
-            const bookCharacterDocs = await getDocs(bookCharacterDocsRef);
-            bookCharacterDocs.forEach((d) => {
-                batch.delete(doc(bookCharacterDocsRef, d.id));
-            });
-            const bookCommentsDocsRef = collection(
-                fireStore,
-                firebaseRoute.getBookCommentRoute(book.id!)
-            );
-            const bookCommentsDocs = await getDocs(bookCommentsDocsRef);
-            bookCommentsDocs.forEach((d) => {
-                batch.delete(doc(bookCommentsDocsRef, d.id));
-            });
-
-            // Delete Book
-            const bookRef = doc(
-                fireStore,
-                firebaseRoute.getAllBookRoute(),
-                book.id!
-            );
-            batch.delete(bookRef);
-
-            // Delete BookSnippet in user
-            const userBookRef = doc(
-                fireStore,
-                firebaseRoute.getUserWritingBookSnippetRoute(user.uid),
-                book.id!
-            );
-            batch.delete(userBookRef);
-            await batch.commit();
+            await BookService.delete({ book });
 
             // Set writing book state
-            // setWritingBooks((prev) =>
-            //     prev.filter((item) => item.id !== book.id)
-            // );
+            setWritingBooks((prev) =>
+                prev.filter((item) => item.id !== book.id)
+            );
             closeModal();
             toast({
+                ...toastOption,
                 title: "Xóa thành công",
                 status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
         } catch (error) {
             toast({
+                ...toastOption,
                 title: "Có lỗi xảy ra. Vui lòng thử lại",
                 status: "error",
-                duration: 5000,
-                isClosable: true,
-                position: "top-right",
             });
             console.log(error);
         }

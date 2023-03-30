@@ -1,17 +1,14 @@
 import { Button, Flex, Icon, Text } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
-import { User } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
 import useModal from "@/hooks/useModal";
-import { auth, fireStore } from "@/firebase/clientApp";
-import { USER_ROLE } from "@/constants/roles";
+import { auth } from "@/firebase/clientApp";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import ErrorText from "./ErrorText";
 import ModalInputItem from "../ModalInputItem";
 import { ValidationError } from "@/constants/validation";
 import { validateSignUp } from "@/validation/authValidation";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
+import UserService from "@/services/UserService";
 
 type Props = {};
 
@@ -44,7 +41,7 @@ const SignUpForm: React.FC<Props> = () => {
                     signUpForm.password
                 );
                 if (userCred) {
-                    await createUserDocument(userCred.user);
+                    await UserService.create({ user: userCred.user });
                     toggleView("login");
                 }
             }
@@ -69,23 +66,6 @@ const SignUpForm: React.FC<Props> = () => {
             [event.target.name]: event.target.value,
         }));
     };
-
-    const createUserDocument = async (user: User) => {
-        await setDoc(
-            doc(fireStore, firebaseRoute.getAllUserRoute(), user?.uid),
-            {
-                ...JSON.parse(JSON.stringify(user)),
-                role: USER_ROLE,
-                displayName: user.displayName || user.email?.split("@")[0],
-            }
-        );
-    };
-
-    // useEffect(() => {
-    //     if (userCred) {
-    //         createUserDocument(userCred.user);
-    //     }
-    // }, [userCred]);
 
     return (
         <form onSubmit={onSubmit} style={{ width: "100%" }}>

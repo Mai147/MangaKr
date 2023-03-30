@@ -1,10 +1,10 @@
 import InputField from "@/components/Input/InputField";
 import InputText from "@/components/Input/InputText";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { auth, fireStore, storage } from "@/firebase/clientApp";
+import { auth } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useSelectFile from "@/hooks/useSelectFile";
 import { UserModel } from "@/models/User";
+import UserService from "@/services/UserService";
 import {
     Flex,
     VStack,
@@ -19,16 +19,6 @@ import {
     AlertTitle,
     CloseButton,
 } from "@chakra-ui/react";
-import {
-    collectionGroup,
-    doc,
-    getDocs,
-    query,
-    runTransaction,
-    updateDoc,
-    where,
-    writeBatch,
-} from "firebase/firestore";
 import React, { useEffect, useRef, useState } from "react";
 import { useUpdateProfile } from "react-firebase-hooks/auth";
 
@@ -37,6 +27,7 @@ type ProfileDetailProps = {
 };
 
 export type ProfileFormState = {
+    id?: string;
     photoUrl?: string | null;
     email: string;
     displayName: string;
@@ -63,6 +54,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
 
     useEffect(() => {
         setProfileForm({
+            id: user.uid,
             photoUrl: user.photoURL,
             displayName: user.displayName!,
             email: user.email!,
@@ -76,71 +68,15 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
         setLoading(true);
         setSuccess(null);
         try {
-            const batch = writeBatch(fireStore);
-            let downloadUrl = profileForm.photoUrl;
-            // Upload file
-            if (selectedFile) {
-                downloadUrl = await onUploadFile(
-                    firebaseRoute.getUserImageRoute(user.uid)
-                );
-            }
-            // Change user in db
-            const success = await updateProfile({
-                displayName: profileForm.displayName,
-                photoURL: downloadUrl,
-            });
-            if (success) {
-                const userDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllUserRoute(),
-                    user.uid
-                );
-                batch.update(userDocRef, {
-                    displayName: profileForm.displayName,
-                    photoURL: downloadUrl,
-                    subBio: profileForm.subBio,
-                    bio: profileForm.bio,
-                });
-                // Update username, image url in comments, reviews
-                const reviewDocsRef = collectionGroup(
-                    fireStore,
-                    firebaseRoute.getAllReviewRoute()
-                );
-                const reviewQuery = query(
-                    reviewDocsRef,
-                    where("creatorId", "==", user.uid)
-                );
-                const reviewDocs = await getDocs(reviewQuery);
-                reviewDocs.docs.forEach((doc) => {
-                    if (doc.exists()) {
-                        batch.update(doc.ref, {
-                            creatorDisplayName: profileForm.displayName,
-                        });
-                    }
-                });
-
-                const commentDocsRef = collectionGroup(fireStore, "comments");
-                const commentQuery = query(
-                    commentDocsRef,
-                    where("creatorId", "==", user.uid)
-                );
-                const commentDocs = await getDocs(commentQuery);
-                commentDocs.docs.forEach((doc) => {
-                    if (doc.exists()) {
-                        batch.update(doc.ref, {
-                            creatorDisplayName: profileForm.displayName,
-                            creatorImageUrl: downloadUrl,
-                        });
-                    }
-                });
-
-                await batch.commit();
-                // Update state
+            const res = await UserService.update({ user, profileForm });
+            if (res) {
                 updateUser({
                     ...profileForm,
-                    photoUrl: downloadUrl,
+                    photoUrl: res.photoUrl,
                 });
                 setSuccess(true);
+            } else {
+                setSuccess(false);
             }
         } catch (error) {
             setSuccess(false);

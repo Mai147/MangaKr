@@ -4,6 +4,23 @@ import useAuth from "@/hooks/useAuth";
 import { useEffect } from "react";
 import Home from "@/components/Home";
 import { HomeProvider } from "@/context/HomeContext";
+import {
+    collection,
+    collectionGroup,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    orderBy,
+    query,
+    startAfter,
+    where,
+    writeBatch,
+} from "firebase/firestore";
+import { fireStore } from "@/firebase/clientApp";
+import { Button } from "@chakra-ui/react";
+import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { triGram } from "@/utils/StringUtils";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,59 +35,11 @@ const HomePage: React.FC<HomePageProps> = () => {
     // const testFunction = async () => {
     //     try {
     //         const batch = writeBatch(fireStore);
-    //         const res = collectionGroup(fireStore, "genreSnippets");
-    //         const res2 = query(res, where("name", "==", "Genre 1"));
-    //         const docs = await getDocs(res2);
-    //         docs.docs.forEach((doc) => {
-    //             if (doc.exists()) {
-    //                 batch.update(doc.ref, {
-    //                     name: "New name",
-    //                     description: "New description",
-    //                 });
-    //             }
-    //         });
-    //         await batch.commit();
-    //         console.log(1);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
-
-    // const testFunction = async () => {
-    //     try {
-    //         const batch = writeBatch(fireStore);
-    //         const res = collectionGroup(fireStore, "reviews");
-    //         const res2 = query(
-    //             res,
-    //             where("creatorId", "==", "Gw6Fcbm7yWV5zcr5ORlJlwP1lQw1")
-    //         );
-    //         const docs = await getDocs(res2);
-    //         docs.docs.forEach((doc) => {
-    //             if (doc.exists()) {
-    //                 batch.update(doc.ref, {
-    //                     creatorDisplayName: "KKKKKKK",
-    //                 });
-    //             }
-    //         });
-    //         await batch.commit();
-    //         console.log(1);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
-
-    // const testFunction = async () => {
-    //     try {
-    //         const batch = writeBatch(fireStore);
-    //         const bookDocsRef = collection(
-    //             fireStore,
-    //             firebaseRoute.getAllAuthorRoute()
-    //         );
-    //         const bookDocs = await getDocs(bookDocsRef);
-    //         bookDocs.docs.forEach((doc) => {
-    //             const name = doc.data().name as string;
+    //         const postDocsRef = collectionGroup(fireStore, "posts");
+    //         const postDocs = await getDocs(postDocsRef);
+    //         postDocs.docs.forEach((doc) => {
     //             batch.update(doc.ref, {
-    //                 nameLowerCase: name.toLowerCase(),
+    //                 isAccept: false,
     //             });
     //         });
     //         await batch.commit();
@@ -81,22 +50,22 @@ const HomePage: React.FC<HomePageProps> = () => {
     // };
 
     // const testFunction = async () => {
-    //     try {
-    //         const batch = writeBatch(fireStore);
-    //         const commentDocsRef = collectionGroup(fireStore, "comments");
-    //         const commentDocs = await getDocs(commentDocsRef);
-    //         commentDocs.docs.forEach((doc) => {
-    //             if (doc.exists()) {
-    //                 batch.update(doc.ref, {
-    //                     numberOfReplies: 0,
-    //                 });
-    //             }
-    //         });
-    //         await batch.commit();
-    //         console.log(1);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
+    //     const postDocsRef = collection(
+    //         fireStore,
+    //         firebaseRoute.getCommunityPostRoute("Mqd83dp0gYmH8dsF5EQA")
+    //     );
+    //     const postDocRef = doc(postDocsRef, "CJhOFtkOGYQL9FvdBGR9");
+    //     const lastDoc = await getDoc(postDocRef);
+    //     const postQuery = query(
+    //         postDocsRef,
+    //         orderBy("createdAt", "desc"),
+    //         where("isAccept", "==", false),
+    //         startAfter(lastDoc),
+    //         limit(1)
+    //     );
+    //     const postDocs = await getDocs(postQuery);
+    //     const posts = postDocs.docs.map((doc) => doc.data());
+    //     console.log(posts);
     // };
 
     return (

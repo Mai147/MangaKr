@@ -5,6 +5,8 @@ import PostItemImage from "./PostItemImage";
 
 type PostItemImagesProps = {
     imageList: string[];
+    size?: "sm" | "lg";
+    canShow?: boolean;
 };
 
 const getGridTemplateArea = (length: number) => {
@@ -12,7 +14,7 @@ const getGridTemplateArea = (length: number) => {
         case 0:
             return "";
         case 1:
-            return "img0";
+            return `'img0'`;
         case 2:
             return `'img0' 'img1'`;
         case 3:
@@ -26,11 +28,15 @@ const getGridTemplateArea = (length: number) => {
     }
 };
 
-const PostItemImages: React.FC<PostItemImagesProps> = ({ imageList }) => {
+const PostItemImages: React.FC<PostItemImagesProps> = ({
+    imageList,
+    size,
+    canShow = true,
+}) => {
     const [showImageList, setShowImageList] = useState(false);
     return (
         <>
-            {showImageList && imageList.length > 0 && (
+            {canShow && showImageList && imageList.length > 0 && (
                 <ImageShow
                     imageList={imageList}
                     onHidden={() => setShowImageList(false)}
@@ -47,13 +53,17 @@ const PostItemImages: React.FC<PostItemImagesProps> = ({ imageList }) => {
                     if (idx < 5)
                         return (
                             <GridItem key={idx} gridArea={`img${idx}`}>
-                                <PostItemImage url={url} />
+                                <PostItemImage url={url} size={size} />
                             </GridItem>
                         );
                 })}
                 {imageList.length > 5 && (
                     <GridItem position="relative" gridArea="img5">
-                        <PostItemImage url={imageList[5]} isShadow={true} />
+                        <PostItemImage
+                            url={imageList[5]}
+                            isShadow={true}
+                            size={size}
+                        />
                         <Text
                             position="absolute"
                             top="50%"

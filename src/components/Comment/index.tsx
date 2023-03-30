@@ -11,12 +11,6 @@ import {
     SkeletonText,
     VStack,
 } from "@chakra-ui/react";
-import {
-    DocumentData,
-    doc,
-    CollectionReference,
-    DocumentReference,
-} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import RequiredLoginContainer from "../Book/Detail/Action/RequiredLoginContainer";
 import usePagination, {
@@ -24,11 +18,12 @@ import usePagination, {
     PaginationInput,
 } from "@/hooks/usePagination";
 import useModal from "@/hooks/useModal";
-import CommentUtils from "@/utils/CommentUtils";
+import CommentService from "@/services/CommentService";
 
 type CommentSectionProps = {
-    commentDocsRef: CollectionReference<DocumentData>;
-    rootDocRef: DocumentReference<DocumentData>;
+    commentRoute: string;
+    rootRoute: string;
+    rootId: string;
     user?: UserModel | null;
 };
 
@@ -38,8 +33,9 @@ const defaultCommentPaginationInput: PaginationInput = {
 };
 
 const CommentSection: React.FC<CommentSectionProps> = ({
-    commentDocsRef,
-    rootDocRef,
+    commentRoute,
+    rootId,
+    rootRoute,
     user,
 }) => {
     const [commentText, setCommentText] = useState("");
@@ -58,11 +54,12 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                 toggleView("login");
                 return;
             }
-            const res = await CommentUtils.onComment({
+            const res = await CommentService.create({
                 user,
                 commentText,
-                commentDocRef: doc(commentDocsRef),
-                rootDocRef,
+                commentRoute,
+                rootRoute,
+                rootId,
             });
             setCommentText("");
             setCommentList((prev) => [res!, ...prev]);
@@ -114,7 +111,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({
             pageCount: commentPagination.pageCount,
             isFirst: false,
             isNext: commentPagination.isNext,
-            commentDocsRef: commentDocsRef,
+            commentRoute,
         });
         setCommentPagination((prev) => ({
             ...prev,
@@ -148,8 +145,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                     <CommentItem
                                         key={comment.id}
                                         comment={comment}
-                                        commentDocsRef={commentDocsRef}
-                                        rootDocRef={rootDocRef}
+                                        commentRoute={commentRoute}
+                                        rootRoute={rootRoute}
+                                        rootId={rootId}
                                         onChangeCommentLike={
                                             onChangeCommentLike
                                         }

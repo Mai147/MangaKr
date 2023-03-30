@@ -31,7 +31,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         borderTopLeftRadius={4}
                         borderBottomLeftRadius={4}
                         cursor="pointer"
-                        _hover={{ bg: "brand.100", opacity: "0.95" }}
+                        _hover={{ bg: "gray.100", opacity: "0.95" }}
                         transition="all 0.3s"
                         onClick={() => {
                             setPage && setPage((prev) => prev - 1);
@@ -69,7 +69,7 @@ const Pagination: React.FC<PaginationProps> = ({
                         borderTopRightRadius={4}
                         borderBottomRightRadius={4}
                         cursor="pointer"
-                        _hover={{ bg: "brand.100", opacity: "0.95" }}
+                        _hover={{ bg: "gray.100", opacity: "0.95" }}
                         transition="all 0.3s"
                         onClick={() => {
                             setPage && setPage((prev) => prev + 1);

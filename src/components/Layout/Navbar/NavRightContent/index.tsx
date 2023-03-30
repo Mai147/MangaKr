@@ -145,18 +145,7 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                             spacing={0}
                             maxH="300px"
                             overflow="auto"
-                            css={{
-                                "&::-webkit-scrollbar": {
-                                    width: "4px",
-                                },
-                                "&::-webkit-scrollbar-track": {
-                                    width: "6px",
-                                },
-                                "&::-webkit-scrollbar-thumb": {
-                                    background: "#eee",
-                                    borderRadius: "24px",
-                                },
-                            }}
+                            className="scroll"
                         >
                             {userNotification.map((noti, idx) => (
                                 <NotificationItem

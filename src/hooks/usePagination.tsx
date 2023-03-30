@@ -6,6 +6,8 @@ import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
 import { Post } from "@/models/Post";
 import { Review } from "@/models/Review";
+import { CommunityUserSnippet, UserModel, UserSnippet } from "@/models/User";
+import { triGram } from "@/utils/StringUtils";
 import {
     collection,
     getDocs,
@@ -90,11 +92,17 @@ interface UserBookSnippetPaginationInfo extends PaginationInfo {
 }
 
 interface CommentPaginationInfo extends PaginationInfo {
-    commentDocsRef: CollectionReference<DocumentData>;
+    commentRoute: string;
 }
 
 interface PostPaginationInfo extends PaginationInfo {
     communityId?: string;
+    isAccept?: boolean;
+}
+
+interface UserPaginationInfo extends PaginationInfo {
+    communityId?: string;
+    isAccept?: boolean;
 }
 
 type DocPosition = {
@@ -112,6 +120,7 @@ type PaginationDocState = {
     readingBook: DocPosition;
     comment: DocPosition;
     post: DocPosition;
+    user: DocPosition;
 };
 
 // Edit here
@@ -148,6 +157,10 @@ const defaultPaginationDocState: PaginationDocState = {
         firstDoc: null,
         lastDoc: null,
     },
+    user: {
+        firstDoc: null,
+        lastDoc: null,
+    },
 };
 
 const usePagination = () => {
@@ -178,7 +191,8 @@ const usePagination = () => {
             | "readingBook"
             | "writingBook"
             | "comment"
-            | "post";
+            | "post"
+            | "user";
         isFirst?: boolean;
     }) => {
         const firstDoc = isFirst
@@ -204,7 +218,7 @@ const usePagination = () => {
                 queryConstraints.push(limitToLast(pageCount));
             } else return;
         }
-        const docQuery = query(docsRef, limit(pageCount), ...queryConstraints);
+        let docQuery = query(docsRef, limit(pageCount), ...queryConstraints);
         const docs = await getDocs(docQuery);
         const res = docs.docs.map((doc) => ({
             id: doc.id,
@@ -408,10 +422,11 @@ const usePagination = () => {
         pageCount,
         isFirst,
         isNext,
-        commentDocsRef,
+        commentRoute,
     }: CommentPaginationInfo) => {
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
+        const commentDocsRef = collection(fireStore, commentRoute);
         const res = await pagination({
             docsRef: commentDocsRef,
             page,
@@ -485,9 +500,13 @@ const usePagination = () => {
         pageCount,
         isFirst,
         communityId,
+        isAccept,
     }: PostPaginationInfo) => {
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
+        if (isAccept != undefined) {
+            queryConstraints.push(where("isAccept", "==", isAccept));
+        }
         const postDocsRef = collection(
             fireStore,
             communityId
@@ -509,6 +528,47 @@ const usePagination = () => {
         };
     };
 
+    const getUsers = async ({
+        isNext,
+        page,
+        pageCount,
+        isFirst,
+        communityId,
+        isAccept,
+        searchValue,
+    }: UserPaginationInfo) => {
+        const queryConstraints = [];
+        if (!searchValue) {
+            queryConstraints.push(orderBy("createdAt", "desc"));
+            if (isAccept != undefined) {
+                queryConstraints.push(where("isAccept", "==", isAccept));
+            }
+        } else {
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(where(`trigramName.${name}`, "==", true));
+            });
+        }
+        const userDocsRef = collection(
+            fireStore,
+            communityId
+                ? firebaseRoute.getCommunityUserRoute(communityId)
+                : firebaseRoute.getAllUserRoute()
+        );
+        const res = await pagination({
+            docsRef: userDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "user",
+            isFirst,
+        });
+        return {
+            users: res?.res as CommunityUserSnippet[],
+            totalPage: res?.totalPage,
+        };
+    };
+
     // Edit Here
 
     return {
@@ -520,6 +580,7 @@ const usePagination = () => {
         getReadingBookSnippets,
         getWritingBookSnippets,
         getPosts,
+        getUsers,
     };
 };
 

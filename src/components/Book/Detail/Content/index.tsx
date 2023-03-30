@@ -1,20 +1,11 @@
 import CharacterSnippetItem from "@/components/Character/CharacterSnippetItem";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_REVIEW_PAGE_COUNT } from "@/constants/pagination";
 import { getBookReviewDetailPage, getBookReviewPage } from "@/constants/routes";
-import { fireStore } from "@/firebase/clientApp";
 import { Book } from "@/models/Book";
 import { Review } from "@/models/Review";
-import {
-    Box,
-    Divider,
-    Flex,
-    Skeleton,
-    SkeletonText,
-    Text,
-} from "@chakra-ui/react";
-import { collection, getDocs, limit, query, where } from "firebase/firestore";
+import ReviewService from "@/services/ReviewService";
+import { Box, Divider, Skeleton, SkeletonText, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import BookCarousel from "../../Snippet/Carousel";
 import BookDetailSection from "./Section";
@@ -29,23 +20,10 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
 
     const getBookReviews = async (bookId: string) => {
         setLoading(true);
-        const reviewDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllReviewRoute()
-        );
-        const reviewQuery = query(
-            reviewDocsRef,
-            where("bookId", "==", bookId),
-            limit(BOOK_REVIEW_PAGE_COUNT)
-        );
-        const reviewDocs = await getDocs(reviewQuery);
-        const reviews = reviewDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Review)
-        );
+        const reviews = await ReviewService.getAll({
+            bookId,
+            reviewLimit: BOOK_REVIEW_PAGE_COUNT,
+        });
         setBookReviews(reviews);
         setLoading(false);
     };
