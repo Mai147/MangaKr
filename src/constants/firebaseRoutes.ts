@@ -20,6 +20,9 @@ const COMMUNITY_ROUTE = `communities`;
 const COMMUNITY_MODERATOR_SNIPPET = `moderatorSnippets`;
 const POST_ROUTE = `posts`;
 const POST_VOTE_ROUTE = `postVotes`;
+const TOPIC_ROUTE = `topics`;
+const TOPIC_REPLY_ROUTE = `replies`;
+const MESSAGE_ROUTE = `messages`;
 
 export const firebaseRoute = {
     COMMUNITY_SNIPPET_ROUTE: `communitySnippets`,
@@ -52,6 +55,12 @@ export const firebaseRoute = {
     },
     getUserPostVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${POST_VOTE_ROUTE}`;
+    },
+    getUserMessageRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${MESSAGE_ROUTE}`;
+    },
+    getUserMessageDetailRoute(firstUserId: string, secondUserId: string) {
+        return `${USER_ROUTE}/${firstUserId}/${MESSAGE_ROUTE}/${secondUserId}/messageList`;
     },
     getAllAuthorRoute() {
         return AUTHOR_ROUTE;
@@ -110,6 +119,9 @@ export const firebaseRoute = {
     getCommunityPostCommentRoute(communityId: string, postId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}/${postId}/${COMMENT_ROUTE}`;
     },
+    getCommunityTopicRoute(communityId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}`;
+    },
     getCommunityImageRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${IMAGE_ROUTE}`;
     },
@@ -121,5 +133,14 @@ export const firebaseRoute = {
     },
     getPostImageRoute(postId: string) {
         return `${POST_ROUTE}/${postId}/${IMAGE_ROUTE}`;
+    },
+    getTopicImageRoute(topicId: string) {
+        return `${TOPIC_ROUTE}/${topicId}/${IMAGE_ROUTE}`;
+    },
+    getCommunityTopicReplyRoute(communityId: string, topicId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}/${TOPIC_REPLY_ROUTE}`;
+    },
+    getMessageImageRoute(messageId: string) {
+        return `${MESSAGE_ROUTE}/${messageId}/${IMAGE_ROUTE}`;
     },
 };

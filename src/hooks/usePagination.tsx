@@ -4,9 +4,12 @@ import { Author } from "@/models/Author";
 import { Book, BookSnippet } from "@/models/Book";
 import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
+import { Genre } from "@/models/Genre";
+import { Message } from "@/models/Message";
 import { Post } from "@/models/Post";
 import { Review } from "@/models/Review";
-import { CommunityUserSnippet, UserModel, UserSnippet } from "@/models/User";
+import { Topic, TopicReply } from "@/models/Topic";
+import { CommunityUserSnippet, UserModel } from "@/models/User";
 import { triGram } from "@/utils/StringUtils";
 import {
     collection,
@@ -100,9 +103,25 @@ interface PostPaginationInfo extends PaginationInfo {
     isAccept?: boolean;
 }
 
+interface TopicPaginationInfo extends PaginationInfo {
+    communityId: string;
+    isAccept?: boolean;
+}
+
+interface TopicReplyPaginationInfo extends PaginationInfo {
+    topicId: string;
+    communityId: string;
+}
+
 interface UserPaginationInfo extends PaginationInfo {
     communityId?: string;
     isAccept?: boolean;
+}
+
+interface MessagePaginationInfo extends PaginationInfo {
+    userId: string;
+    receiverId: string;
+    exceptionCount?: number;
 }
 
 type DocPosition = {
@@ -121,6 +140,10 @@ type PaginationDocState = {
     comment: DocPosition;
     post: DocPosition;
     user: DocPosition;
+    topic: DocPosition;
+    topicReply: DocPosition;
+    genre: DocPosition;
+    message: DocPosition;
 };
 
 // Edit here
@@ -161,6 +184,22 @@ const defaultPaginationDocState: PaginationDocState = {
         firstDoc: null,
         lastDoc: null,
     },
+    topic: {
+        firstDoc: null,
+        lastDoc: null,
+    },
+    topicReply: {
+        firstDoc: null,
+        lastDoc: null,
+    },
+    genre: {
+        firstDoc: null,
+        lastDoc: null,
+    },
+    message: {
+        firstDoc: null,
+        lastDoc: null,
+    },
 };
 
 const usePagination = () => {
@@ -168,7 +207,6 @@ const usePagination = () => {
         defaultPaginationDocState
     );
 
-    // Edit here
     const pagination = async ({
         docsRef,
         queryConstraints,
@@ -177,12 +215,14 @@ const usePagination = () => {
         isNext,
         field,
         isFirst,
+        exceptionCount = 0,
     }: {
         docsRef: CollectionReference<DocumentData>;
         queryConstraints: any[];
         page: number;
         pageCount: number;
         isNext: boolean;
+        exceptionCount?: number;
         field:
             | "book"
             | "review"
@@ -192,7 +232,12 @@ const usePagination = () => {
             | "writingBook"
             | "comment"
             | "post"
-            | "user";
+            | "user"
+            | "topic"
+            | "topicReply"
+            | "genre"
+            | "message";
+        // Edit here
         isFirst?: boolean;
     }) => {
         const firstDoc = isFirst
@@ -204,7 +249,9 @@ const usePagination = () => {
         const snapShot = await getCountFromServer(
             query(docsRef, ...queryConstraints)
         );
-        const totalPage = Math.ceil(snapShot.data().count / pageCount);
+        const totalPage = Math.ceil(
+            (snapShot.data().count - exceptionCount) / pageCount
+        );
         if (isNext) {
             if (page > 1) {
                 if (page <= totalPage) {
@@ -253,17 +300,9 @@ const usePagination = () => {
         );
         const queryConstraints = [];
         if (searchValue) {
-            queryConstraints.push(
-                where("nameLowerCase", ">=", searchValue.toLowerCase())
-            );
-            queryConstraints.push(
-                where(
-                    "nameLowerCase",
-                    "<=",
-                    searchValue.toLowerCase() + `\uf8ff`
-                )
-            );
-            queryConstraints.push(orderBy("nameLowerCase"));
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(where(`trigramName.${name}`, "==", true));
+            });
         }
         if (genreId) {
             queryConstraints.push(where("genreIds", "array-contains", genreId));
@@ -273,10 +312,12 @@ const usePagination = () => {
                 where("authorIds", "array-contains", authorId)
             );
         }
-        if (filter) {
-            queryConstraints.push(orderBy(filter, "desc"));
-        } else if (!searchValue) {
-            queryConstraints.push(orderBy("createdAt", "desc"));
+        if (!searchValue) {
+            if (filter) {
+                queryConstraints.push(orderBy(filter, "desc"));
+            } else {
+                queryConstraints.push(orderBy("createdAt", "desc"));
+            }
         }
         const res = await pagination({
             docsRef: bookDocsRef,
@@ -306,17 +347,11 @@ const usePagination = () => {
         );
         const queryConstraints = [];
         if (searchValue) {
-            queryConstraints.push(
-                where("titleLowerCase", ">=", searchValue.toLowerCase())
-            );
-            queryConstraints.push(
-                where(
-                    "titleLowerCase",
-                    "<=",
-                    searchValue.toLowerCase() + `\uf8ff`
-                )
-            );
-            queryConstraints.push(orderBy("titleLowerCase"));
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(
+                    where(`trigramTitle.${name}`, "==", true)
+                );
+            });
         } else {
             queryConstraints.push(orderBy("createdAt", "desc"));
         }
@@ -348,17 +383,11 @@ const usePagination = () => {
         );
         const queryConstraints = [];
         if (searchValue) {
-            queryConstraints.push(
-                where("nameLowerCase", ">=", searchValue.toLowerCase())
-            );
-            queryConstraints.push(
-                where(
-                    "nameLowerCase",
-                    "<=",
-                    searchValue.toLowerCase() + `\uf8ff`
-                )
-            );
-            queryConstraints.push(orderBy("nameLowerCase"));
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(where(`trigramName.${name}`, "==", true));
+            });
+        } else {
+            queryConstraints.push(orderBy("createdAt", "desc"));
         }
         const res = await pagination({
             docsRef: authorDocsRef,
@@ -371,6 +400,40 @@ const usePagination = () => {
         });
         return {
             authors: res?.res as Author[],
+            totalPage: res?.totalPage,
+        };
+    };
+
+    const getGenres = async ({
+        page,
+        isNext,
+        pageCount,
+        searchValue,
+        isFirst,
+    }: PaginationInfo) => {
+        const genreDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllGenreRoute()
+        );
+        const queryConstraints = [];
+        if (searchValue) {
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(where(`trigramName.${name}`, "==", true));
+            });
+        } else {
+            queryConstraints.push(orderBy("createdAt", "desc"));
+        }
+        const res = await pagination({
+            docsRef: genreDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "genre",
+            isFirst,
+        });
+        return {
+            genres: res?.res as Genre[],
             totalPage: res?.totalPage,
         };
     };
@@ -388,17 +451,9 @@ const usePagination = () => {
         );
         const queryConstraints = [];
         if (searchValue) {
-            queryConstraints.push(
-                where("nameLowerCase", ">=", searchValue.toLowerCase())
-            );
-            queryConstraints.push(
-                where(
-                    "nameLowerCase",
-                    "<=",
-                    searchValue.toLowerCase() + `\uf8ff`
-                )
-            );
-            queryConstraints.push(orderBy("nameLowerCase"));
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(where(`trigramName.${name}`, "==", true));
+            });
         } else {
             queryConstraints.push(orderBy("createdAt", "desc"));
         }
@@ -528,6 +583,47 @@ const usePagination = () => {
         };
     };
 
+    const getTopics = async ({
+        isNext,
+        page,
+        pageCount,
+        isFirst,
+        communityId,
+        isAccept,
+        searchValue,
+    }: TopicPaginationInfo) => {
+        const queryConstraints = [];
+        if (!searchValue) {
+            queryConstraints.push(orderBy("createdAt", "desc"));
+            if (isAccept != undefined) {
+                queryConstraints.push(where("isAccept", "==", isAccept));
+            }
+        } else {
+            triGram(searchValue).map.forEach((name) => {
+                queryConstraints.push(
+                    where(`trigramTitle.${name}`, "==", true)
+                );
+            });
+        }
+        const topicDocsRef = collection(
+            fireStore,
+            firebaseRoute.getCommunityTopicRoute(communityId)
+        );
+        const res = await pagination({
+            docsRef: topicDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "topic",
+            isFirst,
+        });
+        return {
+            topics: res?.res as Topic[],
+            totalPage: res?.totalPage,
+        };
+    };
+
     const getUsers = async ({
         isNext,
         page,
@@ -563,8 +659,78 @@ const usePagination = () => {
             field: "user",
             isFirst,
         });
+        if (!communityId) {
+            const userRes = res?.res.map((e) => {
+                const { id, ...rest } = e;
+                return rest;
+            });
+            return {
+                users: userRes as UserModel[],
+                totalPage: res?.totalPage,
+            };
+        }
         return {
             users: res?.res as CommunityUserSnippet[],
+            totalPage: res?.totalPage,
+        };
+    };
+
+    const getTopicReplies = async ({
+        communityId,
+        isNext,
+        page,
+        pageCount,
+        topicId,
+        isFirst,
+    }: TopicReplyPaginationInfo) => {
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        const topicReplyDocsRef = collection(
+            fireStore,
+            firebaseRoute.getCommunityTopicReplyRoute(communityId, topicId)
+        );
+        const res = await pagination({
+            docsRef: topicReplyDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "topicReply",
+            isFirst,
+        });
+        return {
+            topicReplies: res?.res as TopicReply[],
+            totalPage: res?.totalPage,
+        };
+    };
+
+    const getMessages = async ({
+        page,
+        isNext,
+        pageCount,
+        isFirst,
+        receiverId,
+        userId,
+        exceptionCount = 0,
+    }: MessagePaginationInfo) => {
+        const messageDocsRef = collection(
+            fireStore,
+            firebaseRoute.getUserMessageDetailRoute(userId, receiverId)
+        );
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        const res = await pagination({
+            docsRef: messageDocsRef,
+            page,
+            pageCount,
+            queryConstraints,
+            isNext,
+            field: "message",
+            isFirst,
+            exceptionCount,
+        });
+        return {
+            messages: res?.res as Message[],
             totalPage: res?.totalPage,
         };
     };
@@ -575,12 +741,16 @@ const usePagination = () => {
         getBooks,
         getReviews,
         getAuthors,
+        getGenres,
         getCommunities,
         getComments,
         getReadingBookSnippets,
         getWritingBookSnippets,
         getPosts,
         getUsers,
+        getTopics,
+        getTopicReplies,
+        getMessages,
     };
 };
 

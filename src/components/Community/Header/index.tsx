@@ -1,4 +1,4 @@
-import { getCommunityCreatePostPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
@@ -189,7 +189,9 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                     }) && (
                         <Link
                             _hover={{ textDecoration: "none" }}
-                            href={getCommunityCreatePostPage(community.id!)}
+                            href={routes.getCommunityPostCreatePage(
+                                community.id!
+                            )}
                         >
                             <Button variant="unstyled">
                                 <Flex align="center">

@@ -4,7 +4,7 @@ import {
     COMMUNITY_ADMIN_ROLE,
     COMMUNITY_SUPER_ADMIN_ROLE,
 } from "@/constants/roles";
-import { COMMUNITY_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import usePagination, {
@@ -12,7 +12,7 @@ import usePagination, {
     PaginationInput,
 } from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
-import { CommunityUserSnippet } from "@/models/User";
+import { CommunityUserSnippet, UserCommunitySnippet } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
 import {
     Box,
@@ -75,7 +75,7 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
             communityId: community.id,
             isAccept: userPaginationInput.isAccept,
         });
-        setUserList(res.users);
+        setUserList(res.users as CommunityUserSnippet[]);
         setUserPaginationInput((prev) => ({
             ...prev,
             isFirst: false,
@@ -156,7 +156,9 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                         </Select>
                         <HStack spacing={2} align="center">
                             <Link
-                                href={`${COMMUNITY_PAGE}/${community.id!}`}
+                                href={routes.getCommunityDetailPage(
+                                    community.id!
+                                )}
                                 _hover={{ textDecoration: "none" }}
                             >
                                 <Button>Quay lại cộng đồng</Button>

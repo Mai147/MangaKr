@@ -1,3 +1,4 @@
+import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import { Comment } from "@/models/Comment";
 import { UserModel } from "@/models/User";
@@ -8,6 +9,7 @@ import {
     Timestamp,
     doc,
     collection,
+    getDocs,
 } from "firebase/firestore";
 
 class CommentService {
@@ -30,9 +32,9 @@ class CommentService {
         };
     }) => {
         try {
+            const batch = writeBatch(fireStore);
             const commentDocRef = doc(collection(fireStore, commentRoute));
             const rootDocRef = doc(fireStore, rootRoute, rootId);
-            const batch = writeBatch(fireStore);
             const newComment: Comment = {
                 creatorId: user.uid,
                 creatorDisplayName: user.displayName!,
@@ -63,6 +65,61 @@ class CommentService {
                 id: commentDocRef.id,
                 createdAt: Timestamp.fromDate(new Date()),
             } as Comment;
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static delete = async ({
+        commentRoute,
+        commentId,
+        rootId,
+        rootRoute,
+        reply,
+    }: {
+        commentRoute: string;
+        commentId: string;
+        rootRoute: string;
+        rootId: string;
+        reply?: {
+            parentRoute: string;
+            parentId: string;
+        };
+    }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            let numberOfComments = 0;
+            const rootDocRef = doc(fireStore, rootRoute, rootId);
+            const commentDocRef = doc(fireStore, commentRoute, commentId);
+            const replyCommentDocsRef = collection(
+                fireStore,
+                firebaseRoute.getReplyCommentRoute(commentRoute, commentId)
+            );
+            const replyCommentDocs = await getDocs(replyCommentDocsRef);
+            replyCommentDocs.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+                batch.update(rootDocRef, {
+                    numberOfComments: increment(-1),
+                });
+                numberOfComments += 1;
+            });
+
+            batch.delete(commentDocRef);
+            batch.update(rootDocRef, {
+                numberOfComments: increment(-1),
+            });
+            numberOfComments += 1;
+            if (reply) {
+                const parentCommentDocRef = doc(
+                    fireStore,
+                    reply.parentRoute,
+                    reply.parentId
+                );
+                batch.update(parentCommentDocRef, {
+                    numberOfReplies: increment(-1),
+                });
+            }
+            await batch.commit();
+            return numberOfComments;
         } catch (error) {
             console.log(error);
         }

@@ -1,6 +1,7 @@
 import CommunityHeader from "@/components/Community/Header";
 import CommunityLeftSideBar from "@/components/Community/LeftSideBar";
 import CommunityPostTab from "@/components/Community/PostTab";
+import CommunityTopicTab from "@/components/Community/TopicTab";
 import NotAvailable from "@/components/Error/NotAvailable";
 import TabItem from "@/components/Tab/TabItem";
 import useAuth from "@/hooks/useAuth";
@@ -119,6 +120,18 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                                 px={12}
                                 mt={4}
                             >
+                                <Flex
+                                    display={
+                                        selectedTab === communityTab[0].title
+                                            ? "flex"
+                                            : "none"
+                                    }
+                                    direction="column"
+                                    align="center"
+                                    w="100%"
+                                >
+                                    <CommunityTopicTab />
+                                </Flex>
                                 <Flex
                                     display={
                                         selectedTab === communityTab[1].title

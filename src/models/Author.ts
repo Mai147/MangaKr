@@ -1,3 +1,5 @@
+import { Timestamp } from "firebase/firestore";
+
 export interface AuthorSnippet {
     id?: string;
     name: string;
@@ -6,10 +8,12 @@ export interface AuthorSnippet {
 
 export interface Author extends AuthorSnippet {
     creatorId: string;
+    creatorDisplayName: string;
     bio?: string;
     numberOfBooks: number;
     numberOfLikes: number;
     numberOfDislikes: number;
+    createdAt?: Timestamp;
 }
 
 export type AuthorVote = {
@@ -22,6 +26,7 @@ export const defaultAuthorForm: Author = {
     name: "",
     bio: "",
     creatorId: "",
+    creatorDisplayName: "",
     numberOfBooks: 0,
     numberOfDislikes: 0,
     numberOfLikes: 0,

@@ -1,5 +1,5 @@
 import Tag from "@/components/Tag";
-import { COMMUNITY_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Community, communityTypeList } from "@/models/Community";
 import {
     Avatar,
@@ -21,7 +21,7 @@ const CommunitySnippetHorizontalBasicItem: React.FC<
 > = ({ community, ...rest }) => {
     return (
         <Link
-            href={`${COMMUNITY_PAGE}/${community.id}`}
+            href={routes.getCommunityDetailPage(community.id!)}
             _hover={{ textDecoration: "none" }}
         >
             <Box

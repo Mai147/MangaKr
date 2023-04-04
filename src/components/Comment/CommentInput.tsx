@@ -40,7 +40,7 @@ const CommentInputs: React.FC<CommentInputProps> = ({
                             onChange={(event) =>
                                 setCommentText(event.target.value)
                             }
-                            onKeyUp={(e) => {
+                            onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
                                     e.preventDefault();
                                     setCommentText("");

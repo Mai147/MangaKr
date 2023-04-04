@@ -1,8 +1,7 @@
-import LibraryAuthor from "@/components/Library/Author";
 import LibraryBook from "@/components/Library/Book";
 import LibraryReview from "@/components/Library/Review";
 import ConfirmModal from "@/components/Modal/ConfirmModal";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { Box, Divider } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
@@ -22,7 +21,7 @@ const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
 
     useEffect(() => {
         setNeedAuth(true);
-        setDefaultPath(HOME_PAGE);
+        setDefaultPath(routes.getHomePage());
     }, []);
 
     return (
@@ -48,13 +47,6 @@ const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
                 setConfirmSubmitFunc={setConfirmSubmitFunc}
                 setConfirmTitle={setConfirmTitle}
             />
-            <Divider my={4} borderColor="gray.400" />
-            <LibraryAuthor
-                setConfirmContent={setConfirmContent}
-                setConfirmSubmitFunc={setConfirmSubmitFunc}
-                setConfirmSubContent={setConfirmSubContent}
-                setConfirmTitle={setConfirmTitle}
-            />
         </Box>
     );
 };
@@ -66,7 +58,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             props: {},
         };
     } else {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
 }

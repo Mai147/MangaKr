@@ -1,13 +1,8 @@
 import ConfirmModal from "@/components/Modal/ConfirmModal";
 import Pagination from "@/components/Pagination";
-import UserHorizontalSnippetItem from "@/components/User/Snippet/UserHorizontalSnippetItem";
 import { USER_PAGE_COUNT } from "@/constants/pagination";
-import {
-    CommunityRole,
-    COMMUNITY_SUPER_ADMIN_ROLE,
-    COMMUNITY_USER_ROLE,
-} from "@/constants/roles";
-import { COMMUNITY_PAGE } from "@/constants/routes";
+import { CommunityRole, COMMUNITY_SUPER_ADMIN_ROLE } from "@/constants/roles";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import useDebounce from "@/hooks/useDebounce";
@@ -93,7 +88,7 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
                 : userPaginationInput.isFirst,
             communityId: community.id,
         });
-        setUserList(res.users);
+        setUserList(res.users as CommunityUserSnippet[]);
         setUserPaginationInput((prev) => ({
             ...prev,
             isFirst: false,
@@ -113,7 +108,7 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
         if (selectedRole?.role === COMMUNITY_SUPER_ADMIN_ROLE) {
             await communityAction.toUserRole();
             closeModal();
-            router.push(`${COMMUNITY_PAGE}/${community.id!}`);
+            router.push(routes.getCommunityDetailPage(community.id!));
             return;
         }
         setUserList((prev) =>
@@ -161,7 +156,9 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
                         <Text>Thêm cộng tác viên</Text>
                         <HStack spacing={2} align="center">
                             <Link
-                                href={`${COMMUNITY_PAGE}/${community.id!}`}
+                                href={routes.getCommunityDetailPage(
+                                    community.id!
+                                )}
                                 _hover={{ textDecoration: "none" }}
                             >
                                 <Button>Quay lại cộng đồng</Button>

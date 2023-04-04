@@ -57,7 +57,11 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
                             ...authorForm,
                         })
                     );
-                    setAuthorForm(defaultAuthorForm);
+                    setAuthorForm({
+                        ...defaultAuthorForm,
+                        creatorId: user.uid,
+                        creatorDisplayName: user.displayName!,
+                    });
                     closeModal();
                 } else {
                     setErrors([
@@ -92,6 +96,7 @@ const AuthorModal: React.FC<AuthorModalProps> = ({ setAuthors }) => {
             setAuthorForm((prev) => ({
                 ...prev,
                 creatorId: user.uid,
+                creatorDisplayName: user.displayName!,
             }));
         }
     }, [user]);

@@ -1,5 +1,5 @@
 import { ProfileFormState } from "@/components/Profile/Detail";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { UserModel } from "@/models/User";
 import UserService from "@/services/UserService";
 import { User } from "firebase/auth";
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: any) => {
     const rounter = useRouter();
     const [user, setUser] = useState<UserModel | null>(null);
     const [needAuth, setNeedAuth] = useState(false);
-    const [defaultPath, setDefaultPath] = useState(HOME_PAGE);
+    const [defaultPath, setDefaultPath] = useState(routes.getHomePage());
 
     useEffect(() => {
         const token = Cookies.get("token");

@@ -1,4 +1,4 @@
-import { BOOK_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Book } from "@/models/Book";
 import {
     AspectRatio,
@@ -20,7 +20,7 @@ const BannerItem: React.FC<BannerItemProps> = ({ book }) => {
     return (
         <Link
             _hover={{ textDecoration: "none" }}
-            href={`${BOOK_PAGE}/${book.id}`}
+            href={routes.getBookDetailPage(book.id!)}
         >
             <Box
                 boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
@@ -61,7 +61,11 @@ const BannerItem: React.FC<BannerItemProps> = ({ book }) => {
                             >
                                 {book.name}
                             </Text>
-                            <Text color="gray.400" noOfLines={3}>
+                            <Text
+                                color="gray.400"
+                                noOfLines={3}
+                                whiteSpace="pre-line"
+                            >
                                 {book.description ||
                                     "Manga này chưa có tóm tắt nội dung!"}
                             </Text>

@@ -1,5 +1,5 @@
 import { WRITER_ROLE } from "@/constants/roles";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import cookies from "next-cookies";
 import React, { useEffect } from "react";
@@ -15,7 +15,7 @@ const BookCreatePage: React.FC<BookCreatePageProps> = () => {
 
     useEffect(() => {
         setNeedAuth(true);
-        setDefaultPath(HOME_PAGE);
+        setDefaultPath(routes.getHomePage());
     }, []);
 
     return (
@@ -32,11 +32,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (token) {
         const us = JSON.parse(JSON.stringify(user));
         if (us.role !== WRITER_ROLE) {
-            context.res.writeHead(302, { Location: HOME_PAGE });
+            context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
         }
     } else {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
 

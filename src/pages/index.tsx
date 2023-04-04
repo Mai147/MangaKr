@@ -7,27 +7,32 @@ import { HomeProvider } from "@/context/HomeContext";
 import {
     collection,
     collectionGroup,
+    deleteField,
     doc,
     getDoc,
     getDocs,
     limit,
+    onSnapshot,
     orderBy,
     query,
+    serverTimestamp,
     startAfter,
+    Timestamp,
     where,
     writeBatch,
 } from "firebase/firestore";
-import { fireStore } from "@/firebase/clientApp";
+import { fireStore, storage } from "@/firebase/clientApp";
 import { Button } from "@chakra-ui/react";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { triGram } from "@/utils/StringUtils";
+import { getBlob, ref } from "firebase/storage";
 
 const inter = Inter({ subsets: ["latin"] });
 
 type HomePageProps = {};
 
 const HomePage: React.FC<HomePageProps> = () => {
-    const { setNeedAuth } = useAuth();
+    const { setNeedAuth, user } = useAuth();
     useEffect(() => {
         setNeedAuth(false);
     }, []);
@@ -68,6 +73,107 @@ const HomePage: React.FC<HomePageProps> = () => {
     //     console.log(posts);
     // };
 
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const docsRef = collection(
+    //             fireStore,
+    //             firebaseRoute.getAllGenreRoute()
+    //         );
+    //         const docs = await getDocs(docsRef);
+    //         docs.docs.forEach((doc) => {
+    //             batch.update(doc.ref, {
+    //                 // createdAt: serverTimestamp() as Timestamp,
+    //                 creatorId: "Gw6Fcbm7yWV5zcr5ORlJlwP1lQw1",
+    //                 creatorDisplayName: "Username",
+    //             });
+    //         });
+    //         await batch.commit();
+    //         console.log(2);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const docsRef = collection(
+    //             fireStore,
+    //             firebaseRoute.getAllGenreRoute()
+    //         );
+    //         const docs = await getDocs(docsRef);
+    //         docs.docs.forEach((doc) => {
+    //             const { name } = doc.data();
+    //             const trigramName = triGram(name);
+    //             // const { title } = doc.data();
+    //             // const trigramTitle = triGram(title);
+    //             batch.update(doc.ref, {
+    //                 trigramName: trigramName.obj,
+    //                 nameLowerCase: deleteField(),
+    //                 // trigramTitle: trigramTitle.obj,
+    //                 // titleLowerCase: deleteField(),
+    //             });
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
+    // const testFunction = async () => {
+    //     if (user) {
+    //         try {
+    //             const batch = writeBatch(fireStore);
+    //             const docRef = doc(
+    //                 fireStore,
+    //                 `/users/${user.uid}/messages`,
+    //                 "abc3"
+    //             );
+    //             batch.set(docRef, {
+    //                 latest: "Hi",
+    //                 numberOfUnseens: 2,
+    //                 displayName: "abc",
+    //             });
+    //             const messageDocRef = doc(
+    //                 collection(
+    //                     fireStore,
+    //                     `/users/${user.uid}/messages/abc/listMessage`
+    //                 )
+    //             );
+    //             // batch.set(messageDocRef, {
+    //             //     text: "Hello",
+    //             //     type: 0,
+    //             // });
+    //             await batch.commit();
+    //             console.log(1);
+    //         } catch (error) {
+    //             console.log(error);
+    //         }
+    //     }
+    // };
+
+    const testFunction = async () => {
+        try {
+            const batch = writeBatch(fireStore);
+            const firstDocsRef = collectionGroup(fireStore, "messageList");
+            const firstDocs = await getDocs(firstDocsRef);
+            firstDocs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            const secondDocsRef = collectionGroup(fireStore, "messages");
+            const secondDocs = await getDocs(secondDocsRef);
+            secondDocs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+            console.log(1);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     return (
         <>
             <Head>
@@ -83,7 +189,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                {/* <Button onClick={testFunction}>Test</Button> */}
+                <Button onClick={testFunction}>Test</Button>
                 <HomeProvider>
                     <Home />
                 </HomeProvider>

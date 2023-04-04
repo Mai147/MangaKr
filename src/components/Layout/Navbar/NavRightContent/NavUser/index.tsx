@@ -21,7 +21,7 @@ import NavUserMenuItem from "./NavUserMenuItem";
 import useModal from "@/hooks/useModal";
 import { signOut } from "firebase/auth";
 import useAuth from "@/hooks/useAuth";
-import { PROFILE_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 
 type NavUserProps = {};
 
@@ -64,7 +64,7 @@ const NavUser: React.FC<NavUserProps> = () => {
                         <NavUserMenuItem
                             icon={CgProfile}
                             title="Hồ sơ"
-                            href={PROFILE_PAGE}
+                            href={routes.getProfilePage()}
                         />
                         <MenuDivider />
                         <NavUserMenuItem

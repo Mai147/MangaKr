@@ -1,4 +1,4 @@
-import { getCreateBookReviewPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { UserModel } from "@/models/User";
 import { Box, Flex, Icon, Link, Text } from "@chakra-ui/react";
 import React from "react";
@@ -24,7 +24,7 @@ const BookDetailReviewAction: React.FC<BookDetailReviewActionProps> = ({
                     _hover={{ textDecoration: "none", color: "brand.100" }}
                     role="group"
                     transition={"all .3s ease"}
-                    href={getCreateBookReviewPage(bookId)}
+                    href={routes.getReviewCreatePage(bookId)}
                 >
                     <Flex align="center" w="fit-content">
                         <Text mr={2}>Viết bài đánh giá</Text>

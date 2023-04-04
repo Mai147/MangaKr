@@ -1,14 +1,4 @@
-import { WRITER_ROLE } from "@/constants/roles";
-import {
-    BOOK_PAGE,
-    BOOK_REVIEW_PAGE,
-    BOOK_TOP_PAGE,
-    COMMUNITY_PAGE,
-    CREATE_BOOK_PAGE,
-    CREATE_NEWS_PAGE,
-    NEWS_PAGE,
-    PROFILE_LIBRARY_PAGE,
-} from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import {
@@ -20,8 +10,7 @@ import {
     Box,
     Link,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
-import { FiPlus } from "react-icons/fi";
+import React, { useState } from "react";
 import NavItem, { NavItemProps } from "./NavItem";
 
 type NavListProps = {};
@@ -29,60 +18,34 @@ type NavListProps = {};
 const defaultNavList: NavItemProps[] = [
     {
         label: "Manga",
-        href: BOOK_PAGE,
+        href: routes.getBookHomePage(),
         children: [
             {
                 label: "Tìm kiếm manga",
-                href: BOOK_PAGE,
+                href: routes.getBookHomePage(),
             },
             {
                 label: "Manga hàng đầu",
-                href: BOOK_TOP_PAGE,
+                href: routes.getBookTopPage(),
             },
             {
                 label: "Reviews",
-                href: BOOK_REVIEW_PAGE,
+                href: routes.getReviewHomePage(),
             },
         ],
     },
     {
         label: "Tin tức",
-        href: NEWS_PAGE,
+        href: routes.getNewsHomePage(),
     },
     {
         label: "Cộng đồng",
-        href: COMMUNITY_PAGE,
+        href: routes.getCommunityHomePage(),
     },
     {
         label: "Thư viện",
-        href: PROFILE_LIBRARY_PAGE,
+        href: routes.getProfileLibraryPage(),
     },
-];
-
-const writerNavList: NavItemProps[] = [
-    {
-        ...defaultNavList[0],
-        children: [
-            ...defaultNavList[0].children!,
-            {
-                label: "Viết Manga",
-                href: CREATE_BOOK_PAGE,
-                leftIcon: FiPlus,
-                divider: true,
-            },
-        ],
-    },
-    {
-        ...defaultNavList[1],
-        children: [
-            {
-                label: "Viết tin tức",
-                href: CREATE_NEWS_PAGE,
-                leftIcon: FiPlus,
-            },
-        ],
-    },
-    ...defaultNavList.slice(2),
 ];
 
 const NavList: React.FC<NavListProps> = () => {
@@ -93,13 +56,13 @@ const NavList: React.FC<NavListProps> = () => {
     const [navItems, setNavItems] = useState<NavItemProps[]>(defaultNavList);
     const { user } = useAuth();
 
-    useEffect(() => {
-        if (user && user.role === WRITER_ROLE) {
-            setNavItems(writerNavList);
-        } else {
-            setNavItems(defaultNavList);
-        }
-    }, [user]);
+    // useEffect(() => {
+    //     if (user && user.role === WRITER_ROLE) {
+    //         setNavItems(writerNavList);
+    //     } else {
+    //         setNavItems(defaultNavList);
+    //     }
+    // }, [user]);
 
     return (
         <Stack

@@ -77,6 +77,7 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
                             color="gray.400"
                             noOfLines={descriptionLines}
                             height={descriptionHeight}
+                            whiteSpace="pre-line"
                         >
                             {book.description ||
                                 "Manga này chưa có tóm tắt nội dung!"}

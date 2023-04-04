@@ -1,6 +1,6 @@
 import BookForm from "@/components/Book/Form";
 import { WRITER_ROLE } from "@/constants/roles";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { BookCreateProvider } from "@/context/BookCreateContext";
 import useAuth from "@/hooks/useAuth";
 import { Book } from "@/models/Book";
@@ -17,7 +17,7 @@ type BookEditProps = {
 const BookEditPage: React.FC<BookEditProps> = ({ book }) => {
     const { setDefaultPath, setNeedAuth } = useAuth();
     useEffect(() => {
-        setDefaultPath(HOME_PAGE), setNeedAuth(true);
+        setDefaultPath(routes.getHomePage()), setNeedAuth(true);
     }, []);
     return (
         <Box p="6" bg="white" borderRadius={4} boxShadow="lg">
@@ -33,11 +33,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (token) {
         const us = JSON.parse(JSON.stringify(user));
         if (us.role !== WRITER_ROLE) {
-            context.res.writeHead(302, { Location: HOME_PAGE });
+            context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
         }
     } else {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
 
@@ -48,7 +48,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
     if (res) {
         if (res.book?.writerId !== user_id) {
-            context.res.writeHead(302, { Location: HOME_PAGE });
+            context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
         }
         return {
@@ -57,7 +57,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             },
         };
     } else {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
 }

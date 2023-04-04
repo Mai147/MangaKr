@@ -1,4 +1,4 @@
-import { AUTHOR_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Author } from "@/models/Author";
 import {
     Avatar,
@@ -20,7 +20,7 @@ const AuthorSnippetHorizontalItem: React.FC<
 > = ({ author, ...rest }) => {
     return (
         <Link
-            href={`${AUTHOR_PAGE}/${author.id}`}
+            href={routes.getAuthorDetailPage(author.id!)}
             _hover={{ textDecoration: "none" }}
         >
             <Box

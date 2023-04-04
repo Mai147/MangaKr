@@ -1,14 +1,16 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { WRITER_ROLE } from "@/constants/roles";
-import { AUTHOR_PAGE, COMMUNITY_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
+import useModal from "@/hooks/useModal";
 import { PostNotification } from "@/models/Post";
 import { UserCommunitySnippet } from "@/models/User";
 import {
     Box,
     Flex,
     IconButton,
+    Link,
     Popover,
     PopoverContent,
     PopoverTrigger,
@@ -16,18 +18,53 @@ import {
 } from "@chakra-ui/react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
-import { AiOutlinePlus, AiOutlineTags } from "react-icons/ai";
-import { FiBell } from "react-icons/fi";
-import { IoPersonOutline } from "react-icons/io5";
-import NavItem from "../NavItem";
+import { AiOutlineEdit, AiOutlinePlus, AiOutlineTags } from "react-icons/ai";
+import { FiBell, FiBook } from "react-icons/fi";
+import { HiOutlineUserGroup } from "react-icons/hi";
+import { IoChatbubbleOutline, IoPersonOutline } from "react-icons/io5";
+import { RiChat3Line } from "react-icons/ri";
+import NavItem, { NavItemProps } from "../NavItem";
 import NotificationItem from "../NotificationItem";
 import NavSearch from "./NavSearch";
 import NavUser from "./NavUser";
 
 type NavRightContentProps = {};
 
+const defaultNavList: NavItemProps[] = [
+    {
+        label: "Tạo cộng đồng",
+        leftIcon: HiOutlineUserGroup,
+        onClick: () => {},
+    },
+];
+
+const writerNavList: NavItemProps[] = [
+    {
+        label: "Thêm tác giả",
+        leftIcon: IoPersonOutline,
+        href: routes.getAuthorCreatePage(),
+        divider: true,
+    },
+    {
+        label: "Thêm thể loại",
+        leftIcon: AiOutlineTags,
+        href: routes.getGenreCreatePage(),
+    },
+    {
+        label: "Viết Manga",
+        leftIcon: FiBook,
+        href: routes.getBookCreatePage(),
+    },
+    {
+        label: "Viết tin tức",
+        leftIcon: AiOutlineTags,
+        // href: `${GENRE_PAGE}/create`,
+    },
+];
+
 const NavRightContent: React.FC<NavRightContentProps> = () => {
     const { user } = useAuth();
+    const { toggleView } = useModal();
     const [userNotification, setUserNotification] = useState<
         PostNotification[]
     >([]);
@@ -98,110 +135,136 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                 <NavSearch />
             </Flex>
             {user && (
-                <Popover trigger={"hover"} placement={"bottom-start"}>
-                    <PopoverTrigger>
-                        <Box position="relative">
-                            <IconButton
-                                size="lg"
-                                variant="ghost"
-                                aria-label="Notification"
-                                borderRadius="full"
-                                icon={<FiBell />}
-                            />
-                            {userNotification.filter((noti) => !noti.isReading)
-                                .length > 0 && (
-                                <Flex
-                                    w="4"
-                                    h="4"
-                                    rounded="full"
-                                    bg="red"
-                                    position="absolute"
-                                    bottom="2"
-                                    right="2"
-                                    color="white"
-                                    fontSize={10}
-                                    fontWeight={500}
-                                    align="center"
-                                    justify="center"
-                                >
-                                    {
-                                        userNotification.filter(
-                                            (noti) => !noti.isReading
-                                        ).length
-                                    }
-                                </Flex>
-                            )}
-                        </Box>
-                    </PopoverTrigger>
-
-                    <PopoverContent
-                        border={0}
-                        minW={"xs"}
-                        boxShadow="lg"
-                        rounded="xl"
-                        overflow="hidden"
-                    >
-                        <Stack
-                            spacing={0}
-                            maxH="300px"
-                            overflow="auto"
-                            className="scroll"
-                        >
-                            {userNotification.map((noti, idx) => (
-                                <NotificationItem
-                                    key={noti.id}
-                                    userName={noti.creatorDisplayName}
-                                    communityName={noti.communityName}
-                                    imageUrl={noti.imageUrl}
-                                    content="đã đăng 1 bài viết mới trong"
-                                    createdAt={noti.createdAt}
-                                    href={`${COMMUNITY_PAGE}/${noti.communityId}`}
-                                    isLast={idx === userNotification.length - 1}
-                                    isReading={noti.isReading}
+                <>
+                    <Popover trigger={"hover"} placement={"bottom-start"}>
+                        <PopoverTrigger>
+                            <Box position="relative">
+                                <IconButton
+                                    size="lg"
+                                    variant="ghost"
+                                    aria-label="Notification"
+                                    borderRadius="full"
+                                    icon={<FiBell />}
                                 />
-                            ))}
-                        </Stack>
-                    </PopoverContent>
-                </Popover>
-            )}
-            {user && user.role === WRITER_ROLE && (
-                <Popover trigger={"hover"} placement={"bottom-start"}>
-                    <PopoverTrigger>
+                                {userNotification.filter(
+                                    (noti) => !noti.isReading
+                                ).length > 0 && (
+                                    <Flex
+                                        w="4"
+                                        h="4"
+                                        rounded="full"
+                                        bg="red"
+                                        position="absolute"
+                                        bottom="2"
+                                        right="2"
+                                        color="white"
+                                        fontSize={10}
+                                        fontWeight={500}
+                                        align="center"
+                                        justify="center"
+                                    >
+                                        {
+                                            userNotification.filter(
+                                                (noti) => !noti.isReading
+                                            ).length
+                                        }
+                                    </Flex>
+                                )}
+                            </Box>
+                        </PopoverTrigger>
+
+                        <PopoverContent
+                            border={0}
+                            minW={"xs"}
+                            boxShadow="lg"
+                            rounded="xl"
+                            overflow="hidden"
+                        >
+                            <Stack
+                                spacing={0}
+                                maxH="300px"
+                                overflow="auto"
+                                className="scroll"
+                            >
+                                {userNotification.map((noti, idx) => (
+                                    <NotificationItem
+                                        key={noti.id}
+                                        userName={noti.creatorDisplayName}
+                                        communityName={noti.communityName}
+                                        imageUrl={noti.imageUrl}
+                                        content="đã đăng 1 bài viết mới trong"
+                                        createdAt={noti.createdAt}
+                                        href={routes.getCommunityDetailPage(
+                                            noti.communityId
+                                        )}
+                                        isLast={
+                                            idx === userNotification.length - 1
+                                        }
+                                        isReading={noti.isReading}
+                                    />
+                                ))}
+                            </Stack>
+                        </PopoverContent>
+                    </Popover>
+                    <Link href={routes.getMessagePage()}>
                         <IconButton
                             size="lg"
                             variant="ghost"
-                            aria-label="add"
+                            aria-label="Notification"
                             borderRadius="full"
-                            icon={<AiOutlinePlus />}
+                            icon={<RiChat3Line />}
                         />
-                    </PopoverTrigger>
-
-                    <PopoverContent
-                        border={0}
-                        boxShadow="md"
-                        bg="white"
-                        p={4}
-                        rounded={"xl"}
-                        minW={"xs"}
-                    >
-                        <Stack>
-                            <NavItem
-                                label="Thêm tác giả"
-                                leftIcon={IoPersonOutline}
-                                href={`${AUTHOR_PAGE}/create`}
-                            />
-                            <NavItem
-                                label="Thêm thể loại"
-                                leftIcon={AiOutlineTags}
-                                // href={`${GENRE_PAGE}/create`}
-                            />
-                            {/* {navItem.children.map((child) => (
-                                <NavItem key={child.label} {...child} />
-                            ))} */}
-                        </Stack>
-                    </PopoverContent>
-                </Popover>
+                    </Link>
+                </>
             )}
+            <Popover trigger={"hover"} placement={"bottom-start"}>
+                <PopoverTrigger>
+                    <IconButton
+                        size="lg"
+                        variant="ghost"
+                        aria-label="add"
+                        borderRadius="full"
+                        icon={<AiOutlinePlus />}
+                    />
+                </PopoverTrigger>
+
+                <PopoverContent
+                    border={0}
+                    boxShadow="md"
+                    bg="white"
+                    p={4}
+                    rounded={"xl"}
+                    minW={"xs"}
+                >
+                    <Stack>
+                        {defaultNavList.map((item, idx) => (
+                            <NavItem
+                                key={item.label}
+                                {...item}
+                                onClick={() => {
+                                    idx === 0 && toggleView("createCommunity");
+                                }}
+                            />
+                        ))}
+                        {user && user.role === WRITER_ROLE && (
+                            <>
+                                {writerNavList.map((item) => (
+                                    <NavItem key={item.label} {...item} />
+                                ))}
+                            </>
+                        )}
+                    </Stack>
+                </PopoverContent>
+            </Popover>
+            <Link href={routes.getWriterPage()}>
+                <IconButton
+                    size="lg"
+                    variant="ghost"
+                    aria-label="Edit"
+                    borderRadius="full"
+                    icon={<AiOutlineEdit />}
+                />
+            </Link>
             <NavUser />
         </Flex>
     );

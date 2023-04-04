@@ -1,14 +1,17 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore, storage } from "@/firebase/clientApp";
-import { Author } from "@/models/Author";
+import { Author, AuthorSnippet } from "@/models/Author";
 import AuthorUtils from "@/utils/AuthorUtils";
 import FileUtils from "@/utils/FileUtils";
+import { triGram } from "@/utils/StringUtils";
 import {
     collection,
     doc,
     getDoc,
     getDocs,
     query,
+    serverTimestamp,
+    Timestamp,
     where,
     writeBatch,
 } from "firebase/firestore";
@@ -35,14 +38,23 @@ class AuthorService {
         const authors = AuthorUtils.fromDocs(authorDocs.docs, isSnippet);
         return authors;
     };
-    static get = async ({ authorId }: { authorId: string }) => {
+    static get = async ({
+        authorId,
+        isSnippet = false,
+    }: {
+        authorId: string;
+        isSnippet?: boolean;
+    }): Promise<Author | AuthorSnippet | undefined> => {
         const authorDocRef = doc(
             fireStore,
             firebaseRoute.getAllAuthorRoute(),
             authorId
         );
         const authorDoc = await getDoc(authorDocRef);
-        return authorDoc.exists() ? AuthorUtils.fromDoc(authorDoc) : undefined;
+        if (authorDoc.exists()) {
+            const author = AuthorUtils.fromDoc(authorDoc, isSnippet);
+            return author;
+        }
     };
     static create = async ({ authorForm }: { authorForm: Author }) => {
         try {
@@ -54,10 +66,11 @@ class AuthorService {
                 imageRoute: firebaseRoute.getAuthorImageRoute(authorsDocRef.id),
                 imageUrl: authorForm.imageUrl,
             });
-            const nameLowerCase = authorForm.name.toLowerCase();
+            const trigramName = triGram(authorForm.name);
             batch.set(authorsDocRef, {
                 ...authorForm,
-                nameLowerCase,
+                trigramName: trigramName.obj,
+                createdAt: serverTimestamp() as Timestamp,
             });
             if (authorImageUrl) {
                 batch.update(authorsDocRef, {
@@ -100,10 +113,10 @@ class AuthorService {
                 );
                 await deleteObject(imageRef);
             }
-            const nameLowerCase = authorForm.name.toLowerCase();
+            const trigramName = triGram(authorForm.name);
             batch.update(authorDocRef, {
                 ...authorForm,
-                nameLowerCase,
+                trigramName: trigramName.obj,
             });
             // Update image
             if (authorForm.imageUrl !== author?.imageUrl) {

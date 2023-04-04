@@ -1,6 +1,6 @@
 import ImageMultipleUpload from "@/components/ImageUpload/ImageMultipleUpload";
 import TabItem from "@/components/Tab/TabItem";
-import { COMMUNITY_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
 import useSelectFile from "@/hooks/useSelectFile";
@@ -98,7 +98,7 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
     return (
         <Flex direction="column" bg="white" borderRadius={4} mt={2}>
             <Flex direction="column">
-                <Flex>
+                <Flex align="center">
                     <Text fontSize={24} fontWeight={600}>
                         Tạo bài viết
                     </Text>
@@ -113,7 +113,7 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
                     {community && (
                         <Link
                             ml={4}
-                            href={`${COMMUNITY_PAGE}/${community.id!}`}
+                            href={routes.getCommunityDetailPage(community.id!)}
                             _hover={{ textDecoration: "none" }}
                         >
                             <Button variant="outline">

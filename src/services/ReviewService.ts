@@ -2,6 +2,7 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Review } from "@/models/Review";
 import FileUtils from "@/utils/FileUtils";
+import { triGram } from "@/utils/StringUtils";
 import {
     collection,
     doc,
@@ -112,10 +113,10 @@ class ReviewService {
                 imageRoute: firebaseRoute.getReviewImageRoute(reviewDocRef.id),
                 imageUrl: reviewForm.imageUrl,
             });
-            const titleLowerCase = reviewForm.title.toLowerCase();
+            const trigramTitle = triGram(reviewForm.title);
             batch.set(reviewDocRef, {
                 ...reviewForm,
-                titleLowerCase,
+                trigramTitle: trigramTitle.obj,
                 createdAt: serverTimestamp() as Timestamp,
             });
             batch.update(bookDocRef, {
@@ -170,10 +171,10 @@ class ReviewService {
                 );
                 await deleteObject(imageRef);
             }
-            const titleLowerCase = reviewForm.title.toLowerCase();
+            const trigramTitle = triGram(reviewForm.title);
             batch.update(reviewDocRef, {
                 ...reviewForm,
-                titleLowerCase,
+                trigramTitle: trigramTitle.obj,
                 createdAt: serverTimestamp() as Timestamp,
             });
             // Update image

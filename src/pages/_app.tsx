@@ -8,16 +8,21 @@ import { ChakraProvider } from "@chakra-ui/react";
 
 import type { AppProps } from "next/app";
 import { CommunityProvider } from "@/context/CommunityContext";
+import React from "react";
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps, ...appProps }: AppProps) {
+    const isLayoutNeeded = ![`/messages`].includes(appProps.router.pathname);
+
+    const LayoutComponent = isLayoutNeeded ? Layout : React.Fragment;
+
     return (
         <ChakraProvider theme={theme}>
             <AuthProvider>
                 <ModalProvider>
                     <CommunityProvider>
-                        <Layout>
+                        <LayoutComponent>
                             <Component {...pageProps} />
-                        </Layout>
+                        </LayoutComponent>
                     </CommunityProvider>
                 </ModalProvider>
             </AuthProvider>

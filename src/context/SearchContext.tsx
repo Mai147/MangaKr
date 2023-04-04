@@ -1,4 +1,4 @@
-import { BOOK_PAGE_COUNT } from "@/constants/pagination";
+import { SEARCH_PAGE_COUNT } from "@/constants/pagination";
 import usePagination, {
     defaultPaginationInput,
     PaginationInput,
@@ -7,6 +7,7 @@ import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";
 import { Review } from "@/models/Review";
+import { UserModel } from "@/models/User";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
@@ -26,7 +27,11 @@ interface SearchCommunityState extends PaginationInput {
     communities: Community[];
 }
 
-type tabList = "book" | "review" | "author" | "community";
+interface SearchUserState extends PaginationInput {
+    users: UserModel[];
+}
+
+type tabList = "book" | "review" | "author" | "community" | "user";
 
 type SearchState = {
     searchValue: string;
@@ -34,6 +39,7 @@ type SearchState = {
     review: SearchReviewState;
     author: SearchAuthorState;
     community: SearchCommunityState;
+    user: SearchUserState;
     slideToNextPage: (tab: tabList) => void;
     slideToPrevPage: (tab: tabList) => void;
 };
@@ -41,25 +47,31 @@ type SearchState = {
 const defaultSearchBookState: SearchBookState = {
     ...defaultPaginationInput,
     books: [],
-    pageCount: BOOK_PAGE_COUNT,
+    pageCount: SEARCH_PAGE_COUNT,
 };
 
 const defaultSearchReviewState: SearchReviewState = {
     ...defaultPaginationInput,
     reviews: [],
-    pageCount: BOOK_PAGE_COUNT,
+    pageCount: SEARCH_PAGE_COUNT,
 };
 
 const defaultSearchAuthorState: SearchAuthorState = {
     ...defaultPaginationInput,
     authors: [],
-    pageCount: BOOK_PAGE_COUNT,
+    pageCount: SEARCH_PAGE_COUNT,
 };
 
 const defaultSearchCommunityState: SearchCommunityState = {
     ...defaultPaginationInput,
     communities: [],
-    pageCount: BOOK_PAGE_COUNT,
+    pageCount: SEARCH_PAGE_COUNT,
+};
+
+const defaultSearchUserState: SearchUserState = {
+    ...defaultPaginationInput,
+    users: [],
+    pageCount: SEARCH_PAGE_COUNT,
 };
 
 const defaultSearchState: SearchState = {
@@ -68,6 +80,7 @@ const defaultSearchState: SearchState = {
     review: defaultSearchReviewState,
     author: defaultSearchAuthorState,
     community: defaultSearchCommunityState,
+    user: defaultSearchUserState,
     slideToNextPage: () => {},
     slideToPrevPage: () => {},
 };
@@ -76,7 +89,7 @@ export const SearchContext = createContext<SearchState>(defaultSearchState);
 
 export const SearchProvider = ({ children }: any) => {
     const rounter = useRouter();
-    const { getBooks, getReviews, getAuthors, getCommunities } =
+    const { getBooks, getReviews, getAuthors, getCommunities, getUsers } =
         usePagination();
     const [searchValue, setSearchValue] = useState("");
     const [bookTab, setBookTab] = useState<SearchBookState>(
@@ -90,6 +103,9 @@ export const SearchProvider = ({ children }: any) => {
     );
     const [communityTab, setCommunityTab] = useState<SearchCommunityState>(
         defaultSearchCommunityState
+    );
+    const [userTab, setUserTab] = useState<SearchUserState>(
+        defaultSearchUserState
     );
 
     const getSearchBooks = async (searchValue: string) => {
@@ -169,6 +185,25 @@ export const SearchProvider = ({ children }: any) => {
         }));
     };
 
+    const getSearchUsers = async (searchValue: string) => {
+        setUserTab((prev) => ({
+            ...prev,
+            loading: true,
+        }));
+        const res = await getUsers({
+            page: communityTab.page,
+            isNext: communityTab.isNext,
+            pageCount: communityTab.pageCount,
+            searchValue,
+        });
+        setUserTab((prev) => ({
+            ...prev,
+            users: (res?.users as UserModel[]) || [],
+            totalPage: res?.totalPage || 0,
+            loading: false,
+        }));
+    };
+
     const slideToNextPage = (tab: tabList) => {
         switch (tab) {
             case "book": {
@@ -194,6 +229,21 @@ export const SearchProvider = ({ children }: any) => {
                     isNext: true,
                 }));
                 break;
+            }
+            case "community": {
+                setCommunityTab((prev) => ({
+                    ...prev,
+                    page: prev.page + 1,
+                    isNext: true,
+                }));
+                break;
+            }
+            case "user": {
+                setUserTab((prev) => ({
+                    ...prev,
+                    page: prev.page + 1,
+                    isNext: true,
+                }));
             }
         }
     };
@@ -224,6 +274,22 @@ export const SearchProvider = ({ children }: any) => {
                 }));
                 break;
             }
+            case "community": {
+                setCommunityTab((prev) => ({
+                    ...prev,
+                    page: prev.page - 1,
+                    isNext: false,
+                }));
+                break;
+            }
+            case "user": {
+                setUserTab((prev) => ({
+                    ...prev,
+                    page: prev.page - 1,
+                    isNext: false,
+                }));
+                break;
+            }
         }
     };
 
@@ -241,6 +307,7 @@ export const SearchProvider = ({ children }: any) => {
         setReviewTab(defaultSearchReviewState);
         setAuthorTab(defaultSearchAuthorState);
         setCommunityTab(defaultSearchCommunityState);
+        setUserTab(defaultSearchUserState);
     }, [searchValue]);
 
     useEffect(() => {
@@ -283,6 +350,16 @@ export const SearchProvider = ({ children }: any) => {
         }
     }, [communityTab.page, communityTab.isFirst]);
 
+    useEffect(() => {
+        getSearchUsers(searchValue);
+        if (userTab.isFirst) {
+            setUserTab((prev) => ({
+                ...prev,
+                isFirst: false,
+            }));
+        }
+    }, [userTab.page, userTab.isFirst]);
+
     return (
         <SearchContext.Provider
             value={{
@@ -291,6 +368,7 @@ export const SearchProvider = ({ children }: any) => {
                 review: reviewTab,
                 author: authorTab,
                 community: communityTab,
+                user: userTab,
                 slideToNextPage,
                 slideToPrevPage,
             }}

@@ -76,7 +76,11 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
         }
         if (!author) {
             await AuthorService.create({ authorForm });
-            setAuthorForm(defaultAuthorForm);
+            setAuthorForm({
+                ...defaultAuthorForm,
+                creatorId: user.uid,
+                creatorDisplayName: user.displayName!,
+            });
             setSelectedFile(undefined);
             toast({
                 ...toastOption,
@@ -99,6 +103,7 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
             setAuthorForm((prev) => ({
                 ...prev,
                 creatorId: user.uid,
+                creatorDisplayName: user.displayName!,
             }));
         }
     }, [user]);
@@ -123,7 +128,7 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
         <Flex direction="column">
             <Flex>
                 <Text fontSize={24} fontWeight={600}>
-                    Tạo tác giả
+                    {!author ? "Tạo tác giả" : "Sửa tác giả"}
                 </Text>
                 <Button
                     w={28}

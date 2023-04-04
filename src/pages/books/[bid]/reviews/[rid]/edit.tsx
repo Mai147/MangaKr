@@ -1,7 +1,7 @@
 import NotAvailable from "@/components/Error/NotAvailable";
 import ReviewForm from "@/components/Review/Form";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import { Review } from "@/models/Review";
 import { UserModel } from "@/models/User";
@@ -33,7 +33,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { token, user, user_id } = cookies(context) || null;
     const { rid } = context.query;
     if (!token) {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
     const us = JSON.parse(JSON.stringify(user));
@@ -51,7 +51,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             } as Review)
         ) as Review;
         if (review.creatorId !== user_id) {
-            context.res.writeHead(302, { Location: HOME_PAGE });
+            context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
         }
         return {

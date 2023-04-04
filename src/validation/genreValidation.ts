@@ -5,7 +5,10 @@ import { fireStore } from "@/firebase/clientApp";
 import { Genre } from "@/models/Genre";
 import { collection, getDocs, query, where } from "firebase/firestore";
 
-export const validateCreateGenre = async (genre: Genre) => {
+export const validateCreateGenre = async (
+    genre: Genre,
+    currentGenreName?: string
+) => {
     let res: ValidationResult = {
         result: false,
         errors: [],
@@ -16,7 +19,7 @@ export const validateCreateGenre = async (genre: Genre) => {
             message: getRequiredError("tên thể loại"),
         };
         res.errors.push(error);
-    } else {
+    } else if (genre.name !== currentGenreName) {
         const genreQuery = query(
             collection(fireStore, firebaseRoute.getAllGenreRoute()),
             where("name", "==", genre.name)

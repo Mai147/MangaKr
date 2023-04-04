@@ -1,6 +1,6 @@
 import CommunityUserAuthorize from "@/components/Community/Approve/CommunityUserAuthorize";
 import NotAvailable from "@/components/Error/NotAvailable";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { Community } from "@/models/Community";
 import { UserModel } from "@/models/User";
@@ -23,7 +23,7 @@ const CommunityUserAuthorizePage: React.FC<CommunityUserAuthorizePageProps> = ({
 
     useEffect(() => {
         setNeedAuth(true);
-        setDefaultPath(HOME_PAGE);
+        setDefaultPath(routes.getHomePage());
     }, []);
 
     if (!community) {
@@ -52,7 +52,7 @@ const CommunityUserAuthorizePage: React.FC<CommunityUserAuthorizePageProps> = ({
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { token, user, user_id } = cookies(context) || null;
     if (!token) {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     } else {
         const { cid } = context.query;
@@ -71,7 +71,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 user: us,
             });
             if (!res) {
-                context.res.writeHead(302, { Location: HOME_PAGE });
+                context.res.writeHead(302, { Location: routes.getHomePage() });
                 context.res.end();
             }
             return {

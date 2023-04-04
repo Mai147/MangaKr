@@ -1,4 +1,4 @@
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import {
     Box,
     CloseButton,
@@ -18,7 +18,7 @@ interface LinkItemProps {
     href?: string;
 }
 const LinkItems: Array<LinkItemProps> = [
-    { name: "Home", icon: FiHome, href: HOME_PAGE },
+    { name: "Home", icon: FiHome, href: routes.getHomePage() },
     { name: "Trending", icon: FiTrendingUp },
     { name: "Job", icon: FiCompass },
     { name: "Library", icon: FiCompass },

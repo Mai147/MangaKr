@@ -1,15 +1,12 @@
 import ConfirmModal from "@/components/Modal/ConfirmModal";
 import { COMMUNITY_SUPER_ADMIN_ROLE } from "@/constants/roles";
-import { getCommunityCreatePostPage } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import useModal from "@/hooks/useModal";
 import CommunityService from "@/services/CommunityService";
-import { Box, Button, Divider, Flex, Icon, Link, Text } from "@chakra-ui/react";
+import { Box, Button, Divider, Flex, Icon, Text } from "@chakra-ui/react";
 import React, { useMemo, useState } from "react";
 import { BiMessageSquareAdd } from "react-icons/bi";
-import { FiMoreVertical } from "react-icons/fi";
-import { MdOutlineAddToPhotos } from "react-icons/md";
 import { VscSignOut } from "react-icons/vsc";
 import CommunitySnippetHorizontalBasicItem from "../Snippet/CommunitySnippetHorizontalBasicItem";
 import CommunityLeftSideBarAction from "./Action";

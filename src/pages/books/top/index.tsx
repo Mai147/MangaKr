@@ -1,10 +1,9 @@
 import BookSearch from "@/components/Book/Search";
 import PageContent from "@/components/Layout/PageContent";
 import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
-import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { BookProvider } from "@/context/BookContext";
 import useAuth from "@/hooks/useAuth";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 type BookTopPageProps = {};
 

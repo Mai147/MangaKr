@@ -12,6 +12,7 @@ const CircleHorizontalSkeleton: React.FC<CircleHorizontalSkeletonProps> = ({
         <Box
             padding={size === "sm" ? 2 : 6}
             boxShadow="xs"
+            borderRadius={4}
             bg="white"
             mb={4}
             w="100%"

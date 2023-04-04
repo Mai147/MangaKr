@@ -3,3 +3,7 @@ export const COMMENT_PAGE_COUNT = 5;
 export const BOOK_REVIEW_PAGE_COUNT = 5;
 export const POST_PAGE_COUNT = 10;
 export const USER_PAGE_COUNT = 10;
+export const TOPIC_PAGE_COUNT = 10;
+export const REPLY_TOPIC_PAGE_COUNT = 10;
+export const SEARCH_PAGE_COUNT = 10;
+export const MESSAGE_PAGE_COUNT = 20;

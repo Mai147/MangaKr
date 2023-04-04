@@ -1,6 +1,6 @@
 import RatingBar from "@/components/RatingBar";
 import Tag from "@/components/Tag";
-import { AUTHOR_PAGE, BOOK_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Book, bookStatusList } from "@/models/Book";
 import { Divider, Flex, Icon, Link, Text, VStack } from "@chakra-ui/react";
 import moment from "moment";
@@ -33,7 +33,9 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                                     key={author.id!}
                                     ml={1}
                                     _hover={{ color: "brand.400" }}
-                                    href={`${AUTHOR_PAGE}/${author.id}`}
+                                    href={routes.getAuthorDetailPage(
+                                        author.id!
+                                    )}
                                 >
                                     <Text maxW={"90px"} noOfLines={1}>
                                         {author.name}
@@ -53,7 +55,9 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                             <Tag
                                 key={genre.id}
                                 label={genre.name}
-                                href={`${BOOK_PAGE}?genreId=${genre.id}`}
+                                href={`${routes.getBookHomePage()}?genreId=${
+                                    genre.id
+                                }`}
                                 mr={2}
                             />
                         ))}

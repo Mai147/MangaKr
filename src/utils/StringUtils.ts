@@ -1,4 +1,5 @@
 import { PASSWORD_MIN_LENGTH } from "@/constants/validation";
+import { Timestamp } from "firebase/firestore";
 
 export const isEmail = (email: string) => {
     const emailReg = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -53,4 +54,19 @@ export const triGram = (txt: string) => {
         obj,
         map,
     };
+};
+
+export const isToday = (timestampDate: Timestamp) => {
+    const date = new Date(timestampDate.seconds * 1000);
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+};
+
+export const compareDate = (
+    firstTimestampDate: Timestamp,
+    secondTimestampDate: Timestamp
+) => {
+    const firstDate = new Date(firstTimestampDate.seconds * 1000);
+    const secondDate = new Date(secondTimestampDate.seconds * 1000);
+    return firstDate.toDateString() === secondDate.toDateString();
 };

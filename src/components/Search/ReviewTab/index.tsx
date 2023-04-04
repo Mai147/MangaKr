@@ -1,7 +1,7 @@
 import Pagination from "@/components/Pagination";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import { getBookReviewDetailPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useSearch from "@/hooks/useSearch";
 import { Box, Text } from "@chakra-ui/react";
 import React from "react";
@@ -20,10 +20,10 @@ const SearchReviewTab: React.FC<SearchReviewTabProps> = () => {
                         key={review.id}
                         review={review}
                         mb={4}
-                        href={`${getBookReviewDetailPage(
+                        href={routes.getReviewDetailPage(
                             review.bookId,
                             review.id!
-                        )}`}
+                        )}
                     />
                 ))
             ) : (

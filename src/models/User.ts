@@ -20,6 +20,17 @@ export interface UserModel extends User {
     readingBooks?: Book[];
 }
 
+export interface UserMessageSnippet {
+    messageId: string;
+    id: string;
+    displayName: string;
+    imageUrl?: string | null;
+    latestMessage?: string;
+    latestCreatedAt?: Timestamp;
+    numberOfUnseens: number;
+    type: "RECEIVE" | "SEND";
+}
+
 export interface UserCommunitySnippet {
     id: string;
     name: string;

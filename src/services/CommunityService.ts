@@ -49,7 +49,7 @@ type RecursiveRole = {
 class CommunityService {
     static getAll = async ({
         communityOrderBy,
-        communityLimit,
+        communityLimit = 10,
         communityOrderDirection = "desc",
     }: {
         communityLimit?: number;
@@ -100,7 +100,13 @@ class CommunityService {
         }
     };
 
-    static getRelated = async ({ community }: { community: Community }) => {
+    static getRelated = async ({
+        community,
+        communityLimit = 3,
+    }: {
+        community: Community;
+        communityLimit?: number;
+    }) => {
         const communityDocsRef = collection(
             fireStore,
             firebaseRoute.getAllCommunityRoute()
@@ -109,10 +115,52 @@ class CommunityService {
             communityDocsRef,
             where("bookId", "==", community.bookId),
             where("id", "!=", community.id),
-            limit(3)
+            limit(communityLimit)
         );
         const communityDocs = await getDocs(communityQuery);
         const communities = CommunityUtlis.fromDocs(communityDocs.docs);
+        return communities;
+    };
+
+    static getUserRelated = async ({
+        userId,
+        communityLimit = 5,
+    }: {
+        userId: string;
+        communityLimit?: number;
+    }) => {
+        const readingBookDocsRef = collection(
+            fireStore,
+            firebaseRoute.getUserReadingBookSnippetRoute(userId)
+        );
+        const readingBookQuery = query(
+            readingBookDocsRef,
+            limit(communityLimit)
+        );
+        const readingBookDocs = await getDocs(readingBookQuery);
+        const communityDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllCommunityRoute()
+        );
+        let communityQuery;
+        if (!readingBookDocs.empty) {
+            const bookIds = readingBookDocs.docs.map((doc) => doc.id);
+            communityQuery = query(
+                communityDocsRef,
+                where("bookId", "in", bookIds),
+                limit(5)
+            );
+        } else {
+            communityQuery = query(communityDocsRef, limit(5));
+        }
+        const communityDocs = await getDocs(communityQuery);
+        const communities = communityDocs.docs.map(
+            (doc) =>
+                ({
+                    id: doc.id,
+                    ...doc.data(),
+                } as Community)
+        );
         return communities;
     };
 
@@ -272,10 +320,10 @@ class CommunityService {
                 );
                 await deleteObject(imageRef);
             }
-            const nameLowerCase = communityForm.name.toLowerCase();
+            const trigramName = triGram(communityForm.name);
             batch.update(communityDocRef, {
                 ...communityForm,
-                nameLowerCase,
+                trigramName: trigramName.obj,
             });
             if (communityForm.imageUrl !== community?.imageUrl) {
                 batch.update(communityDocRef, {

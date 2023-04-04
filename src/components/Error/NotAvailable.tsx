@@ -1,4 +1,4 @@
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import {
     Button,
     Flex,
@@ -21,7 +21,11 @@ const NotAvailable: React.FC<NotAvailableProps> = ({ title }) => {
             <Text fontSize={24} fontWeight={600}>
                 {title}
             </Text>
-            <Link href={HOME_PAGE} _hover={{ textDecoration: "none" }} mt={4}>
+            <Link
+                href={routes.getHomePage()}
+                _hover={{ textDecoration: "none" }}
+                mt={4}
+            >
                 <Button>Trở về trang chủ</Button>
             </Link>
         </Flex>

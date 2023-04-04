@@ -1,5 +1,5 @@
 import ReviewForm from "@/components/Review/Form";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { UserModel } from "@/models/User";
 import { Box } from "@chakra-ui/react";
@@ -18,7 +18,7 @@ const BookReviewCreatePage: React.FC<BookReviewCreatePageProps> = ({
 }) => {
     const { setDefaultPath, setNeedAuth } = useAuth();
     useEffect(() => {
-        setDefaultPath(HOME_PAGE), setNeedAuth(true);
+        setDefaultPath(routes.getHomePage()), setNeedAuth(true);
     }, []);
 
     return (
@@ -32,7 +32,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { token, user } = cookies(context) || null;
     const { bid } = context.query;
     if (!token) {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
     const us = JSON.parse(JSON.stringify(user));

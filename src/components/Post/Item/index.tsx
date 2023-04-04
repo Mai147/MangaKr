@@ -1,5 +1,5 @@
 import { Post } from "@/models/Post";
-import { Box, VStack } from "@chakra-ui/react";
+import { Box, Stack, VStack } from "@chakra-ui/react";
 import React, { useState } from "react";
 import "moment/locale/vi";
 import PostReactionBar from "./ReactionBar";
@@ -28,7 +28,9 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
             <VStack align="flex-start" w="100%">
                 <PostItemHeader post={post} />
                 <PostItemContent post={post} />
-                <PostItemImages imageList={post.imageUrls} />
+                <Box w="100%">
+                    <PostItemImages imageList={post.imageUrls} />
+                </Box>
                 <PostReactionBar
                     post={post}
                     setShowCommentInput={setShowCommentInput}

@@ -1,4 +1,4 @@
-import { SEARCH_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { InputGroup, InputLeftElement, Input } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import React, { useRef } from "react";
@@ -23,7 +23,9 @@ const NavSearch: React.FC<NavSearchProps> = () => {
                     if (event.key === "Enter") {
                         if (inputRef.current) {
                             rounter.push(
-                                `${SEARCH_PAGE}?q=${inputRef.current.value}`
+                                `${routes.getSearchPage()}?q=${
+                                    inputRef.current.value
+                                }`
                             );
                             inputRef.current.blur();
                         }

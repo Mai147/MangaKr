@@ -1,5 +1,5 @@
 import BookLibraryCarousel from "@/components/Book/Snippet/BookLibraryCarousel";
-import { BOOK_PAGE, getEditBookPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
@@ -132,7 +132,7 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
                         toggleView("confirmModal");
                     }}
                     noBookText="Chưa có manga nào trong danh sách đọc"
-                    href={(bookId) => `${BOOK_PAGE}/${bookId}`}
+                    href={routes.getBookDetailPage}
                 />
             </LibrarySection>
             <Divider my={4} borderColor="gray.400" />
@@ -151,7 +151,7 @@ const LibraryBook: React.FC<LibraryBookProps> = ({
                         toggleView("confirmModal");
                     }}
                     noBookText="Bạn chưa viết manga nào"
-                    href={getEditBookPage}
+                    href={routes.getBookEditPage}
                 />
             </LibrarySection>
         </Box>

@@ -69,6 +69,33 @@ const CommentSection: React.FC<CommentSectionProps> = ({
         setCommentLoading(false);
     };
 
+    const handleDeleteComment = async (
+        commentId: string,
+        reply?: {
+            parentRoute: string;
+            parentId: string;
+        }
+    ) => {
+        if (!user) {
+            toggleView("login");
+            return;
+        }
+        try {
+            await CommentService.delete({
+                commentRoute,
+                rootRoute,
+                rootId,
+                commentId,
+                reply,
+            });
+            setCommentList((prev) =>
+                prev.filter((item) => item.id !== commentId)
+            );
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     const onChangeCommentLike = (
         commentId: string,
         likeIncrement: number,
@@ -153,6 +180,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({
                                         }
                                         onChangeReplyNumber={
                                             onChangeReplyNumber
+                                        }
+                                        handleDeleteComment={
+                                            handleDeleteComment
                                         }
                                         user={user}
                                     />

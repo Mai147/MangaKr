@@ -1,7 +1,7 @@
 import BookCarousel from "@/components/Book/Snippet/Carousel";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import { getEditBookReviewPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
@@ -100,7 +100,7 @@ const LibraryReview: React.FC<LibraryReviewProps> = ({
                                         <ReviewSnippetItem
                                             key={review.id}
                                             review={review}
-                                            href={getEditBookReviewPage(
+                                            href={routes.getReviewEditPage(
                                                 review.bookId,
                                                 review.id!
                                             )}

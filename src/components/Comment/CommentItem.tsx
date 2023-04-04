@@ -17,6 +17,7 @@ import {
     Link,
     SkeletonCircle,
     SkeletonText,
+    Spinner,
     Stack,
     Text,
     VStack,
@@ -41,8 +42,19 @@ type CommentItemProps = {
         dislikeIncrement: number
     ) => void;
     onChangeReplyNumber?: (commentId: string) => void;
+    handleDeleteComment: (
+        commentId: string,
+        reply?: {
+            parentRoute: string;
+            parentId: string;
+        }
+    ) => Promise<void>;
     user?: UserModel;
     canReply?: boolean;
+    isReply?: {
+        parentRoute: string;
+        parentId: string;
+    };
 };
 
 const defaultCommentPaginationInput: PaginationInput = {
@@ -57,8 +69,10 @@ const CommentItem: React.FC<CommentItemProps> = ({
     rootRoute,
     onChangeCommentLike,
     onChangeReplyNumber,
+    handleDeleteComment,
     user,
     canReply = true,
+    isReply,
 }) => {
     const { toggleView } = useModal();
     const [userVote, setUserVote] = useState<Vote | undefined>(undefined);
@@ -67,6 +81,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
         useState<PaginationInput>(defaultCommentPaginationInput);
     const [showReplyCommentList, setShowReplyCommentList] = useState(false);
     const [replyCommentList, setReplyCommentList] = useState<Comment[]>([]);
+    const [deleteCommentLoading, setDeleteCommentLoading] = useState(false);
     const { getComments } = usePagination();
 
     const getReplyCommentList = async (
@@ -228,7 +243,9 @@ const CommentItem: React.FC<CommentItemProps> = ({
                             </Text>
                         )}
                     </HStack>
-                    <Text fontSize="10pt">{comment.text}</Text>
+                    <Text fontSize="10pt" whiteSpace={"pre-line"}>
+                        {comment.text}
+                    </Text>
                     <Stack direction="row" align="center" spacing={2}>
                         <VotePopup
                             voteList={basicVoteList}
@@ -274,6 +291,39 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 </Text>
                             </>
                         )}
+                        {user?.uid === comment.creatorId && (
+                            <>
+                                <Box
+                                    borderLeft="1px solid"
+                                    borderColor="gray.300"
+                                    h="100%"
+                                ></Box>
+                                {deleteCommentLoading ? (
+                                    <Spinner size="sm" />
+                                ) : (
+                                    <Text
+                                        fontSize={12}
+                                        fontWeight={500}
+                                        cursor="pointer"
+                                        _hover={{ color: "brand.400" }}
+                                        onClick={async () => {
+                                            if (!user) {
+                                                toggleView("login");
+                                            } else {
+                                                setDeleteCommentLoading(true);
+                                                await handleDeleteComment(
+                                                    comment.id!,
+                                                    isReply
+                                                );
+                                                setDeleteCommentLoading(false);
+                                            }
+                                        }}
+                                    >
+                                        Xóa bình luận
+                                    </Text>
+                                )}
+                            </>
+                        )}
                     </Stack>
                 </VStack>
                 {showReplyComment && (
@@ -284,8 +334,6 @@ const CommentItem: React.FC<CommentItemProps> = ({
                             commentRoute={commentRoute}
                             rootRoute={rootRoute}
                             rootId={rootId}
-                            // commentDocsRef={commentDocsRef}
-                            // rootDocRef={rootDocRef}
                             onHidden={(newComment) => {
                                 setShowReplyComment(false);
                                 setReplyCommentList((prev) => [
@@ -324,6 +372,19 @@ const CommentItem: React.FC<CommentItemProps> = ({
                                 onChangeCommentLike={onChangeReplyCommentLike}
                                 user={user}
                                 canReply={false}
+                                handleDeleteComment={async () => {
+                                    await handleDeleteComment(c.id!, {
+                                        parentRoute: commentRoute,
+                                        parentId: comment.id!,
+                                    });
+                                    setReplyCommentList((prev) =>
+                                        prev.filter((item) => item.id !== c.id)
+                                    );
+                                }}
+                                isReply={{
+                                    parentRoute: commentRoute,
+                                    parentId: comment.id!,
+                                }}
                             />
                         ))}
                         {replyCommentPagination.loading && (

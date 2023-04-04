@@ -1,4 +1,4 @@
-import { BOOK_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Book } from "@/models/Book";
 import { Box, Flex, Link, Text, VStack } from "@chakra-ui/react";
 import React from "react";
@@ -14,7 +14,7 @@ const BookSnippetHorizontalItem: React.FC<BookSnippetHorizontalItemProps> = ({
 }) => {
     return (
         <Link
-            href={`${BOOK_PAGE}/${book.id!}`}
+            href={routes.getBookDetailPage(book.id!)}
             _hover={{ textDecoration: "none" }}
         >
             <Box
@@ -32,7 +32,12 @@ const BookSnippetHorizontalItem: React.FC<BookSnippetHorizontalItemProps> = ({
                         <Text noOfLines={1} fontWeight={600}>
                             {book.name}
                         </Text>
-                        <Text noOfLines={2} fontSize={14} color="gray.500">
+                        <Text
+                            noOfLines={2}
+                            fontSize={14}
+                            color="gray.500"
+                            whiteSpace="pre-line"
+                        >
                             {book.description ||
                                 "Manga này chưa có tóm tắt nội dung"}
                         </Text>

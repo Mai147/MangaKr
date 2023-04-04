@@ -1,64 +1,64 @@
-import { Community } from "@/models/Community";
-import { CommunityUserSnippet } from "@/models/User";
-import { Avatar, Box, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
-import moment from "moment";
-import React, { useState } from "react";
-import { AiOutlineCheck } from "react-icons/ai";
+import { UserModel } from "@/models/User";
+import {
+    Avatar,
+    Box,
+    Flex,
+    FlexProps,
+    Link,
+    Text,
+    VStack,
+} from "@chakra-ui/react";
+import React from "react";
 
-type UserHorizontalSnippetItemProps = {
-    user: CommunityUserSnippet;
-    handleAccept?: () => Promise<void>;
-};
+interface UserHorizontalSnippetItemProps extends FlexProps {
+    user: UserModel;
+    hiddenSubBio?: boolean;
+    size?: "sm" | "md" | "lg";
+}
 
 const UserHorizontalSnippetItem: React.FC<UserHorizontalSnippetItemProps> = ({
     user,
-    handleAccept,
+    hiddenSubBio = false,
+    size = "lg",
+    ...rest
 }) => {
-    const [loading, setLoading] = useState(false);
     return (
-        <Flex
-            justify="space-between"
-            align="center"
-            w="100%"
-            p={4}
-            _hover={{ bg: "gray.50" }}
-            transition="all 0.3s"
-            cursor="pointer"
+        <Link
+            // href={routes.getAuthorDetailPage(author.id!)}
+            _hover={{ textDecoration: "none" }}
         >
-            <HStack spacing={4} flexGrow={1}>
-                <Box w="100px">
-                    <Avatar src={user.imageUrl || "/images/noImage.jpg"} />
-                </Box>
-                <Text w="300px" flexShrink={0}>
-                    {user.displayName}
-                </Text>
-                <Box w="200px" flexShrink={0}>
-                    {user.createdAt?.seconds && (
-                        <Text>
-                            {moment(
-                                new Date(user.createdAt?.seconds * 1000)
-                            ).format("DD/MM/YYYY")}
+            <Box
+                p={4}
+                border="1px solid"
+                borderColor="gray.200"
+                borderRadius={4}
+                bg="white"
+                _hover={{ bg: "gray.50" }}
+                transition="all 0.5s"
+                {...rest}
+            >
+                <Flex>
+                    <Avatar
+                        src={user.photoURL || "/images/noImage.jpg"}
+                        size={size}
+                    />
+                    <VStack
+                        align="flex-start"
+                        ml={size === "sm" ? 2 : size === "md" ? 4 : 8}
+                        spacing={0}
+                    >
+                        <Text noOfLines={1} fontWeight={600}>
+                            {user.displayName}
                         </Text>
-                    )}
-                </Box>
-            </HStack>
-            <IconButton
-                aria-label="accept-button"
-                icon={<AiOutlineCheck />}
-                ml={10}
-                flexShrink={0}
-                bg="green.300"
-                _hover={{
-                    bg: "green.400",
-                }}
-                isLoading={loading}
-                onClick={async () => {
-                    setLoading(true);
-                    handleAccept && (await handleAccept());
-                    setLoading(false);
-                }}
-            />
-        </Flex>
+                        {!hiddenSubBio && (
+                            <Text noOfLines={2} fontSize={14} color="gray.400">
+                                {user.subBio}
+                            </Text>
+                        )}
+                    </VStack>
+                </Flex>
+            </Box>
+        </Link>
     );
 };
 export default UserHorizontalSnippetItem;

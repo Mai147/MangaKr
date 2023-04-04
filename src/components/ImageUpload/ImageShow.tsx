@@ -47,7 +47,12 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                 opacity={0.8}
                 filter="auto"
                 brightness={0.3}
-                zIndex={999}
+                cursor="pointer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onHidden();
+                }}
+                className="test"
             ></Box>
             <Icon
                 color="white"
@@ -71,33 +76,50 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                 transform="auto"
                 align="center"
                 w="95%"
+                cursor="pointer"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onHidden();
+                }}
             >
-                <IconButton
-                    aria-label="Prev button"
-                    bg="gray.600"
-                    icon={<IoIosArrowBack />}
-                    size="lg"
-                    onClick={() =>
-                        setSelectedIndex(
-                            (prev) =>
-                                (prev - 1 + imageList.length) % imageList.length
-                        )
-                    }
-                />
+                {imageList.length > 1 && (
+                    <IconButton
+                        aria-label="Prev button"
+                        bg="gray.600"
+                        icon={<IoIosArrowBack />}
+                        size="lg"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedIndex(
+                                (prev) =>
+                                    (prev - 1 + imageList.length) %
+                                    imageList.length
+                            );
+                        }}
+                    />
+                )}
                 <Flex flexGrow={1} px={12} align="center" justify="center">
-                    <Image src={imageList[selectedIndex]} maxH="90vh" />
+                    <Image
+                        src={imageList[selectedIndex]}
+                        maxH="90vh"
+                        cursor="default"
+                        onClick={(e) => e.stopPropagation()}
+                    />
                 </Flex>
-                <IconButton
-                    aria-label="Next button"
-                    bg="gray.500"
-                    size="lg"
-                    icon={<IoIosArrowForward />}
-                    onClick={() =>
-                        setSelectedIndex(
-                            (prev) => (prev + 1) % imageList.length
-                        )
-                    }
-                />
+                {imageList.length > 1 && (
+                    <IconButton
+                        aria-label="Next button"
+                        bg="gray.500"
+                        size="lg"
+                        icon={<IoIosArrowForward />}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedIndex(
+                                (prev) => (prev + 1) % imageList.length
+                            );
+                        }}
+                    />
+                )}
             </Flex>
         </Box>
     );

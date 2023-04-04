@@ -2,7 +2,7 @@ import ProfileDetail from "@/components/Profile/Detail";
 import ProfilePassword from "@/components/Profile/Password";
 import ProfileShow from "@/components/Profile/Show";
 import ProfileSidebar from "@/components/Profile/Sidebar";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { Box, Flex, Spinner } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
@@ -17,7 +17,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
 
     useEffect(() => {
         setNeedAuth(true);
-        setDefaultPath(HOME_PAGE);
+        setDefaultPath(routes.getHomePage());
     }, []);
 
     if (!user) {
@@ -59,7 +59,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             props: {},
         };
     } else {
-        context.res.writeHead(302, { Location: HOME_PAGE });
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
 }

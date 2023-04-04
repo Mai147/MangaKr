@@ -54,6 +54,7 @@ const PostItemPreview: React.FC<PostItemPreviewProps> = ({
                 transform="auto"
                 align="center"
                 w="50%"
+                onClick={onHidden}
             >
                 <Flex flexGrow={1} px={12} align="center" justify="center">
                     <Box
@@ -66,11 +67,15 @@ const PostItemPreview: React.FC<PostItemPreviewProps> = ({
                         overflow="auto"
                         maxH="calc(100vh - 36px)"
                         className="scroll dark"
+                        cursor="default"
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <VStack align="flex-start" w="100%">
                             <PostItemHeader post={post} />
                             <PostItemContent post={post} />
-                            <PostItemImages imageList={post.imageUrls} />
+                            <Box w="100%">
+                                <PostItemImages imageList={post.imageUrls} />
+                            </Box>
                         </VStack>
                     </Box>
                 </Flex>

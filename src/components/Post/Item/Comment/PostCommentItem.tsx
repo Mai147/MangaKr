@@ -8,6 +8,7 @@ import usePagination, {
 } from "@/hooks/usePagination";
 import { Comment } from "@/models/Comment";
 import { basicVoteList, Vote } from "@/models/Vote";
+import CommentService from "@/services/CommentService";
 import VoteService from "@/services/VoteService";
 import {
     Avatar,
@@ -17,12 +18,14 @@ import {
     HStack,
     Icon,
     Link,
+    Spinner,
     Text,
     VStack,
 } from "@chakra-ui/react";
 import moment from "moment";
 import "moment/locale/vi";
 import React, { useEffect, useState } from "react";
+import { AiOutlineDelete } from "react-icons/ai";
 import { BsReply } from "react-icons/bs";
 import VotePopup from "../ReactionBar/VotePopup";
 import PostCommentSkeleton from "./PostCommentSkeleton";
@@ -32,6 +35,7 @@ type PostCommentItemProps = {
     comment: Comment;
     isReply?: {
         parentId: string;
+        setReplyCommentList: React.Dispatch<React.SetStateAction<Comment[]>>;
     };
     canReply?: boolean;
 };
@@ -52,6 +56,7 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
         useState<PaginationInput>(defaultCommentPaginationInput);
     const [showReplyCommentList, setShowReplyCommentList] = useState(false);
     const [replyCommentList, setReplyCommentList] = useState<Comment[]>([]);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [userVote, setUserVote] = useState<Vote | undefined>();
     const [commentLike, setCommentLike] = useState<{
         numberOfLikes: number;
@@ -175,6 +180,41 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
         }
     };
 
+    const onCommentDelete = async () => {
+        try {
+            setDeleteLoading(true);
+            if (isReply) {
+                const parentRoute = firebaseRoute.getCommunityPostCommentRoute(
+                    communityState.selectedCommunity?.id!,
+                    postId
+                );
+                const res = await CommentService.delete({
+                    commentRoute: firebaseRoute.getReplyCommentRoute(
+                        parentRoute,
+                        isReply.parentId
+                    ),
+                    commentId: comment.id!,
+                    rootRoute: firebaseRoute.getCommunityPostRoute(
+                        communityState.selectedCommunity?.id!
+                    ),
+                    rootId: postId,
+                    reply: {
+                        parentRoute,
+                        parentId: isReply.parentId,
+                    },
+                });
+                isReply.setReplyCommentList((prev) =>
+                    prev.filter((item) => item.id !== comment.id!)
+                );
+            } else {
+                await communityAction.onDeletePostComment(comment, postId);
+            }
+            setDeleteLoading(false);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     useEffect(() => {
         if (user) {
             getUserVote(user.uid);
@@ -214,7 +254,7 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
             <VStack align="flex-start" spacing={1} flexGrow={1}>
                 <Box bg="gray.100" borderRadius={8} px={4} py={2}>
                     <Text fontWeight={500}>{comment.creatorDisplayName}</Text>
-                    <Text>{comment.text}</Text>
+                    <Text whiteSpace="pre-line">{comment.text}</Text>
                 </Box>
                 <HStack align="center" color="gray.600">
                     {comment.createdAt?.seconds && (
@@ -247,6 +287,21 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                                     setShowReplyComment((prev) => !prev)
                                 }
                             />
+                        </>
+                    )}
+                    {user?.uid === comment.creatorId && (
+                        <>
+                            <Box w="1" h="1" rounded="full" bg="gray.500" />
+                            {deleteLoading ? (
+                                <Spinner size="sm" />
+                            ) : (
+                                <Icon
+                                    as={AiOutlineDelete}
+                                    cursor="pointer"
+                                    fontSize={18}
+                                    onClick={onCommentDelete}
+                                />
+                            )}
                         </>
                     )}
                     {commentLike.numberOfLikes > 0 ||
@@ -317,6 +372,7 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                                 postId={postId}
                                 isReply={{
                                     parentId: comment.id!,
+                                    setReplyCommentList,
                                 }}
                                 canReply={false}
                             />

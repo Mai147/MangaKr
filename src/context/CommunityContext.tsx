@@ -1,7 +1,9 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { POST_PAGE_COUNT } from "@/constants/pagination";
 import { CommunityRole, COMMUNITY_USER_ROLE } from "@/constants/roles";
+import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
+import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
 import usePagination, {
     defaultPaginationInput,
@@ -10,16 +12,19 @@ import usePagination, {
 import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
 import { CommunityPost } from "@/models/Post";
+import { Topic } from "@/models/Topic";
 import { PostVote, Vote } from "@/models/Vote";
 import CommentService from "@/services/CommentService";
 import CommunityService from "@/services/CommunityService";
 import VoteService from "@/services/VoteService";
 import { validateCreateCommunity } from "@/validation/communityValidation";
+import { useToast } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
-interface CommunityPostPaginationInput extends PaginationInput {
+interface CommunityInfoPaginationInput extends PaginationInput {
     communityId: string;
+    searchValue?: string;
 }
 
 interface CommunityPostCommentPaginationInput {
@@ -27,7 +32,7 @@ interface CommunityPostCommentPaginationInput {
     inputState: PaginationInput;
 }
 
-const defaultCommunityPostPaginationInput: CommunityPostPaginationInput = {
+const defaultCommunityInfoPaginationInput: CommunityInfoPaginationInput = {
     ...defaultPaginationInput,
     pageCount: POST_PAGE_COUNT,
     communityId: "",
@@ -42,10 +47,16 @@ const defaultCommunityPostCommentPaginationInput: CommunityPostCommentPagination
         },
     };
 
-type CommunityPostPagination = {
-    state: CommunityPostPaginationInput;
+interface CommunityInfoPagination {
+    state: CommunityInfoPaginationInput;
     onNext: () => void;
-};
+    onPrev: () => void;
+}
+
+interface CommunityTopicPagination extends CommunityInfoPagination {
+    searchValue: string;
+    setSearchValue: (searchValue: string) => void;
+}
 
 type CommunityPostCommentPagination = {
     state: CommunityPostCommentPaginationInput;
@@ -73,8 +84,10 @@ type CommunityState = {
     communityPosts?: CommunityPost[];
     communityPostVotes?: CommunityPostVote[];
     communityPostComments?: CommunityPostComment[];
-    communityPostPagination?: CommunityPostPagination;
+    communityPostPagination?: CommunityInfoPagination;
     communityPostCommentPaginations?: CommunityPostCommentPagination[];
+    communityTopics?: Topic[];
+    communityTopicPagination?: CommunityTopicPagination;
     userCommunityRole?: {
         isAccept: boolean;
         role?: CommunityRole;
@@ -102,6 +115,7 @@ type CommunityAction = {
         commentId: string,
         postId: string
     ) => Promise<void>;
+    onDeletePostComment: (comment: Comment, postId: string) => Promise<void>;
 };
 
 type CommunityContextState = {
@@ -131,6 +145,7 @@ const defaultCommunityContextState: CommunityContextState = {
             return undefined;
         },
         onPostCommentVote: async () => {},
+        onDeletePostComment: async () => {},
     },
 };
 
@@ -146,15 +161,22 @@ export const CommunityProvider = ({ children }: any) => {
         defaultCommunityState
     );
     const [communityPostPaginationInput, setCommunityPostPaginationInput] =
-        useState<CommunityPostPaginationInput>(
-            defaultCommunityPostPaginationInput
+        useState<CommunityInfoPaginationInput>(
+            defaultCommunityInfoPaginationInput
         );
+    const [communityTopicPaginationInput, setCommunityTopicPaginationInput] =
+        useState<CommunityInfoPaginationInput>({
+            ...defaultCommunityInfoPaginationInput,
+        });
     const [
         communityPostCommentPaginationInputs,
         setCommunityPostCommentPaginationInputs,
     ] = useState<CommunityPostCommentPaginationInput[]>([]);
     const [selectedPostId, setSelectedPostId] = useState<string | undefined>();
-    const { getPosts, getComments } = usePagination();
+    const [topicSearchValue, setTopicSearchValue] = useState("");
+    const debouncedSearch = useDebounce(topicSearchValue, 300);
+    const { getPosts, getComments, getTopics } = usePagination();
+    const toast = useToast();
 
     const getCommunity = async (communityId: string) => {
         const res = await CommunityService.get({ communityId });
@@ -232,6 +254,33 @@ export const CommunityProvider = ({ children }: any) => {
             ],
             communityPostVotes: postVotes,
             communityPostComments: postComments,
+        }));
+    };
+
+    const getCommunityTopics = async (communityId: string) => {
+        setCommunityTopicPaginationInput((prev) => ({
+            ...prev,
+            loading: true,
+        }));
+        const res = await getTopics({
+            ...communityTopicPaginationInput,
+            communityId,
+            isAccept: true,
+        });
+        setCommunityTopicPaginationInput((prev) => ({
+            ...prev,
+            totalPage: res?.totalPage || 0,
+            loading: false,
+            isFirst: false,
+        }));
+        setCommunityState((prev) => ({
+            ...prev,
+            communityTopics: [
+                ...(res.topics.map((topic) => ({
+                    ...topic,
+                    communityId,
+                })) as Topic[]),
+            ],
         }));
     };
 
@@ -735,6 +784,55 @@ export const CommunityProvider = ({ children }: any) => {
         }
     };
 
+    const onDeletePostComment = async (comment: Comment, postId: string) => {
+        if (!user || user.uid !== comment.creatorId) {
+            toast({
+                ...toastOption,
+                title: "Không thể xóa bình luận này!",
+            });
+            return;
+        }
+        try {
+            const { selectedCommunity } = communityState;
+            const res = await CommentService.delete({
+                commentRoute: firebaseRoute.getCommunityPostCommentRoute(
+                    selectedCommunity?.id!,
+                    postId
+                ),
+                rootRoute: firebaseRoute.getCommunityPostRoute(
+                    selectedCommunity?.id!
+                ),
+                rootId: postId,
+                commentId: comment.id!,
+            });
+            setCommunityState((prev) => ({
+                ...prev,
+                communityPostComments: prev.communityPostComments?.map(
+                    (postComment) =>
+                        postComment.postId !== postId
+                            ? postComment
+                            : {
+                                  ...postComment,
+                                  comments: postComment.comments.filter(
+                                      (item) => item.comment.id !== comment.id
+                                  ),
+                              }
+                ),
+                communityPosts: prev.communityPosts?.map((item) =>
+                    item.id !== postId
+                        ? item
+                        : {
+                              ...item,
+                              numberOfComments:
+                                  item.numberOfComments - (res || 0),
+                          }
+                ),
+            }));
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     const updateListComment = async (communityId: string, postId: string) => {
         const res = await getCommunityPostComments(communityId, postId);
         setCommunityState((prev) => ({
@@ -772,6 +870,14 @@ export const CommunityProvider = ({ children }: any) => {
     };
 
     useEffect(() => {
+        setCommunityTopicPaginationInput((prev) => ({
+            ...prev,
+            page: 1,
+            searchValue: topicSearchValue,
+        }));
+    }, [debouncedSearch]);
+
+    useEffect(() => {
         const { selectedCommunity } = communityState;
         if (selectedCommunity) {
             getCommunityInfo(selectedCommunity, user?.uid);
@@ -786,6 +892,17 @@ export const CommunityProvider = ({ children }: any) => {
     }, [
         communityState.selectedCommunity?.id,
         communityPostPaginationInput.page,
+    ]);
+
+    useEffect(() => {
+        const { selectedCommunity } = communityState;
+        if (selectedCommunity) {
+            getCommunityTopics(selectedCommunity.id!);
+        }
+    }, [
+        communityState.selectedCommunity?.id,
+        communityTopicPaginationInput.page,
+        communityTopicPaginationInput.searchValue,
     ]);
 
     useEffect(() => {
@@ -823,6 +940,7 @@ export const CommunityProvider = ({ children }: any) => {
                     onPostComment,
                     onPostCommentReply,
                     onPostCommentVote,
+                    onDeletePostComment,
                     joinCommunity,
                     leaveCommunity,
                     toUserRole,
@@ -835,7 +953,31 @@ export const CommunityProvider = ({ children }: any) => {
                             setCommunityPostPaginationInput((prev) => ({
                                 ...prev,
                                 page: prev.page + 1,
+                                isNext: true,
                             })),
+                        onPrev: () =>
+                            setCommunityPostPaginationInput((prev) => ({
+                                ...prev,
+                                page: prev.page - 1,
+                                isNext: false,
+                            })),
+                    },
+                    communityTopicPagination: {
+                        state: communityTopicPaginationInput,
+                        onNext: () =>
+                            setCommunityTopicPaginationInput((prev) => ({
+                                ...prev,
+                                page: prev.page + 1,
+                                isNext: true,
+                            })),
+                        onPrev: () =>
+                            setCommunityTopicPaginationInput((prev) => ({
+                                ...prev,
+                                page: prev.page - 1,
+                                isNext: false,
+                            })),
+                        searchValue: topicSearchValue,
+                        setSearchValue: setTopicSearchValue,
                     },
                     communityPostCommentPaginations:
                         communityPostCommentPaginationInputs.map((input) => ({

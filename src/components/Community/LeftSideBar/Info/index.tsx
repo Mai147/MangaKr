@@ -117,7 +117,7 @@ const CommunityLeftSideBarInfo: React.FC<CommunityLeftSideBarInfoProps> = ({
             </Text>
             <Text color="gray.300">----------</Text>
             {!isUpdateDescription ? (
-                <Text align="center">
+                <Text align="center" whiteSpace="pre-line">
                     {communityState.selectedCommunity?.description}
                 </Text>
             ) : (

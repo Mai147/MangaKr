@@ -1,3 +1,4 @@
+import { postHeaderList } from "@/components/Community/Approve/CommunityInfoApprove";
 import { Post } from "@/models/Post";
 import { Box, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
 import React, { useState } from "react";
@@ -18,18 +19,6 @@ const PostHorizontalSnippetItem: React.FC<PostHorizontalSnippetItemProps> = ({
     const [showPreview, setShowPreview] = useState(false);
     const [acceptLoading, setAcceptLoading] = useState(false);
     const [deleLoading, setDeleteLoading] = useState(false);
-
-    // const handleAccept = async (e: React.MouseEvent) => {
-    //     e.stopPropagation();
-    //     try {
-    //         setLoading(true);
-    //         await PostService.accept({ post, community });
-    //         onAccept && onAccept(post.id!);
-    //         setLoading(false);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
 
     return (
         <Flex
@@ -52,17 +41,17 @@ const PostHorizontalSnippetItem: React.FC<PostHorizontalSnippetItemProps> = ({
                 />
             )}
             <HStack spacing={4} flexGrow={1}>
-                <Text w="100px" flexShrink={0}>
+                <Text w={postHeaderList[0].width} flexShrink={0}>
                     {post.creatorDisplayName}
                 </Text>
-                <Box w="80px" flexShrink={0}>
+                <Box w={postHeaderList[1].width} flexShrink={0}>
                     <PostItemImages
                         imageList={post.imageUrls}
                         size="sm"
                         canShow={false}
                     />
                 </Box>
-                <Text w="200px" flexShrink={0}>
+                <Text w={postHeaderList[2].width} flexShrink={0}>
                     {post.caption}
                 </Text>
                 <div

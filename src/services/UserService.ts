@@ -4,8 +4,11 @@ import { USER_ROLE } from "@/constants/roles";
 import { fireStore } from "@/firebase/clientApp";
 import { UserModel } from "@/models/User";
 import FileUtils from "@/utils/FileUtils";
+import { triGram } from "@/utils/StringUtils";
 import { updateProfile, User } from "firebase/auth";
+import { v4 } from "uuid";
 import {
+    collection,
     collectionGroup,
     doc,
     getDoc,
@@ -17,6 +20,17 @@ import {
 } from "firebase/firestore";
 
 class UserService {
+    static getAll = async () => {
+        const userDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllUserRoute()
+        );
+        const userDocs = await getDocs(userDocsRef);
+        const users: UserModel[] = userDocs.docs.map((userDoc) => ({
+            ...(userDoc.data() as UserModel),
+        }));
+        return users;
+    };
     static get = async ({ userId }: { userId: string }) => {
         const userDocRef = doc(
             fireStore,
@@ -31,12 +45,18 @@ class UserService {
         return user;
     };
     static create = async ({ user }: { user: User }) => {
+        const displayName =
+            user.displayName ||
+            user.email?.split("@")[0] ||
+            `User ${v4().split("-")[0]}`;
+        const trigramName = triGram(displayName);
         await setDoc(
             doc(fireStore, firebaseRoute.getAllUserRoute(), user?.uid),
             {
                 ...JSON.parse(JSON.stringify(user)),
                 role: USER_ROLE,
-                displayName: user.displayName || user.email?.split("@")[0],
+                displayName,
+                trigramName,
             }
         );
     };

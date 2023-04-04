@@ -8,6 +8,7 @@ import {
 } from "@chakra-ui/react";
 import React, { ReactNode } from "react";
 import AuthModal from "../Modal/Auth";
+import CreateCommunityModal from "../Modal/Community/CreateCommunityModal";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -21,6 +22,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
         <>
             <AuthModal />
+            <CreateCommunityModal />
             <Flex
                 direction="column"
                 minH="100vh"

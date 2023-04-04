@@ -23,6 +23,7 @@ import {
 import { ref, deleteObject } from "firebase/storage";
 import CharacterService from "./CharacterService";
 import { ReadingBookSnippet } from "@/models/Book";
+import { triGram } from "@/utils/StringUtils";
 
 class BookService {
     static getAll = async ({
@@ -169,10 +170,10 @@ class BookService {
                 ...bookForm,
                 characterIds,
             };
-            const nameLowerCase = newBook.name.toLowerCase();
+            const trigramName = triGram(newBook.name);
             batch.set(bookDocRef, {
                 ...newBook,
-                nameLowerCase,
+                trigramName: trigramName.obj,
                 writerId: userId,
                 createdAt: serverTimestamp() as Timestamp,
             });
@@ -262,10 +263,10 @@ class BookService {
             } = {
                 ...bookForm,
             };
-            const nameLowerCase = updateBook.name.toLowerCase();
+            const trigramName = triGram(updateBook.name);
             batch.update(bookDocRef, {
                 ...updateBook,
-                nameLowerCase,
+                trigramName: trigramName.obj,
             });
             // Update Snippet
             const authorRoute = firebaseRoute.getAllAuthorRoute();

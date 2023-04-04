@@ -2,7 +2,7 @@ import CommentSection from "@/components/Comment";
 import RatingBar from "@/components/RatingBar";
 import Tag from "@/components/Tag";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { BOOK_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { Review, tagReviewList } from "@/models/Review";
 import {
@@ -48,7 +48,7 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
                     <Heading as="h3">{review.title}</Heading>
                     <VStack spacing={0}>
                         <Link
-                            href={`${BOOK_PAGE}/${review.bookId}`}
+                            href={routes.getBookDetailPage(review.bookId!)}
                             _hover={{ textDecoration: "none" }}
                         >
                             <Text

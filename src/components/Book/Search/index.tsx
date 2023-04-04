@@ -2,7 +2,7 @@ import Pagination from "@/components/Pagination";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import Tag from "@/components/Tag";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import { BOOK_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useBooks from "@/hooks/useBooks";
 import { Filter, filterList, FilterValue } from "@/hooks/usePagination";
 import { Box, Divider, Flex, Select, Spinner, Text } from "@chakra-ui/react";
@@ -49,7 +49,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
                                 label="Tất cả"
                                 isActive={!selectedGenre?.id}
                                 onClick={() => {
-                                    router.push(BOOK_PAGE);
+                                    router.push(routes.getBookHomePage());
                                 }}
                             />
                         </Box>
@@ -61,7 +61,9 @@ const BookSearch: React.FC<BookSearchProps> = ({
                                     isActive={selectedGenre?.id === genre.id}
                                     onClick={() => {
                                         router.push(
-                                            `${BOOK_PAGE}?genreId=${genre.id}`
+                                            `${routes.getBookHomePage()}?genreId=${
+                                                genre.id
+                                            }`
                                         );
                                     }}
                                 />
@@ -69,7 +71,9 @@ const BookSearch: React.FC<BookSearchProps> = ({
                         ))}
                     </Flex>
                     <Flex align="center" justify="center" my={4}>
-                        <Text>{selectedGenre?.description}</Text>
+                        <Text whiteSpace="pre-line">
+                            {selectedGenre?.description}
+                        </Text>
                     </Flex>
                 </>
             )}

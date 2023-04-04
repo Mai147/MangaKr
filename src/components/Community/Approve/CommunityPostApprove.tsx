@@ -1,8 +1,7 @@
 import Pagination from "@/components/Pagination";
 import PostHorizontalSnippetItem from "@/components/Post/Snippet/PostHorizontalSnippetItem";
 import { POST_PAGE_COUNT } from "@/constants/pagination";
-import { COMMUNITY_PAGE } from "@/constants/routes";
-import useCommunity from "@/hooks/useCommunity";
+import { routes } from "@/constants/routes";
 import usePagination, {
     defaultPaginationInput,
     PaginationInput,
@@ -17,6 +16,7 @@ import {
     Flex,
     HStack,
     Link,
+    Select,
     Spinner,
     Text,
     VStack,
@@ -49,7 +49,6 @@ const CommunityPostApprove: React.FC<CommunityPostApproveProps> = ({
         );
     const [postList, setPostList] = useState<Post[]>([]);
     const { getPosts } = usePagination();
-    const { communityState } = useCommunity();
 
     const getCommunityPosts = async () => {
         setPostPaginationInput((prev) => ({
@@ -104,14 +103,34 @@ const CommunityPostApprove: React.FC<CommunityPostApproveProps> = ({
                     justify="space-between"
                 >
                     <Text>Phê duyệt bài viết</Text>
-                    <HStack spacing={2} align="center">
-                        <Link
-                            href={`${COMMUNITY_PAGE}/${community.id!}`}
-                            _hover={{ textDecoration: "none" }}
+                    <HStack spacing={4}>
+                        <Select
+                            w="250px"
+                            borderColor="gray.400"
+                            // value={userPaginationInput.isAccept ? 1 : 0}
+                            onChange={(e) => {
+                                // setUserPaginationInput((prev) => ({
+                                //     ...prev,
+                                //     page: 1,
+                                //     isFirst: true,
+                                //     isAccept: !!e.target.value,
+                                // }));
+                            }}
                         >
-                            <Button>Quay lại cộng đồng</Button>
-                        </Link>
-                        <CommunityLeftSideBarAction />
+                            <option value={0}>Chủ đề</option>
+                            <option value={1}>Bài viết</option>
+                        </Select>
+                        <HStack spacing={2} align="center">
+                            <Link
+                                href={routes.getCommunityDetailPage(
+                                    community.id!
+                                )}
+                                _hover={{ textDecoration: "none" }}
+                            >
+                                <Button>Quay lại cộng đồng</Button>
+                            </Link>
+                            <CommunityLeftSideBarAction />
+                        </HStack>
                     </HStack>
                 </Flex>
                 <Divider borderColor="gray.300" />

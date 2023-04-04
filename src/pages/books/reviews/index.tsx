@@ -5,7 +5,7 @@ import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import { getBookReviewDetailPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import { Review } from "@/models/Review";
 import { Box, Divider, Text, VStack } from "@chakra-ui/react";
@@ -130,7 +130,7 @@ const ReviewPage: React.FC<ReviewPageProps> = () => {
                             <ReviewSnippetItem
                                 key={review.id}
                                 review={review}
-                                href={getBookReviewDetailPage(
+                                href={routes.getReviewDetailPage(
                                     review.bookId,
                                     review.id!
                                 )}

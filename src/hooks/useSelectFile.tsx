@@ -23,10 +23,41 @@ const useSelectFile = () => {
         };
     };
 
-    const onSelectMultipleFile = (
-        event: React.ChangeEvent<HTMLInputElement>
+    const onPasteFile = (
+        event: React.ClipboardEvent<HTMLTextAreaElement>,
+        isMultiple?: boolean
     ) => {
-        setSelectedListFile([]);
+        const items = event.clipboardData.items;
+        for (const index in items) {
+            var item = items[index];
+            if (item.kind === "file") {
+                var blob = item.getAsFile();
+                var reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                    if (readerEvent.target?.result) {
+                        const url = readerEvent.target.result as string;
+                        if (isMultiple) {
+                            setSelectedListFile((prev) => [...prev, url]);
+                        } else {
+                            setSelectedFile(url);
+                            setChanged(true);
+                        }
+                    }
+                };
+                if (blob) {
+                    reader.readAsDataURL(blob);
+                }
+            }
+        }
+    };
+
+    const onSelectMultipleFile = (
+        event: React.ChangeEvent<HTMLInputElement>,
+        isAppend = false
+    ) => {
+        if (!isAppend) {
+            setSelectedListFile([]);
+        }
         const files = event.target.files;
         const reader = new FileReader();
         const readFile = (index: number) => {
@@ -35,8 +66,10 @@ const useSelectFile = () => {
             reader.onload = (readerEvent) => {
                 if (readerEvent.target?.result) {
                     const url = readerEvent.target.result as string;
-                    setSelectedListFile((prev) => [...prev, url]);
-                    setMultipleChanged(true);
+                    if (!selectedListFile.includes(url)) {
+                        setSelectedListFile((prev) => [...prev, url]);
+                        setMultipleChanged(true);
+                    }
                     readFile(index + 1);
                 }
             };
@@ -76,6 +109,7 @@ const useSelectFile = () => {
         setSelectedListFile,
         onUploadFile,
         onUploadMultipleFile,
+        onPasteFile,
     };
 };
 

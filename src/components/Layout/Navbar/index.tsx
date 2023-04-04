@@ -10,7 +10,7 @@ import {
 import { FiMenu } from "react-icons/fi";
 import NavList from "./NavList";
 import NavRightContent from "./NavRightContent";
-import { HOME_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 
 type NavbarProps = {
     onOpen: () => void;
@@ -39,7 +39,10 @@ const Navbar = ({ onOpen }: NavbarProps) => {
             />
 
             <HStack spacing={2}>
-                <Link href={HOME_PAGE} _hover={{ textDecoration: "none" }}>
+                <Link
+                    href={routes.getHomePage()}
+                    _hover={{ textDecoration: "none" }}
+                >
                     <Text
                         fontSize="2xl"
                         fontFamily="monospace"

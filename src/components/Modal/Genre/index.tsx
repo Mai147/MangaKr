@@ -1,5 +1,6 @@
 import { UNKNOWN_ERROR } from "@/constants/errors";
 import { ValidationError } from "@/constants/validation";
+import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { defaultGenreForm, Genre, GenreSnippet } from "@/models/Genre";
 import GenreService from "@/services/GenreService";
@@ -15,7 +16,7 @@ import {
     Button,
     Flex,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ErrorText from "../Auth/ErrorText";
 import ModalInputItem from "../ModalInputItem";
 
@@ -24,6 +25,7 @@ type GenreModalProps = {
 };
 
 const GenreModal: React.FC<GenreModalProps> = ({ setGenres }) => {
+    const { user } = useAuth();
     const { view, isOpen, closeModal } = useModal();
     const [genreForm, setGenreForm] = useState<Genre>(defaultGenreForm);
     const [loading, setLoading] = useState(false);
@@ -32,6 +34,10 @@ const GenreModal: React.FC<GenreModalProps> = ({ setGenres }) => {
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (!user) {
+            closeModal();
+            return;
+        }
         if (errors) {
             setErrors([]);
         }
@@ -52,7 +58,11 @@ const GenreModal: React.FC<GenreModalProps> = ({ setGenres }) => {
                             ...genreForm,
                         })
                     );
-                    setGenreForm(defaultGenreForm);
+                    setGenreForm({
+                        ...defaultGenreForm,
+                        creatorId: user.uid,
+                        creatorDisplayName: user.displayName!,
+                    });
                     closeModal();
                 } else {
                     setErrors([
@@ -81,6 +91,16 @@ const GenreModal: React.FC<GenreModalProps> = ({ setGenres }) => {
                 } as Genre)
         );
     };
+
+    useEffect(() => {
+        if (user) {
+            setGenreForm((prev) => ({
+                ...prev,
+                creatorId: user.uid,
+                creatorDisplayName: user.displayName!,
+            }));
+        }
+    }, [user]);
 
     return (
         <>

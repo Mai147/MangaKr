@@ -1,9 +1,4 @@
-import {
-    getCommunityCreatePostPage,
-    getCommunityPostApprovePage,
-    getCommunityUserApprovePage,
-    getCommunityUserAuthorizePage,
-} from "@/constants/routes";
+import { getCommunityPostApprovePage, routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import CommunityService from "@/services/CommunityService";
@@ -147,7 +142,7 @@ const CommunityLeftSideBarAction: React.FC<
                 {canApproveUser && (
                     <Link
                         _hover={{ textDecoration: "none" }}
-                        href={getCommunityUserApprovePage(
+                        href={routes.getCommunityUserApprovePage(
                             communityState.selectedCommunity?.id!
                         )}
                     >
@@ -167,7 +162,7 @@ const CommunityLeftSideBarAction: React.FC<
                 {canAuthorizeUser && (
                     <Link
                         _hover={{ textDecoration: "none" }}
-                        href={getCommunityUserAuthorizePage(
+                        href={routes.getCommunityUserAuthorizePage(
                             communityState.selectedCommunity?.id!
                         )}
                     >
@@ -189,9 +184,9 @@ const CommunityLeftSideBarAction: React.FC<
                     <>
                         <Link
                             _hover={{ textDecoration: "none" }}
-                            // href={getCommunityUserAuthorizePage(
-                            //     communityState.selectedCommunity?.id!
-                            // )}
+                            href={routes.getCommunityTopicCreatePage(
+                                communityState.selectedCommunity?.id!
+                            )}
                         >
                             <Button variant="unstyled">
                                 <Flex align="center">
@@ -206,7 +201,7 @@ const CommunityLeftSideBarAction: React.FC<
                         </Link>
                         <Link
                             _hover={{ textDecoration: "none" }}
-                            href={getCommunityCreatePostPage(
+                            href={routes.getCommunityPostCreatePage(
                                 communityState.selectedCommunity?.id!
                             )}
                         >

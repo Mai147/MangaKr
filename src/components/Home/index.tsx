@@ -1,10 +1,4 @@
-import {
-    AUTHOR_PAGE,
-    BOOK_PAGE,
-    BOOK_REVIEW_PAGE,
-    BOOK_TOP_PAGE,
-    getBookReviewDetailPage,
-} from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useHome from "@/hooks/useHome";
 import { Box, Divider, Flex, Grid, GridItem, VStack } from "@chakra-ui/react";
 import React from "react";
@@ -55,7 +49,10 @@ const Home: React.FC<HomeProps> = () => {
             </Flex>
             <PageContent>
                 <VStack spacing={2} align="flex-start">
-                    <SectionHeading title="Manga vừa ra mắt" href={BOOK_PAGE} />
+                    <SectionHeading
+                        title="Manga vừa ra mắt"
+                        href={routes.getBookHomePage()}
+                    />
                     {newestMangasLoading && (
                         <Flex>
                             {[1, 2, 3].map((idx) => (
@@ -68,14 +65,14 @@ const Home: React.FC<HomeProps> = () => {
                             <BookSnippetItem
                                 key={book.id}
                                 book={book}
-                                href={`${BOOK_PAGE}/${book.id}`}
+                                href={routes.getBookDetailPage(book.id!)}
                             />
                         ))}
                     </BookCarousel>
                     <Divider pb={2} />
                     <SectionHeading
                         title="Manga nổi bật nhất"
-                        href={BOOK_TOP_PAGE}
+                        href={routes.getBookTopPage()}
                     />
                     {mostPopularMangasLoading && (
                         <Flex>
@@ -89,14 +86,14 @@ const Home: React.FC<HomeProps> = () => {
                             <BookSnippetItem
                                 key={book.id}
                                 book={book}
-                                href={`${BOOK_PAGE}/${book.id}`}
+                                href={routes.getBookDetailPage(book.id!)}
                             />
                         ))}
                     </BookCarousel>
                     <Divider pb={2} />
                     <SectionHeading
                         title="Đánh giá mới nhất"
-                        href={BOOK_REVIEW_PAGE}
+                        href={routes.getReviewHomePage()}
                     />
                     {newestReviewsLoading && (
                         <Grid
@@ -114,7 +111,7 @@ const Home: React.FC<HomeProps> = () => {
                                 key={review.id}
                                 review={review}
                                 onCarousel={true}
-                                href={`${getBookReviewDetailPage(
+                                href={`${routes.getReviewDetailPage(
                                     review.bookId,
                                     review.id!
                                 )}`}
@@ -139,7 +136,9 @@ const Home: React.FC<HomeProps> = () => {
                                 <GridItem key={author.id}>
                                     <AuthorSnippetItem
                                         author={author}
-                                        href={`${AUTHOR_PAGE}/${author.id}`}
+                                        href={routes.getAuthorDetailPage(
+                                            author.id!
+                                        )}
                                         h="100%"
                                     />
                                 </GridItem>

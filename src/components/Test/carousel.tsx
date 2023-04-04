@@ -1,21 +1,10 @@
-import React, { useState } from "react";
-import {
-    Box,
-    Button,
-    Flex,
-    Grid,
-    GridItem,
-    IconButton,
-    useBreakpointValue,
-} from "@chakra-ui/react";
+import React from "react";
+import { Box, Grid, IconButton, useBreakpointValue } from "@chakra-ui/react";
 // Here we have used react-icons package for the icons
 import { BiLeftArrowAlt, BiRightArrowAlt } from "react-icons/bi";
 // And react-slick as our Carousel Lib
 import Slider from "react-slick";
-import BookSnippetItem from "../Book/Snippet/BookSnippetItem";
-import { Book } from "@/models/Book";
-import { getEditBookReviewPage } from "@/constants/routes";
-import reviews from "@/pages/books/reviews";
+import { routes } from "@/constants/routes";
 import ReviewSnippetItem from "../Review/Snippet/ReviewSnippetItem";
 import { Review } from "@/models/Review";
 
@@ -137,7 +126,7 @@ const Carousel: React.FC<Props> = ({ reviews }) => {
                             {reviewGroup.map((review) => (
                                 <ReviewSnippetItem
                                     review={review}
-                                    href={getEditBookReviewPage(
+                                    href={routes.getReviewEditPage(
                                         review.bookId,
                                         review.id!
                                     )}

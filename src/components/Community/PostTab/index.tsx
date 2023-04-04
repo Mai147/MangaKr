@@ -36,7 +36,9 @@ const CommunityPostTab: React.FC<CommunityPostTabProps> = () => {
                     ))}
                 </InfiniteScroll>
             ) : (
-                <Text>Chưa có bài viết nào</Text>
+                !communityState.communityPostPagination?.state.loading && (
+                    <Text>Chưa có bài viết nào</Text>
+                )
             )}
 
             {communityState.communityPostPagination?.state.loading && (

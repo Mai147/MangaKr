@@ -1,7 +1,7 @@
 import RatingBar from "@/components/RatingBar";
 import CircleHorizontalSkeleton from "@/components/Skeleton/CircleHorizontalSkeleton";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import { COMMUNITY_PAGE } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";
 import BookService from "@/services/BookService";
@@ -90,7 +90,7 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
                     <RightSidebarItem
                         key={community.id}
                         title={community.name}
-                        href={`${COMMUNITY_PAGE}/${community.id}`}
+                        href={routes.getCommunityDetailPage(community.id!)}
                         imageUrl={community.imageUrl}
                         imageShape="circle"
                         sub={

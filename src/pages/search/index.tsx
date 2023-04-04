@@ -4,12 +4,24 @@ import SearchAuthorTab from "@/components/Search/AuthorTab";
 import SearchBookTab from "@/components/Search/BookTab";
 import SearchCommunityTab from "@/components/Search/CommunityTab";
 import SearchReviewTab from "@/components/Search/ReviewTab";
+import SearchUserTab from "@/components/Search/UserTab";
 import TabItem from "@/components/Tab/TabItem";
+import { routes } from "@/constants/routes";
 import { SearchProvider } from "@/context/SearchContext";
-import { Box, Divider, Flex, Text } from "@chakra-ui/react";
+import {
+    Box,
+    Divider,
+    Flex,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    Text,
+} from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
+import { AiOutlineUser } from "react-icons/ai";
 import { BsBook } from "react-icons/bs";
+import { FiSearch } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { IoPersonOutline } from "react-icons/io5";
 import { MdOutlineRateReview } from "react-icons/md";
@@ -33,26 +45,47 @@ const searchTab = [
         title: "Cộng đồng",
         icon: HiOutlineUserGroup,
     },
-    // {
-    //     title: "Nhân vật",
-    //     icon: BsPerson,
-    // },
-    // {
-    //     title: "Khác",
-    //     icon: BsInfoCircle,
-    // },
+    {
+        title: "Người dùng",
+        icon: AiOutlineUser,
+    },
 ];
 
 const SearchPage: React.FC<SearchPageProps> = () => {
     const [selectedTab, setSelectedTab] = useState(searchTab[0].title);
     const rounter = useRouter();
+    const inputRef = useRef<HTMLInputElement>(null);
     return (
         <PageContent>
             <Box>
                 <Text fontSize={24} fontWeight={600}>
                     Kết quả tìm kiếm cho "{rounter.query.q}"
                 </Text>
-                <Divider my={4} borderColor="gray.300" />
+                <InputGroup my={4}>
+                    <InputLeftElement
+                        pointerEvents="none"
+                        children={<FiSearch color="gray.300" />}
+                    />
+                    <Input
+                        type="text"
+                        placeholder="Tìm kiếm manga, tin tức..."
+                        bg="white"
+                        ref={inputRef}
+                        onKeyUp={(event) => {
+                            if (event.key === "Enter") {
+                                if (inputRef.current) {
+                                    rounter.push(
+                                        `${routes.getSearchPage()}?q=${
+                                            inputRef.current.value
+                                        }`
+                                    );
+                                    inputRef.current.blur();
+                                }
+                            }
+                        }}
+                    />
+                </InputGroup>
+                <Divider my={4} borderColor="gray.400" />
                 <Box>
                     <Flex width="100%" mb={4}>
                         {searchTab.map((item) => (
@@ -77,6 +110,9 @@ const SearchPage: React.FC<SearchPageProps> = () => {
                             )}
                             {selectedTab === searchTab[3].title && (
                                 <SearchCommunityTab />
+                            )}
+                            {selectedTab === searchTab[4].title && (
+                                <SearchUserTab />
                             )}
                         </Flex>
                     </SearchProvider>

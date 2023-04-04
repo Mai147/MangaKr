@@ -1,7 +1,7 @@
 import CharacterSnippetItem from "@/components/Character/CharacterSnippetItem";
 import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import { BOOK_REVIEW_PAGE_COUNT } from "@/constants/pagination";
-import { getBookReviewDetailPage, getBookReviewPage } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import { Book } from "@/models/Book";
 import { Review } from "@/models/Review";
 import ReviewService from "@/services/ReviewService";
@@ -35,7 +35,7 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
         <Box>
             <BookDetailSection
                 title="Tóm tắt"
-                children={<Text>{book.description}</Text>}
+                children={<Text whiteSpace="pre-line">{book.description}</Text>}
             />
             <Divider my={4} />
             <BookDetailSection title="Nội dung">
@@ -73,7 +73,7 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                 title="Bài đánh giá"
                 seeMoreHref={
                     bookReviews.length > 0
-                        ? getBookReviewPage(book.id!)
+                        ? routes.getBookReviewHomePage(book.id!)
                         : undefined
                 }
             >
@@ -104,7 +104,7 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                         <Box key={review.id} my={4}>
                             <ReviewSnippetItem
                                 review={review}
-                                href={getBookReviewDetailPage(
+                                href={routes.getReviewDetailPage(
                                     review.bookId,
                                     review.id!
                                 )}
