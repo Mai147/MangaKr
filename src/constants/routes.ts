@@ -1,114 +1,117 @@
 const HOME_ROUTE = "/";
-const PROFILE_ROUTE = "/profile";
-const LIBRARY_ROUTE = "/library";
-const BOOK_ROUTE = "/books";
-const REVIEW_ROUTE = "/reviews";
-const AUTHOR_ROUTE = "/authors";
-const GENRE_ROUTE = "/genres";
-const NEWS_ROUTE = "/news";
-const COMMUNITY_ROUTE = "/communities";
-const POST_ROUTE = "/posts";
-const USER_ROUTE = "/users";
-const TOPIC_ROUTE = "/topics";
+const PROFILE_ROUTE = "profile";
+const LIBRARY_ROUTE = "library";
+const BOOK_ROUTE = "books";
+const REVIEW_ROUTE = "reviews";
+const AUTHOR_ROUTE = "authors";
+const GENRE_ROUTE = "genres";
+const NEWS_ROUTE = "news";
+const COMMUNITY_ROUTE = "communities";
+const POST_ROUTE = "posts";
+const USER_ROUTE = "users";
+const TOPIC_ROUTE = "topics";
 export const getCommunityPostApprovePage = (communityId: string) => {
-    return `/communities/${communityId}/posts/approve`;
+    return `communities/${communityId}/posts/approve`;
 };
-const SEARCH_ROUTE = "/search";
-const WRITER_ROUTE = "/writer";
-const MESSAGE_ROUTE = "/messages";
+const SEARCH_ROUTE = "search";
+const WRITER_ROUTE = "writer";
+const MESSAGE_ROUTE = "messages";
 
 export const routes = {
     getHomePage: () => {
         return `${HOME_ROUTE}`;
     },
     getProfilePage: () => {
-        return `${PROFILE_ROUTE}`;
+        return `/${PROFILE_ROUTE}`;
     },
     getProfileLibraryPage: () => {
-        return `${PROFILE_ROUTE}/${LIBRARY_ROUTE}`;
+        return `/${PROFILE_ROUTE}/${LIBRARY_ROUTE}`;
     },
     getBookHomePage: () => {
-        return `${BOOK_ROUTE}`;
+        return `/${BOOK_ROUTE}`;
     },
     getBookTopPage: () => {
-        return `${BOOK_ROUTE}/top`;
+        return `/${BOOK_ROUTE}/top`;
     },
     getBookCreatePage: () => {
-        return `${BOOK_ROUTE}/create`;
+        return `/${BOOK_ROUTE}/create`;
     },
     getBookDetailPage: (bookId: string) => {
-        return `${BOOK_ROUTE}/${bookId}`;
+        return `/${BOOK_ROUTE}/${bookId}`;
     },
     getBookEditPage: (bookId: string) => {
-        return `${BOOK_ROUTE}/${bookId}/edit`;
+        return `/${BOOK_ROUTE}/${bookId}/edit`;
     },
     getBookReviewHomePage: (bookId: string) => {
-        return `${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}`;
+        return `/${BOOK_ROUTE}/${REVIEW_ROUTE}?bookId=${bookId}`;
     },
     getReviewHomePage: () => {
-        return `${BOOK_ROUTE}/${REVIEW_ROUTE}`;
+        return `/${BOOK_ROUTE}/${REVIEW_ROUTE}`;
     },
     getReviewCreatePage: (bookId: string) => {
-        return `${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}/create`;
+        return `/${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}/create`;
     },
     getReviewDetailPage: (bookId: string, reviewId: string) => {
-        return `${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}/${reviewId}`;
+        return `/${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}/${reviewId}`;
     },
     getReviewEditPage: (bookId: string, reviewId: string) => {
-        return `${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}/${reviewId}/edit`;
+        return `/${BOOK_ROUTE}/${bookId}/${REVIEW_ROUTE}/${reviewId}/edit`;
     },
     getAuthorHomePage: () => {
-        return `${AUTHOR_ROUTE}`;
+        return `/${AUTHOR_ROUTE}`;
     },
     getAuthorDetailPage: (authorId: string) => {
-        return `${AUTHOR_ROUTE}/${authorId}`;
+        return `/${AUTHOR_ROUTE}/${authorId}`;
     },
     getAuthorCreatePage: () => {
-        return `${AUTHOR_ROUTE}/create`;
+        return `/${AUTHOR_ROUTE}/create`;
     },
     getAuthorEditPage: (authorId: string) => {
-        return `${AUTHOR_ROUTE}/${authorId}/edit`;
+        return `/${AUTHOR_ROUTE}/${authorId}/edit`;
     },
     getGenreCreatePage: () => {
-        return `${GENRE_ROUTE}/create`;
+        return `/${GENRE_ROUTE}/create`;
     },
     getGenreEditPage: (genreId: string) => {
-        return `${GENRE_ROUTE}/${genreId}/edit`;
+        return `/${GENRE_ROUTE}/${genreId}/edit`;
     },
     getNewsHomePage: () => {
-        return `${NEWS_ROUTE}`;
+        return `/${NEWS_ROUTE}`;
     },
     getNewsCreatePage: () => {
-        return `${NEWS_ROUTE}/create`;
+        return `/${NEWS_ROUTE}/create`;
     },
     getCommunityHomePage: () => {
-        return `${COMMUNITY_ROUTE}`;
+        return `/${COMMUNITY_ROUTE}`;
     },
     getCommunityDetailPage: (communityId: string) => {
-        return `${COMMUNITY_ROUTE}/${communityId}`;
+        return `/${COMMUNITY_ROUTE}/${communityId}`;
     },
     getCommunityPostCreatePage: (communityId: string) => {
-        return `${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}/create`;
+        return `/${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}/create`;
     },
     getCommunityTopicCreatePage: (communityId: string) => {
-        return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/create`;
+        return `/${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/create`;
     },
     getCommunityTopicDetailPage: (communityId: string, topicId: string) => {
-        return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}`;
+        return `/${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}`;
     },
     getCommunityUserApprovePage: (communityId: string) => {
-        return `${COMMUNITY_ROUTE}/${communityId}/${USER_ROUTE}/approve`;
+        return `/${COMMUNITY_ROUTE}/${communityId}/${USER_ROUTE}/approve`;
     },
     getCommunityUserAuthorizePage: (communityId: string) => {
-        return `${COMMUNITY_ROUTE}/${communityId}/${USER_ROUTE}/authorize`;
+        return `/${COMMUNITY_ROUTE}/${communityId}/${USER_ROUTE}/authorize`;
     },
     getSearchPage: () => {
-        return `${SEARCH_ROUTE}`;
+        return `/${SEARCH_ROUTE}`;
     },
     getWriterPage: () => {
-        return `${WRITER_ROUTE}`;
+        return `/${WRITER_ROUTE}`;
     },
     getMessagePage: () => {
-        return `${MESSAGE_ROUTE}`;
+        return `/${MESSAGE_ROUTE}`;
+    },
+    getPostCreatePage: () => {
+        return `/${POST_ROUTE}/create`;
     },
 };

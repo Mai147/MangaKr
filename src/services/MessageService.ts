@@ -9,8 +9,6 @@ import {
     arrayUnion,
     collection,
     doc,
-    DocumentData,
-    DocumentReference,
     getDoc,
     getDocs,
     increment,
@@ -20,7 +18,6 @@ import {
     serverTimestamp,
     Timestamp,
     updateDoc,
-    writeBatch,
 } from "firebase/firestore";
 
 class MessageService {
@@ -117,20 +114,14 @@ class MessageService {
                 const newMessageDocRef = doc(senderMessageDetailDocsRef);
                 const senderLatestContent = messageForm.latestContent
                     ? `Bạn: ${messageForm.latestContent}`
+                    : messageForm.imageUrls.length > 0
+                    ? `Bạn đã gửi 1 hình ảnh`
                     : "";
                 const receiverLatestContent = messageForm.latestContent
-                    ? `${senderDisplayName} ${messageForm.latestContent}`
+                    ? messageForm.latestContent
+                    : messageForm.imageUrls.length > 0
+                    ? `${senderDisplayName} đã gửi 1 hình ảnh`
                     : "";
-                // const senderLatestContent = messageForm.latestContent
-                //     ? `Bạn: ${messageForm.latestContent}`
-                //     : messageForm.imageUrls.length > 0
-                //     ? `Bạn đã gửi 1 hình ảnh`
-                //     : "";
-                // const receiverLatestContent = messageForm.latestContent
-                //     ? messageForm.latestContent
-                //     : messageForm.imageUrls.length > 0
-                //     ? `${senderDisplayName} đã gửi 1 hình ảnh`
-                //     : "";
                 if (!senderMessageDoc.exists()) {
                     const userMessage: UserMessageSnippet = {
                         id: receiverId,
@@ -138,6 +129,7 @@ class MessageService {
                         displayName: receiverDisplayName,
                         imageUrl: receiverImageUrl,
                         latestMessage: senderLatestContent,
+                        latestImages: messageForm.imageUrls,
                         numberOfUnseens: 0,
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "SEND",
@@ -146,14 +138,16 @@ class MessageService {
                 } else {
                     transaction.update(senderMessageDocRef, {
                         latestMessage: senderLatestContent,
+                        latestImages: messageForm.imageUrls,
                         numberOfUnseens: 0,
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "SEND",
                     });
-                    const { type, messageId, latestCreatedAt } =
+                    const { type, messageId, latestCreatedAt, latestImages } =
                         senderMessageDoc.data();
                     if (
                         type === "SEND" &&
+                        (!latestImages || latestImages.length <= 0) &&
                         messageForm.imageUrls.length <= 0 &&
                         isToday(latestCreatedAt as Timestamp)
                     ) {
@@ -172,6 +166,7 @@ class MessageService {
                         displayName: senderDisplayName,
                         imageUrl: senderImageUrl,
                         latestMessage: receiverLatestContent,
+                        latestImages: messageForm.imageUrls,
                         numberOfUnseens: 1,
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "RECEIVE",
@@ -180,14 +175,16 @@ class MessageService {
                 } else {
                     transaction.update(receiverMessageDocRef, {
                         latestMessage: receiverLatestContent,
+                        latestImages: messageForm.imageUrls,
                         numberOfUnseens: increment(1),
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "RECEIVE",
                     });
-                    const { type, messageId, latestCreatedAt } =
+                    const { type, messageId, latestCreatedAt, latestImages } =
                         receiverMessageDoc.data();
                     if (
                         type === "RECEIVE" &&
+                        (!latestImages || latestImages.length <= 0) &&
                         messageForm.imageUrls.length <= 0 &&
                         isToday(latestCreatedAt as Timestamp)
                     ) {
@@ -206,17 +203,25 @@ class MessageService {
                         senderMessageDetailDocsRef,
                         senderLatestMessageId
                     );
-                    transaction.update(senderMessageDetailDocRef, {
-                        contents: arrayUnion(messageForm.latestContent),
-                        createdAt: serverTimestamp() as Timestamp,
-                    });
+                    if (messageForm.latestContent) {
+                        transaction.update(senderMessageDetailDocRef, {
+                            contents: arrayUnion(messageForm.latestContent),
+                            createdAt: serverTimestamp() as Timestamp,
+                        });
+                    } else {
+                        transaction.update(senderMessageDetailDocRef, {
+                            createdAt: serverTimestamp() as Timestamp,
+                        });
+                    }
                 } else {
                     senderMessageDetailDocRef = newMessageDocRef;
                     transaction.set(senderMessageDetailDocRef, {
                         ...messageForm,
                         id: senderMessageDetailDocRef.id,
                         type: "SEND",
-                        contents: [messageForm.latestContent],
+                        contents: messageForm.latestContent
+                            ? [messageForm.latestContent]
+                            : [],
                         createdAt: serverTimestamp() as Timestamp,
                     });
                 }
@@ -225,10 +230,16 @@ class MessageService {
                         receiverMessageDetailDocsRef,
                         receiverLatestMessageId
                     );
-                    transaction.update(receiverMessageDetailDocRef, {
-                        contents: arrayUnion(messageForm.latestContent),
-                        createdAt: serverTimestamp() as Timestamp,
-                    });
+                    if (messageForm.latestContent) {
+                        transaction.update(receiverMessageDetailDocRef, {
+                            contents: arrayUnion(messageForm.latestContent),
+                            createdAt: serverTimestamp() as Timestamp,
+                        });
+                    } else {
+                        transaction.update(receiverMessageDetailDocRef, {
+                            createdAt: serverTimestamp() as Timestamp,
+                        });
+                    }
                 } else {
                     receiverMessageDetailDocRef = doc(
                         receiverMessageDetailDocsRef,
@@ -238,22 +249,26 @@ class MessageService {
                         ...messageForm,
                         id: senderMessageDetailDocRef.id,
                         type: "RECEIVE",
-                        contents: [messageForm.latestContent],
+                        contents: messageForm.latestContent
+                            ? [messageForm.latestContent]
+                            : [],
                         createdAt: serverTimestamp() as Timestamp,
                     });
                 }
-                const messageImageUrls = await FileUtils.uploadMulitpleFile({
+                const res = await FileUtils.uploadMultipleFile({
                     imagesRoute: firebaseRoute.getMessageImageRoute(
-                        senderMessageDetailDocsRef.id
+                        senderMessageDetailDocRef.id
                     ),
                     imageUrls: messageForm.imageUrls,
                 });
-                if (messageImageUrls) {
+                if (res) {
                     transaction.update(senderMessageDetailDocRef, {
-                        imageUrls: messageImageUrls,
+                        imageUrls: res.downloadUrls,
+                        imageRefs: res.downloadRefs,
                     });
                     transaction.update(receiverMessageDetailDocRef, {
-                        imageUrls: messageImageUrls,
+                        imageUrls: res.downloadUrls,
+                        imageRefs: res.downloadRefs,
                     });
                 }
             });

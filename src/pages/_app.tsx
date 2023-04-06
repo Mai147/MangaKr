@@ -9,6 +9,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import { CommunityProvider } from "@/context/CommunityContext";
 import React from "react";
+// import { PostProvider } from "@/context/PostContext";
 
 export default function App({ Component, pageProps, ...appProps }: AppProps) {
     const isLayoutNeeded = ![`/messages`].includes(appProps.router.pathname);
@@ -20,9 +21,11 @@ export default function App({ Component, pageProps, ...appProps }: AppProps) {
             <AuthProvider>
                 <ModalProvider>
                     <CommunityProvider>
+                        {/* <PostProvider> */}
                         <LayoutComponent>
                             <Component {...pageProps} />
                         </LayoutComponent>
+                        {/* </PostProvider> */}
                     </CommunityProvider>
                 </ModalProvider>
             </AuthProvider>

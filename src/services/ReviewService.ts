@@ -2,6 +2,7 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Review } from "@/models/Review";
 import FileUtils from "@/utils/FileUtils";
+import ReviewUtils from "@/utils/ReviewUtils";
 import { triGram } from "@/utils/StringUtils";
 import {
     collection,
@@ -10,6 +11,7 @@ import {
     getDocs,
     increment,
     limit,
+    orderBy,
     query,
     serverTimestamp,
     Timestamp,
@@ -23,10 +25,15 @@ class ReviewService {
         userId,
         bookId,
         reviewLimit,
+        reviewOrders,
     }: {
         bookId?: string;
         userId?: string;
         reviewLimit?: number;
+        reviewOrders?: {
+            reviewOrderBy: string;
+            reviewOrderDirection: "asc" | "desc";
+        }[];
     }) => {
         const reviewDocsRef = collection(
             fireStore,
@@ -39,18 +46,22 @@ class ReviewService {
         if (bookId) {
             reviewConstraints.push(where("bookId", "==", bookId));
         }
+        if (reviewOrders) {
+            reviewOrders.forEach((reviewOrder) => {
+                reviewConstraints.push(
+                    orderBy(
+                        reviewOrder.reviewOrderBy,
+                        reviewOrder.reviewOrderDirection
+                    )
+                );
+            });
+        }
         if (reviewLimit) {
             reviewConstraints.push(limit(reviewLimit));
         }
         const reviewQuery = query(reviewDocsRef, ...reviewConstraints);
         const reviewDocs = await getDocs(reviewQuery);
-        const reviews = reviewDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Review)
-        );
+        const reviews = ReviewUtils.fromDocs(reviewDocs.docs);
         return reviews;
     };
 
@@ -109,7 +120,7 @@ class ReviewService {
                 collection(fireStore, firebaseRoute.getAllBookRoute()),
                 bookId
             );
-            const reviewImageUrl = await FileUtils.uploadFile({
+            const res = await FileUtils.uploadFile({
                 imageRoute: firebaseRoute.getReviewImageRoute(reviewDocRef.id),
                 imageUrl: reviewForm.imageUrl,
             });
@@ -123,7 +134,7 @@ class ReviewService {
                 numberOfReviews: increment(1),
             });
             // Update image
-            if (reviewImageUrl) {
+            if (res) {
                 batch.update(
                     doc(
                         fireStore,
@@ -131,7 +142,8 @@ class ReviewService {
                         reviewDocRef.id
                     ),
                     {
-                        imageUrl: reviewImageUrl,
+                        imageUrl: res.downloadUrl,
+                        imageRef: res.downloadRef,
                     }
                 );
             }
@@ -155,21 +167,19 @@ class ReviewService {
                 firebaseRoute.getAllReviewRoute(),
                 review?.id!
             );
-            let reviewImageUrl;
-            if (
-                reviewForm.imageUrl &&
-                reviewForm.imageUrl !== review?.imageUrl
-            ) {
-                reviewImageUrl = await FileUtils.uploadFile({
-                    imageRoute: firebaseRoute.getReviewImageRoute(review?.id!),
-                    imageUrl: reviewForm.imageUrl,
-                });
-            } else if (!reviewForm.imageUrl && review?.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getReviewImageRoute(review.id!)
-                );
-                await deleteObject(imageRef);
+            let res;
+            if (reviewForm.imageUrl !== review?.imageUrl) {
+                if (review.imageUrl) {
+                    res = await FileUtils.uploadFile({
+                        imageRoute: firebaseRoute.getReviewImageRoute(
+                            review?.id!
+                        ),
+                        imageUrl: reviewForm.imageUrl,
+                    });
+                }
+                if (reviewForm.imageRef) {
+                    await deleteObject(ref(storage, reviewForm.imageRef));
+                }
             }
             const trigramTitle = triGram(reviewForm.title);
             batch.update(reviewDocRef, {
@@ -186,7 +196,8 @@ class ReviewService {
                         review?.id!
                     ),
                     {
-                        imageUrl: reviewImageUrl,
+                        imageUrl: res?.downloadUrl,
+                        imageRef: res?.downloadRef,
                     }
                 );
             }
@@ -200,12 +211,8 @@ class ReviewService {
         try {
             const batch = writeBatch(fireStore);
             // Delete image
-            if (review.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getReviewImageRoute(review.id!)
-                );
-                await deleteObject(imageRef);
+            if (review.imageRef) {
+                await deleteObject(ref(storage, review.imageRef));
             }
             const reviewDocRef = doc(
                 collection(fireStore, firebaseRoute.getAllReviewRoute()),

@@ -1,12 +1,12 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore, storage } from "@/firebase/clientApp";
+import { fireStore } from "@/firebase/clientApp";
 import { Genre, GenreSnippet } from "@/models/Genre";
-import FileUtils from "@/utils/FileUtils";
 import GenreUtils from "@/utils/GenreUtils";
 import { triGram } from "@/utils/StringUtils";
 import {
     addDoc,
     collection,
+    collectionGroup,
     doc,
     getDoc,
     getDocs,
@@ -14,6 +14,7 @@ import {
     serverTimestamp,
     Timestamp,
     where,
+    WriteBatch,
     writeBatch,
 } from "firebase/firestore";
 
@@ -75,6 +76,14 @@ class GenreService {
                 ...genreForm,
                 trigramName: trigramName.obj,
             });
+            await this.updateSnippet({
+                batch,
+                route: "genreSnippets",
+                newValue: {
+                    name: genreForm.name,
+                },
+                genreId: genreForm.id!,
+            });
             await batch.commit();
         } catch (error) {
             console.log(error);
@@ -107,6 +116,30 @@ class GenreService {
         } catch (error) {
             console.log(error);
         }
+    };
+    private static updateSnippet = async ({
+        batch,
+        route,
+        newValue,
+        idField = "id",
+        genreId,
+    }: {
+        batch: WriteBatch;
+        route: string;
+        newValue: {
+            [x: string]: any;
+        };
+        idField?: string;
+        genreId: string;
+    }) => {
+        const docsRef = collectionGroup(fireStore, route);
+        const docsQuery = query(docsRef, where(idField, "==", genreId));
+        const docs = await getDocs(docsQuery);
+        docs.docs.forEach((doc) => {
+            if (doc.exists()) {
+                batch.update(doc.ref, newValue);
+            }
+        });
     };
 }
 

@@ -41,7 +41,7 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
         return <></>;
     }
     return (
-        <Box p={6} boxShadow="lg" bg="white" borderRadius={4}>
+        <Box p={6} boxShadow="lg" bg="white" borderRadius={4} flexGrow={1}>
             <PostForm user={user} community={community} />
         </Box>
     );

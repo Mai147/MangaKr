@@ -1,9 +1,9 @@
-import useCommunity from "@/hooks/useCommunity";
+import { usePost } from "@/hooks/usePost";
 import { Post } from "@/models/Post";
-import { PostVote, postVoteList } from "@/models/Vote";
+import { postVoteList } from "@/models/Vote";
 import { formatNumber } from "@/utils/StringUtils";
 import { Divider, Flex, HStack, Icon, Text, VStack } from "@chakra-ui/react";
-import React, { SetStateAction, useState } from "react";
+import React, { SetStateAction } from "react";
 import { AiFillLike, AiFillDislike } from "react-icons/ai";
 import { FaLaughSquint, FaAngry } from "react-icons/fa";
 import { MdFavorite } from "react-icons/md";
@@ -13,13 +13,15 @@ import VotePopup from "./VotePopup";
 type PostReactionBarProps = {
     post: Post;
     setShowCommentInput: React.Dispatch<SetStateAction<boolean>>;
+    setShowCommentList: React.Dispatch<SetStateAction<boolean>>;
 };
 
 const PostReactionBar: React.FC<PostReactionBarProps> = ({
     post,
     setShowCommentInput,
+    setShowCommentList,
 }) => {
-    const { communityState, communityAction } = useCommunity();
+    const { postAction, postState } = usePost();
     return (
         <VStack align="flex-start" w="100%" py={1} spacing={3}>
             <Flex px={6} justify="space-between" w="100%">
@@ -50,12 +52,21 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
                     <VotePopup
                         voteList={postVoteList}
                         userVoteValue={
-                            communityState.communityPostVotes?.find(
-                                (item) => item.postId === post.id
-                            )?.voteValue
+                            postState.selected.user
+                                ? postState.postList.user.find(
+                                      (item) => item.post.id === post.id
+                                  )?.voteValue
+                                : postState.postList.community.find(
+                                      (item) => item.post.id === post.id
+                                  )?.voteValue
                         }
                         onVote={async (value) => {
-                            await communityAction.onPostVote(value, post.id!);
+                            postState.selected.user
+                                ? await postAction.user.vote(value, post.id!)
+                                : await postAction.community.vote(
+                                      value,
+                                      post.id!
+                                  );
                         }}
                     />
                     <Icon
@@ -68,6 +79,7 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
                     cursor="pointer"
                     _hover={{ textDecoration: "underline" }}
                     color="gray.600"
+                    onClick={() => setShowCommentList((prev) => !prev)}
                 >
                     {formatNumber(post.numberOfComments)} bình luận
                 </Text>

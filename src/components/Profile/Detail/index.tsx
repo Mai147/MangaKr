@@ -1,6 +1,5 @@
 import InputField from "@/components/Input/InputField";
 import InputText from "@/components/Input/InputText";
-import { auth } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useSelectFile from "@/hooks/useSelectFile";
 import { UserModel } from "@/models/User";
@@ -19,8 +18,8 @@ import {
     AlertTitle,
     CloseButton,
 } from "@chakra-ui/react";
+import { getAuth } from "firebase/auth";
 import React, { useEffect, useRef, useState } from "react";
-import { useUpdateProfile } from "react-firebase-hooks/auth";
 
 type ProfileDetailProps = {
     user: UserModel;
@@ -33,6 +32,7 @@ export type ProfileFormState = {
     displayName: string;
     subBio?: string;
     bio?: string;
+    imageRef?: string;
 };
 
 const defaultProfileFormState: ProfileFormState = {
@@ -43,12 +43,12 @@ const defaultProfileFormState: ProfileFormState = {
 
 const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
     const { updateUser } = useAuth();
-    const { selectedFile, onSelectFile, onUploadFile } = useSelectFile();
-    const [updateProfile, updating, error] = useUpdateProfile(auth);
+    const { selectedFile, onSelectFile, setSelectedFile } = useSelectFile();
     const avatarRef = useRef<HTMLInputElement>(null);
     const [profileForm, setProfileForm] = useState<ProfileFormState>(
         defaultProfileFormState
     );
+    const [avatarChange, setAvatarChange] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<boolean | null>(null);
 
@@ -60,23 +60,41 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
             email: user.email!,
             subBio: user.subBio,
             bio: user.bio,
+            imageRef: user.imageRef,
         });
+        setSelectedFile(user.photoURL || undefined);
     }, [user]);
+
+    useEffect(() => {
+        setProfileForm((prev) => ({
+            ...prev,
+            photoUrl: selectedFile,
+        }));
+        setAvatarChange(true);
+    }, [selectedFile]);
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         setLoading(true);
         setSuccess(null);
         try {
-            const res = await UserService.update({ user, profileForm });
-            if (res) {
-                updateUser({
-                    ...profileForm,
-                    photoUrl: res.photoUrl,
+            const auth = getAuth();
+            if (auth.currentUser) {
+                const res = await UserService.update({
+                    user: auth.currentUser,
+                    profileForm,
+                    avatarChange,
                 });
-                setSuccess(true);
-            } else {
-                setSuccess(false);
+                if (res) {
+                    updateUser({
+                        ...profileForm,
+                        photoUrl: res.photoUrl,
+                    });
+                    setSuccess(true);
+                } else {
+                    setSuccess(false);
+                }
+                setAvatarChange(false);
             }
         } catch (error) {
             setSuccess(false);
@@ -178,7 +196,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                         <Flex align="center">
                             <Avatar
                                 size={"lg"}
-                                src={selectedFile || profileForm.photoUrl || ""}
+                                src={selectedFile}
                                 border="3px solid"
                                 borderColor="white"
                                 box-shadow="rgba(99, 99, 99, 0.2) 0px 2px 8px 0px"

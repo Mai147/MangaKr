@@ -1,12 +1,29 @@
+import InfiniteScroll from "@/components/InfiniteScroll";
+import PostItem from "@/components/Post/Item";
+import { usePost } from "@/hooks/usePost";
 import { UserModel } from "@/models/User";
-import { Avatar, Box, Divider, Flex, Text, VStack } from "@chakra-ui/react";
-import React from "react";
+import {
+    Avatar,
+    Box,
+    Divider,
+    Flex,
+    Spinner,
+    Text,
+    VStack,
+} from "@chakra-ui/react";
+import React, { useEffect } from "react";
 
 type ProfileShowProps = {
     user: UserModel;
 };
 
 const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
+    const { postState, postAction } = usePost();
+
+    useEffect(() => {
+        postAction.user.setSelected(user);
+    }, [user]);
+
     return (
         <Flex direction="column" align="flex-start">
             <Flex alignItems="center">
@@ -33,10 +50,27 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
             </Flex>
             <Divider my={4} />
             <VStack align="flex-start">
-                {/* <Text fontSize={24} fontWeight={700}>
-                    Về bản thân
-                </Text> */}
                 <Text>{user.bio || "Không"}</Text>
+            </VStack>
+            <VStack w="100%" justify="center" mt={4}>
+                <Box w="90%">
+                    <InfiniteScroll
+                        isLoading={postState.paginationInput.user.post.loading}
+                        page={postState.paginationInput.user.post.page}
+                        totalPage={
+                            postState.paginationInput.user.post.totalPage
+                        }
+                        onNext={postAction.user.loadMorePost}
+                    >
+                        {postState.postList.user.map((postData) => (
+                            <PostItem
+                                postData={postData}
+                                key={postData.post.id}
+                            />
+                        ))}
+                    </InfiniteScroll>
+                </Box>
+                {postState.paginationInput.user.post.loading && <Spinner />}
             </VStack>
         </Flex>
     );

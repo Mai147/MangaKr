@@ -18,6 +18,7 @@ import FileUtils from "@/utils/FileUtils";
 import { triGram } from "@/utils/StringUtils";
 import UserUtils from "@/utils/UserUtils";
 import {
+    arrayUnion,
     collection,
     collectionGroup,
     doc,
@@ -48,13 +49,14 @@ type RecursiveRole = {
 
 class CommunityService {
     static getAll = async ({
-        communityOrderBy,
+        communityOrders,
         communityLimit = 10,
-        communityOrderDirection = "desc",
     }: {
+        communityOrders?: {
+            communityOrderBy: string;
+            communityOrderDirection: "asc" | "desc";
+        }[];
         communityLimit?: number;
-        communityOrderBy?: string;
-        communityOrderDirection?: "asc" | "desc";
     }) => {
         const communityDocsRef = collection(
             fireStore,
@@ -64,10 +66,15 @@ class CommunityService {
         if (communityLimit) {
             communityConstraints.push(limit(communityLimit));
         }
-        if (communityOrderBy) {
-            communityConstraints.push(
-                orderBy(communityOrderBy, communityOrderDirection)
-            );
+        if (communityOrders) {
+            communityOrders.forEach((communityOrder) => {
+                communityConstraints.push(
+                    orderBy(
+                        communityOrder.communityOrderBy,
+                        communityOrder.communityOrderDirection
+                    )
+                );
+            });
         }
         const communityQuery = query(communityDocsRef, ...communityConstraints);
         const communityDocs = await getDocs(communityQuery);
@@ -273,6 +280,7 @@ class CommunityService {
                 id: communityDocRef.id,
                 creatorId: user.uid,
                 createdAt: serverTimestamp() as Timestamp,
+                userIds: [user.uid],
             });
             batch.set(userCommunitySnippetDocRef, userCommunitySnippet);
             batch.set(communityUserDocsRef, communityUserSnippet);
@@ -302,23 +310,19 @@ class CommunityService {
                 firebaseRoute.getAllCommunityRoute(),
                 communityForm.id!
             );
-            let communityImageUrl;
-            if (
-                communityForm.imageUrl &&
-                communityForm.imageUrl !== community?.imageUrl
-            ) {
-                communityImageUrl = await FileUtils.uploadFile({
-                    imageRoute: firebaseRoute.getCommunityImageRoute(
-                        community?.id!
-                    ),
-                    imageUrl: communityForm.imageUrl,
-                });
-            } else if (!communityForm.imageUrl && community?.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getCommunityImageRoute(community.id!)
-                );
-                await deleteObject(imageRef);
+            let res;
+            if (communityForm.imageUrl !== community?.imageUrl) {
+                if (communityForm.imageUrl) {
+                    res = await FileUtils.uploadFile({
+                        imageRoute: firebaseRoute.getCommunityImageRoute(
+                            community?.id!
+                        ),
+                        imageUrl: communityForm.imageUrl,
+                    });
+                }
+                if (community.imageRef) {
+                    await deleteObject(ref(storage, community.imageRef));
+                }
             }
             const trigramName = triGram(communityForm.name);
             batch.update(communityDocRef, {
@@ -327,13 +331,15 @@ class CommunityService {
             });
             if (communityForm.imageUrl !== community?.imageUrl) {
                 batch.update(communityDocRef, {
-                    imageUrl: communityImageUrl,
+                    imageUrl: res?.downloadUrl,
+                    imageRef: res?.downloadRef,
                 });
             }
             await batch.commit();
             return {
                 ...communityForm,
-                imageUrl: communityImageUrl || communityForm.imageUrl,
+                imageUrl: res?.downloadUrl || communityForm.imageUrl,
+                imageRef: res?.downloadRef || communityForm.imageRef,
             };
         } catch (error) {
             console.log(error);
@@ -504,6 +510,7 @@ class CommunityService {
             if (isAccept) {
                 batch.update(communityDocRef, {
                     numberOfMembers: increment(1),
+                    userIds: arrayUnion(userId),
                 });
                 batch.update(communityUserDocRef, {
                     isAccept: true,

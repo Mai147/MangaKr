@@ -49,7 +49,12 @@ class TopicService {
                     firebaseRoute.getCommunityTopicRoute(community.id!)
                 )
             );
-            const topicImageUrl = await FileUtils.uploadFile({
+            const communityDocRef = doc(
+                fireStore,
+                firebaseRoute.getAllCommunityRoute(),
+                community.id!
+            );
+            const res = await FileUtils.uploadFile({
                 imageRoute: firebaseRoute.getTopicImageRoute(topicDocRef.id),
                 imageUrl: topicForm.imageUrl,
             });
@@ -64,11 +69,15 @@ class TopicService {
                 },
                 createdAt: serverTimestamp() as Timestamp,
             });
-            if (topicImageUrl) {
+            if (res) {
                 batch.update(topicDocRef, {
-                    imageUrl: topicImageUrl,
+                    imageUrl: res.downloadUrl,
+                    imageRef: res.downloadRef,
                 });
             }
+            batch.update(communityDocRef, {
+                numberOfTopics: increment(1),
+            });
             await batch.commit();
         } catch (error) {
             console.log(error);

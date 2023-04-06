@@ -29,6 +29,7 @@ export interface BookSnippet {
     id?: string;
     name: string;
     imageUrl?: string;
+    imageRef?: string;
     description?: string;
     authorIds?: string[];
     genreIds?: string[];

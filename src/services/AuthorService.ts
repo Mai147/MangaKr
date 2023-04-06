@@ -6,13 +6,16 @@ import FileUtils from "@/utils/FileUtils";
 import { triGram } from "@/utils/StringUtils";
 import {
     collection,
+    collectionGroup,
     doc,
     getDoc,
     getDocs,
+    orderBy,
     query,
     serverTimestamp,
     Timestamp,
     where,
+    WriteBatch,
     writeBatch,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
@@ -21,9 +24,14 @@ class AuthorService {
     static getAll = async ({
         userId,
         isSnippet = false,
+        authorOrders,
     }: {
         userId?: string;
         isSnippet?: boolean;
+        authorOrders?: {
+            authorOrderBy: string;
+            authorOrderDirection: "asc" | "desc";
+        }[];
     }) => {
         const authorDocsRef = collection(
             fireStore,
@@ -32,6 +40,16 @@ class AuthorService {
         const authorConstraints = [];
         if (userId) {
             authorConstraints.push(where("creatorId", "==", userId));
+        }
+        if (authorOrders) {
+            authorOrders.forEach((authorOrder) => {
+                authorConstraints.push(
+                    orderBy(
+                        authorOrder.authorOrderBy,
+                        authorOrder.authorOrderDirection
+                    )
+                );
+            });
         }
         const authorQuery = query(authorDocsRef, ...authorConstraints);
         const authorDocs = await getDocs(authorQuery);
@@ -62,7 +80,7 @@ class AuthorService {
             const authorsDocRef = doc(
                 collection(fireStore, firebaseRoute.getAllAuthorRoute())
             );
-            const authorImageUrl = await FileUtils.uploadFile({
+            const res = await FileUtils.uploadFile({
                 imageRoute: firebaseRoute.getAuthorImageRoute(authorsDocRef.id),
                 imageUrl: authorForm.imageUrl,
             });
@@ -72,9 +90,10 @@ class AuthorService {
                 trigramName: trigramName.obj,
                 createdAt: serverTimestamp() as Timestamp,
             });
-            if (authorImageUrl) {
+            if (res) {
                 batch.update(authorsDocRef, {
-                    imageUrl: authorImageUrl,
+                    imageUrl: res.downloadUrl,
+                    imageRef: res.downloadRef,
                 });
             }
             await batch.commit();
@@ -97,26 +116,33 @@ class AuthorService {
                 firebaseRoute.getAllAuthorRoute(),
                 author.id!
             );
-            let authorImageUrl;
-            if (
-                authorForm.imageUrl &&
-                authorForm.imageUrl !== author?.imageUrl
-            ) {
-                authorImageUrl = await FileUtils.uploadFile({
-                    imageRoute: firebaseRoute.getAuthorImageRoute(author?.id!),
-                    imageUrl: authorForm.imageUrl,
-                });
-            } else if (!authorForm.imageUrl && author?.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getAuthorImageRoute(author.id!)
-                );
-                await deleteObject(imageRef);
+            let res;
+            if (authorForm.imageUrl !== author?.imageUrl) {
+                if (authorForm.imageUrl) {
+                    res = await FileUtils.uploadFile({
+                        imageRoute: firebaseRoute.getAuthorImageRoute(
+                            author?.id!
+                        ),
+                        imageUrl: authorForm.imageUrl,
+                    });
+                }
+                if (author.imageRef) {
+                    await deleteObject(ref(storage, author.imageRef));
+                }
             }
             const trigramName = triGram(authorForm.name);
             batch.update(authorDocRef, {
                 ...authorForm,
                 trigramName: trigramName.obj,
+            });
+            await this.updateSnippet({
+                batch,
+                route: "authorSnippets",
+                authorId: author.id!,
+                newValue: {
+                    name: authorForm.name,
+                    imageUrl: authorForm.imageUrl,
+                },
             });
             // Update image
             if (authorForm.imageUrl !== author?.imageUrl) {
@@ -127,7 +153,8 @@ class AuthorService {
                         author?.id!
                     ),
                     {
-                        imageUrl: authorImageUrl,
+                        imageUrl: res?.downloadUrl,
+                        imageRef: res?.downloadRef,
                     }
                 );
             }
@@ -152,12 +179,8 @@ class AuthorService {
             } else {
                 const batch = writeBatch(fireStore);
                 // Delete image
-                if (author.imageUrl) {
-                    const imageRef = ref(
-                        storage,
-                        firebaseRoute.getAuthorImageRoute(author.id!)
-                    );
-                    await deleteObject(imageRef);
+                if (author.imageRef) {
+                    await deleteObject(ref(storage, author.imageRef));
                 }
                 const authorDocRef = doc(
                     collection(fireStore, firebaseRoute.getAllAuthorRoute()),
@@ -170,6 +193,30 @@ class AuthorService {
         } catch (error) {
             console.log(error);
         }
+    };
+    private static updateSnippet = async ({
+        batch,
+        route,
+        newValue,
+        idField = "id",
+        authorId,
+    }: {
+        batch: WriteBatch;
+        route: string;
+        newValue: {
+            [x: string]: any;
+        };
+        idField?: string;
+        authorId: string;
+    }) => {
+        const docsRef = collectionGroup(fireStore, route);
+        const docsQuery = query(docsRef, where(idField, "==", authorId));
+        const docs = await getDocs(docsQuery);
+        docs.docs.forEach((doc) => {
+            if (doc.exists()) {
+                batch.update(doc.ref, newValue);
+            }
+        });
     };
 }
 

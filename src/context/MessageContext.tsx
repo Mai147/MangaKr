@@ -23,7 +23,6 @@ import { ChangeEvent, createContext, useEffect, useRef, useState } from "react";
 interface MessagePaginationInput extends PaginationInput {
     userId: string;
     receiverId: string;
-    exceptionCount?: number;
 }
 
 const defaultMessagePaginationInput: MessagePaginationInput = {
@@ -134,6 +133,7 @@ export const MessageProvider = ({ children }: any) => {
     } = useSelectFile();
     const { getUsers, getMessages } = usePagination();
     const isFirst = useRef(true);
+    const isFirstLatestMessage = useRef(true);
 
     const getListSearchUsers = async () => {
         const res = await getUsers({
@@ -179,7 +179,7 @@ export const MessageProvider = ({ children }: any) => {
         receiverId: string,
         messageId: string
     ) => {
-        if (!isFirst.current) {
+        if (!isFirstLatestMessage.current) {
             const message = await MessageService.get({
                 messageId,
                 receiverId,
@@ -208,7 +208,7 @@ export const MessageProvider = ({ children }: any) => {
                 }));
             }
         } else {
-            isFirst.current = false;
+            isFirstLatestMessage.current = false;
         }
     };
 
@@ -289,6 +289,7 @@ export const MessageProvider = ({ children }: any) => {
                 messageForm: {
                     latestContent: messageInput.content,
                     imageUrls: messageInput.imageUrls,
+                    imageRefs: [],
                     type: "SEND",
                 },
             });
@@ -355,17 +356,20 @@ export const MessageProvider = ({ children }: any) => {
     }, [user]);
 
     useEffect(() => {
-        isFirst.current = true;
-        setMessagePaginationInput(defaultMessagePaginationInput);
-        setMessageState((prev) => ({
-            ...prev,
-            selectedUserMessageList: [],
-            isNewMessage: true,
-        }));
+        if (messageState.selectedUser) {
+            setMessagePaginationInput(defaultMessagePaginationInput);
+            setMessageState((prev) => ({
+                ...prev,
+                selectedUserMessageList: [],
+                isNewMessage: true,
+            }));
+        }
     }, [messageState.selectedUser]);
 
     useEffect(() => {
         if (user && messageState.selectedUser) {
+            isFirst.current = true;
+            isFirstLatestMessage.current = true;
             const { selectedUser } = messageState;
             const q = doc(
                 fireStore,
@@ -406,6 +410,8 @@ export const MessageProvider = ({ children }: any) => {
                 ...prev,
                 isNewMessage: false,
             }));
+        } else {
+            isFirst.current = false;
         }
     }, [messageState.selectedUserMessageList]);
 

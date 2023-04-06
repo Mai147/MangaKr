@@ -132,12 +132,13 @@ const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
                     </Link>
                 </HStack>
             </Flex>
+            <Divider my={4} />
             <Text fontWeight={600} fontSize={20}>
                 {topic.title}
             </Text>
             <Text whiteSpace="pre-line">{topic.description}</Text>
             {topic.imageUrl && (
-                <Flex justify="center">
+                <Flex justify="center" mt={4}>
                     <AspectRatio ratio={4 / 3} w="50%">
                         <Image src={topic.imageUrl} borderRadius={4} />
                     </AspectRatio>

@@ -2,35 +2,77 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
+import { Community } from "@/models/Community";
 import { Review } from "@/models/Review";
-import BookUtils from "@/utils/BookUtils";
-import { collection, query, orderBy, limit, getDocs } from "firebase/firestore";
+import AuthorService from "@/services/AuthorService";
+import BookService from "@/services/BookService";
+import CommunityService from "@/services/CommunityService";
+import ReviewService from "@/services/ReviewService";
 import { createContext, useEffect, useState } from "react";
 
+type Field =
+    | "bannerBooks"
+    | "newestMangas"
+    | "mostPopularMangas"
+    | "mostFavoriteAuthors"
+    | "mostPopularCommunities"
+    | "newestReviews";
+
 type HomeState = {
-    bannerBooks: Book[];
-    newestMangas: Book[];
-    mostPopularMangas: Book[];
-    mostFavoriteAuthors: Author[];
-    newestReviews: Review[];
-    bannerBooksLoading: boolean;
-    newestMangasLoading: boolean;
-    mostPopularMangasLoading: boolean;
-    mostFavoriteAuthorsLoading: boolean;
-    newestReviewsLoading: boolean;
+    bannerBooks: {
+        list: Book[];
+        loading: boolean;
+    };
+    newestMangas: {
+        list: Book[];
+        loading: boolean;
+    };
+    mostPopularMangas: {
+        list: Book[];
+        loading: boolean;
+    };
+    mostFavoriteAuthors: {
+        list: Author[];
+        loading: boolean;
+    };
+    mostPopularCommunities: {
+        list: Community[];
+        loading: boolean;
+    };
+    newestReviews: {
+        list: Review[];
+        loading: boolean;
+    };
+    // list: {
+    //     bannerBooks: Book[];
+    //     newestMangas: Book[];
+    //     mostPopularMangas: Book[];
+    //     mostFavoriteAuthors: Author[];
+    //     newestReviews: Review[];
+    //     mostPopularCommunities: Community[];
+    // };
+    // loading: {
+    //     bannerBooks: boolean;
+    //     newestMangas: boolean;
+    //     mostPopularMangas: boolean;
+    //     mostFavoriteAuthors: boolean;
+    //     newestReviews: boolean;
+    //     mostPopularCommunities: boolean;
+    // };
+};
+
+const defaultState = {
+    list: [],
+    loading: false,
 };
 
 const defaultHomeState: HomeState = {
-    bannerBooks: [],
-    newestMangas: [],
-    mostPopularMangas: [],
-    mostFavoriteAuthors: [],
-    newestReviews: [],
-    bannerBooksLoading: false,
-    mostFavoriteAuthorsLoading: false,
-    mostPopularMangasLoading: false,
-    newestMangasLoading: false,
-    newestReviewsLoading: false,
+    bannerBooks: defaultState,
+    newestMangas: defaultState,
+    mostPopularMangas: defaultState,
+    mostFavoriteAuthors: defaultState,
+    mostPopularCommunities: defaultState,
+    newestReviews: defaultState,
 };
 
 export const HomeContext = createContext<HomeState>(defaultHomeState);
@@ -38,148 +80,103 @@ export const HomeContext = createContext<HomeState>(defaultHomeState);
 export const HomeProvider = ({ children }: any) => {
     const [homeState, setHomeState] = useState<HomeState>(defaultHomeState);
 
-    const getBanners = async () => {
+    const get = async (field: Field, getFunc: () => Promise<any>) => {
         setHomeState((prev) => ({
             ...prev,
-            bannerBooksLoading: true,
+            [field]: {
+                ...prev[field],
+                loading: true,
+            },
         }));
-        const bookDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllBookRoute()
-        );
-        const bannerBookQuery = query(
-            bookDocsRef,
-            orderBy("rating", "desc"),
-            limit(5)
-        );
-        const bannerDocs = await getDocs(bannerBookQuery);
-        const bannerBooks: Book[] = BookUtils.fromDocs(bannerDocs.docs);
+        const res = await getFunc();
         setHomeState((prev) => ({
             ...prev,
-            bannerBooks: bannerBooks,
-            bannerBooksLoading: false,
-        }));
-    };
-
-    const getNewestMangas = async () => {
-        setHomeState((prev) => ({
-            ...prev,
-            newestMangasLoading: true,
-        }));
-        const bookDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllBookRoute()
-        );
-        const newestMangaQuery = query(
-            bookDocsRef,
-            orderBy("publishedDate", "desc"),
-            limit(6)
-        );
-        const newestMangaDocs = await getDocs(newestMangaQuery);
-        const newestMangas: Book[] = BookUtils.fromDocs(newestMangaDocs.docs);
-        setHomeState((prev) => ({
-            ...prev,
-            newestMangas,
-            newestMangasLoading: false,
-        }));
-    };
-
-    const getMostPopularMangas = async () => {
-        setHomeState((prev) => ({
-            ...prev,
-            mostPopularMangasLoading: true,
-        }));
-        const bookDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllBookRoute()
-        );
-        const mostPopularMangaQuery = query(
-            bookDocsRef,
-            orderBy("popularity", "desc"),
-            limit(6)
-        );
-
-        const mostPopularMangaDocs = await getDocs(mostPopularMangaQuery);
-        const mostPopularMangas: Book[] = BookUtils.fromDocs(
-            mostPopularMangaDocs.docs
-        );
-        setHomeState((prev) => ({
-            ...prev,
-            mostPopularMangas,
-            mostPopularMangasLoading: false,
-        }));
-    };
-
-    const getMostFavoriteAuthors = async () => {
-        setHomeState((prev) => ({
-            ...prev,
-            mostFavoriteAuthorsLoading: true,
-        }));
-        const authorDocRef = collection(
-            fireStore,
-            firebaseRoute.getAllAuthorRoute()
-        );
-        const mostFavoriteAuthorQuery = query(
-            authorDocRef,
-            orderBy("numberOfLikes", "desc"),
-            limit(6)
-        );
-
-        const mostFavoriteAuthorDocs = await getDocs(mostFavoriteAuthorQuery);
-        const mostFavoriteAuthors: Author[] = mostFavoriteAuthorDocs.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as Author)
-        );
-        setHomeState((prev) => ({
-            ...prev,
-            mostFavoriteAuthors,
-            mostFavoriteAuthorsLoading: false,
-        }));
-    };
-
-    const getNewestReviews = async () => {
-        setHomeState((prev) => ({
-            ...prev,
-            newestReviewsLoading: true,
-        }));
-
-        const reviewDocsRef = collection(
-            fireStore,
-            firebaseRoute.getAllReviewRoute()
-        );
-
-        const newestReviewQuery = query(
-            reviewDocsRef,
-            orderBy("createdAt", "desc"),
-            limit(6)
-        );
-        const newestReviewDocs = await getDocs(newestReviewQuery);
-
-        const newestReviews: Review[] = newestReviewDocs.docs.map(
-            (doc) =>
-                JSON.parse(
-                    JSON.stringify({
-                        id: doc.id,
-                        ...doc.data(),
-                    })
-                ) as Review
-        );
-        setHomeState((prev) => ({
-            ...prev,
-            newestReviews,
-            newestReviewsLoading: false,
+            [field]: {
+                ...prev[field],
+                loading: false,
+                list: res,
+            },
         }));
     };
 
     useEffect(() => {
-        getBanners();
-        getNewestMangas();
-        getMostPopularMangas();
-        getMostFavoriteAuthors();
-        getNewestReviews();
+        get(
+            "bannerBooks",
+            async () =>
+                await BookService.getAll({
+                    bookOrders: [
+                        {
+                            bookOrderBy: "rating",
+                            bookOrderDirection: "desc",
+                        },
+                    ],
+                    bookLimit: 5,
+                })
+        );
+        get(
+            "mostPopularMangas",
+            async () =>
+                await BookService.getAll({
+                    bookOrders: [
+                        {
+                            bookOrderBy: "popularity",
+                            bookOrderDirection: "desc",
+                        },
+                    ],
+                    bookLimit: 6,
+                })
+        );
+        get(
+            "newestMangas",
+            async () =>
+                await BookService.getAll({
+                    bookOrders: [
+                        {
+                            bookOrderBy: "publishedDate",
+                            bookOrderDirection: "desc",
+                        },
+                    ],
+                    bookLimit: 6,
+                })
+        );
+        get(
+            "mostFavoriteAuthors",
+            async () =>
+                await AuthorService.getAll({
+                    authorOrders: [
+                        {
+                            authorOrderBy: "numberOfLikes",
+                            authorOrderDirection: "desc",
+                        },
+                    ],
+                })
+        );
+        get(
+            "newestReviews",
+            async () =>
+                await ReviewService.getAll({
+                    reviewOrders: [
+                        {
+                            reviewOrderBy: "createdAt",
+                            reviewOrderDirection: "desc",
+                        },
+                    ],
+                    reviewLimit: 6,
+                })
+        );
+        get(
+            "mostPopularCommunities",
+            async () =>
+                await CommunityService.getAll({
+                    communityLimit: 5,
+                    communityOrders: [
+                        {
+                            communityOrderBy: "numberOfMembers",
+                            communityOrderDirection: "desc",
+                        },
+                    ],
+                })
+        );
     }, []);
 
     return (

@@ -154,21 +154,37 @@ const HomePage: React.FC<HomePageProps> = () => {
     //     }
     // };
 
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const firstDocsRef = collectionGroup(fireStore, "messageList");
+    //         const firstDocs = await getDocs(firstDocsRef);
+    //         firstDocs.forEach((doc) => {
+    //             batch.delete(doc.ref);
+    //         });
+    //         const secondDocsRef = collectionGroup(fireStore, "messages");
+    //         const secondDocs = await getDocs(secondDocsRef);
+    //         secondDocs.forEach((doc) => {
+    //             batch.delete(doc.ref);
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
     const testFunction = async () => {
         try {
             const batch = writeBatch(fireStore);
-            const firstDocsRef = collectionGroup(fireStore, "messageList");
-            const firstDocs = await getDocs(firstDocsRef);
-            firstDocs.forEach((doc) => {
-                batch.delete(doc.ref);
-            });
-            const secondDocsRef = collectionGroup(fireStore, "messages");
-            const secondDocs = await getDocs(secondDocsRef);
-            secondDocs.forEach((doc) => {
-                batch.delete(doc.ref);
-            });
+            const docsRef = collectionGroup(fireStore, "users");
+            const docs = await getDocs(docsRef);
+            for (const doc of docs.docs) {
+                batch.update(doc.ref, {
+                    numberOfPosts: 0,
+                });
+            }
             await batch.commit();
-            console.log(1);
         } catch (error) {
             console.log(error);
         }
@@ -189,7 +205,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                <Button onClick={testFunction}>Test</Button>
+                {/* <Button onClick={testFunction}>Test</Button> */}
                 <HomeProvider>
                     <Home />
                 </HomeProvider>

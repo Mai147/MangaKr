@@ -2,6 +2,7 @@ export interface CharacterSnippet {
     id?: string;
     name: string;
     imageUrl?: string;
+    imageRef?: string;
     role?: string;
     bio?: string;
 }

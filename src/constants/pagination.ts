@@ -7,3 +7,5 @@ export const TOPIC_PAGE_COUNT = 10;
 export const REPLY_TOPIC_PAGE_COUNT = 10;
 export const SEARCH_PAGE_COUNT = 10;
 export const MESSAGE_PAGE_COUNT = 20;
+export const COMMUNITY_PAGE_COUNT = 10;
+export const REVIEW_PAGE_COUNT = 10;

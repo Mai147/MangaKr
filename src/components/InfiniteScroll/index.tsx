@@ -22,7 +22,7 @@ const InfiniteScroll: React.FC<InfiniteScrollProps> = ({
             const clientHeight = document.documentElement.clientHeight;
 
             if (page < totalPage) {
-                if (scrollTop + clientHeight >= scrollHeight) {
+                if (scrollTop + clientHeight >= scrollHeight - 10) {
                     onNext && onNext();
                 }
             }

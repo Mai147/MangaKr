@@ -20,7 +20,7 @@ const BookEditPage: React.FC<BookEditProps> = ({ book }) => {
         setDefaultPath(routes.getHomePage()), setNeedAuth(true);
     }, []);
     return (
-        <Box p="6" bg="white" borderRadius={4} boxShadow="lg">
+        <Box p="6" bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
             <BookCreateProvider>
                 <BookForm book={book} />
             </BookCreateProvider>

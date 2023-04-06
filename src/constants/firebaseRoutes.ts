@@ -53,6 +53,12 @@ export const firebaseRoute = {
     getUserAuthorVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${AUTHOR_VOTE_ROUTE}`;
     },
+    getUserPostRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${POST_ROUTE}`;
+    },
+    getUserPostCommentRoute(userId: string, postId: string) {
+        return `${USER_ROUTE}/${userId}/${POST_ROUTE}/${postId}/${COMMENT_ROUTE}`;
+    },
     getUserPostVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${POST_VOTE_ROUTE}`;
     },
@@ -127,9 +133,6 @@ export const firebaseRoute = {
     },
     getReplyCommentRoute(parentRoute: string, parentId: string) {
         return `${parentRoute}/${parentId}/${COMMENT_ROUTE}`;
-    },
-    getAllPostRoute() {
-        return `${POST_ROUTE}`;
     },
     getPostImageRoute(postId: string) {
         return `${POST_ROUTE}/${postId}/${IMAGE_ROUTE}`;

@@ -41,48 +41,57 @@ const GenreForm: React.FC<GenreFormProps> = ({ genre }) => {
     };
 
     const onSubmit = async () => {
-        setLoading(true);
-        if (errors.length > 0) {
-            setErrors([]);
-        }
-        if (!user) {
+        try {
+            setLoading(true);
+            if (errors.length > 0) {
+                setErrors([]);
+            }
+            if (!user) {
+                setLoading(false);
+                return;
+            }
+            const res = await validateCreateGenre(genreForm);
+            if (!res.result) {
+                setErrors(res.errors);
+                toast({
+                    ...toastOption,
+                    title: "Có lỗi xảy ra! Vui lòng thử lại.",
+                    status: "error",
+                });
+                setLoading(false);
+                return;
+            }
+            if (!genre) {
+                await GenreService.create({ genreForm });
+                setGenreForm({
+                    ...defaultGenreForm,
+                    creatorId: user.uid,
+                    creatorDisplayName: user.displayName!,
+                });
+                toast({
+                    ...toastOption,
+                    title: !genre
+                        ? "Tạo thể loại thành công"
+                        : "Sửa thể loại thành công",
+                    status: "success",
+                });
+            } else {
+                await GenreService.update({ genreForm });
+                toast({
+                    ...toastOption,
+                    title: "Sửa thành công!",
+                    status: "success",
+                });
+            }
             setLoading(false);
-            return;
-        }
-        const res = await validateCreateGenre(genreForm);
-        if (!res.result) {
-            setErrors(res.errors);
+        } catch (error) {
             toast({
                 ...toastOption,
-                title: "Có lỗi xảy ra! Vui lòng thử lại.",
+                title: "Có lỗi xảy ra! Vui lòng thử lại",
                 status: "error",
             });
-            setLoading(false);
-            return;
+            console.log(error);
         }
-        if (!genre) {
-            await GenreService.create({ genreForm });
-            setGenreForm({
-                ...defaultGenreForm,
-                creatorId: user.uid,
-                creatorDisplayName: user.displayName!,
-            });
-            toast({
-                ...toastOption,
-                title: !genre
-                    ? "Tạo thể loại thành công"
-                    : "Sửa thể loại thành công",
-                status: "success",
-            });
-        } else {
-            await GenreService.update({ genreForm });
-            toast({
-                ...toastOption,
-                title: "Sửa thành công!",
-                status: "success",
-            });
-        }
-        setLoading(false);
     };
 
     useEffect(() => {

@@ -3,6 +3,7 @@ import { Timestamp } from "firebase/firestore";
 export interface Post {
     id?: string;
     imageUrls: string[];
+    imageRefs: string[];
     caption: string;
     description?: string;
     creatorId: string;
@@ -42,6 +43,7 @@ export const defaultPostForm: Post = {
     creatorId: "",
     creatorDisplayName: "",
     imageUrls: [],
+    imageRefs: [],
     numberOfAngrys: 0,
     numberOfComments: 0,
     numberOfDislikes: 0,

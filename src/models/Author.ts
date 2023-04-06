@@ -4,6 +4,7 @@ export interface AuthorSnippet {
     id?: string;
     name: string;
     imageUrl?: string;
+    imageRef?: string;
 }
 
 export interface Author extends AuthorSnippet {

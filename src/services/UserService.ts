@@ -1,7 +1,7 @@
 import { ProfileFormState } from "@/components/Profile/Detail";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { USER_ROLE } from "@/constants/roles";
-import { fireStore } from "@/firebase/clientApp";
+import { fireStore, storage } from "@/firebase/clientApp";
 import { UserModel } from "@/models/User";
 import FileUtils from "@/utils/FileUtils";
 import { triGram } from "@/utils/StringUtils";
@@ -16,8 +16,10 @@ import {
     query,
     setDoc,
     where,
+    WriteBatch,
     writeBatch,
 } from "firebase/firestore";
+import { deleteObject, ref } from "firebase/storage";
 
 class UserService {
     static getAll = async () => {
@@ -63,19 +65,35 @@ class UserService {
     static update = async ({
         profileForm,
         user,
+        avatarChange,
     }: {
         profileForm: ProfileFormState;
         user: User;
+        avatarChange: boolean;
     }) => {
         try {
             const batch = writeBatch(fireStore);
-            const downloadUrl = await FileUtils.uploadFile({
-                imageRoute: firebaseRoute.getUserImageRoute(profileForm.id!),
-            });
             await updateProfile(user, {
                 displayName: profileForm.displayName,
-                photoURL: downloadUrl,
             });
+            let downloadUrl;
+            let downloadRef;
+            if (avatarChange) {
+                const res = await FileUtils.uploadFile({
+                    imageRoute: firebaseRoute.getUserImageRoute(
+                        profileForm.id!
+                    ),
+                    imageUrl: profileForm.photoUrl,
+                });
+                downloadUrl = res?.downloadUrl;
+                downloadRef = res?.downloadRef;
+                if (profileForm.imageRef) {
+                    await deleteObject(ref(storage, profileForm.imageRef));
+                }
+                await updateProfile(user, {
+                    photoURL: res?.downloadUrl,
+                });
+            }
             const userDocRef = doc(
                 fireStore,
                 firebaseRoute.getAllUserRoute(),
@@ -86,38 +104,80 @@ class UserService {
                 photoURL: downloadUrl,
                 subBio: profileForm.subBio,
                 bio: profileForm.bio,
+                imageRef: downloadRef,
             });
-            // Update username, image url in comments, reviews
-            const reviewDocsRef = collectionGroup(
-                fireStore,
-                firebaseRoute.getAllReviewRoute()
-            );
-            const reviewQuery = query(
-                reviewDocsRef,
-                where("creatorId", "==", profileForm.id)
-            );
-            const reviewDocs = await getDocs(reviewQuery);
-            reviewDocs.docs.forEach((doc) => {
-                if (doc.exists()) {
-                    batch.update(doc.ref, {
-                        creatorDisplayName: profileForm.displayName,
-                    });
-                }
+            // Update username, image url in comments, reviews, etc..
+            await this.updateSnippet({
+                batch,
+                route: firebaseRoute.getAllReviewRoute(),
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                },
             });
 
-            const commentDocsRef = collectionGroup(fireStore, "comments");
-            const commentQuery = query(
-                commentDocsRef,
-                where("creatorId", "==", profileForm.id)
-            );
-            const commentDocs = await getDocs(commentQuery);
-            commentDocs.docs.forEach((doc) => {
-                if (doc.exists()) {
-                    batch.update(doc.ref, {
-                        creatorDisplayName: profileForm.displayName,
-                        creatorImageUrl: downloadUrl,
-                    });
-                }
+            await this.updateSnippet({
+                batch,
+                route: "comments",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                    creatorImageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "topics",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                    creatorImageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "posts",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                    creatorImageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "genres",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "authors",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "userSnippets",
+                idField: "id",
+                userId: profileForm.id!,
+                newValue: {
+                    displayName: profileForm.displayName,
+                    imageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "messages",
+                idField: "id",
+                userId: profileForm.id!,
+                newValue: {
+                    displayName: profileForm.displayName,
+                    imageUrl: downloadUrl,
+                },
             });
             await batch.commit();
             return {
@@ -127,6 +187,31 @@ class UserService {
         } catch (error) {
             console.log(error);
         }
+    };
+
+    private static updateSnippet = async ({
+        batch,
+        route,
+        newValue,
+        idField = "creatorId",
+        userId,
+    }: {
+        batch: WriteBatch;
+        route: string;
+        newValue: {
+            [x: string]: any;
+        };
+        idField?: string;
+        userId: string;
+    }) => {
+        const docsRef = collectionGroup(fireStore, route);
+        const docsQuery = query(docsRef, where(idField, "==", userId));
+        const docs = await getDocs(docsQuery);
+        docs.docs.forEach((doc) => {
+            if (doc.exists()) {
+                batch.update(doc.ref, newValue);
+            }
+        });
     };
 }
 

@@ -27,9 +27,11 @@ export interface Community {
     description?: string;
     creatorId: string;
     numberOfMembers: number;
+    userIds: string[];
     privacyType: CommunityType;
     createdAt?: Timestamp;
     imageUrl?: string;
+    imageRef?: string;
     moderators?: UserSnippet[];
     numberOfPosts: number;
     numberOfTopics: number;
@@ -45,4 +47,5 @@ export const defaultCommunityForm: Community = {
     privacyType: "public",
     numberOfPosts: 0,
     numberOfTopics: 0,
+    userIds: [],
 };

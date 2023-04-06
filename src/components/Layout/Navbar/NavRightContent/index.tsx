@@ -5,7 +5,7 @@ import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { PostNotification } from "@/models/Post";
-import { UserCommunitySnippet } from "@/models/User";
+import { UserCommunitySnippet, UserMessageSnippet } from "@/models/User";
 import {
     Box,
     Flex,
@@ -16,12 +16,20 @@ import {
     PopoverTrigger,
     Stack,
 } from "@chakra-ui/react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+    collection,
+    getDocs,
+    onSnapshot,
+    orderBy,
+    query,
+    where,
+} from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 import { AiOutlineEdit, AiOutlinePlus, AiOutlineTags } from "react-icons/ai";
+import { BsFillFileEarmarkPostFill } from "react-icons/bs";
 import { FiBell, FiBook } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi";
-import { IoChatbubbleOutline, IoPersonOutline } from "react-icons/io5";
+import { IoPersonOutline } from "react-icons/io5";
 import { RiChat3Line } from "react-icons/ri";
 import NavItem, { NavItemProps } from "../NavItem";
 import NotificationItem from "../NotificationItem";
@@ -35,6 +43,11 @@ const defaultNavList: NavItemProps[] = [
         label: "Tạo cộng đồng",
         leftIcon: HiOutlineUserGroup,
         onClick: () => {},
+    },
+    {
+        label: "Tạo bài viết",
+        leftIcon: BsFillFileEarmarkPostFill,
+        href: routes.getPostCreatePage(),
     },
 ];
 
@@ -55,11 +68,11 @@ const writerNavList: NavItemProps[] = [
         leftIcon: FiBook,
         href: routes.getBookCreatePage(),
     },
-    {
-        label: "Viết tin tức",
-        leftIcon: AiOutlineTags,
-        // href: `${GENRE_PAGE}/create`,
-    },
+    // {
+    //     label: "Viết tin tức",
+    //     leftIcon: AiOutlineTags,
+    //     // href: `${GENRE_PAGE}/create`,
+    // },
 ];
 
 const NavRightContent: React.FC<NavRightContentProps> = () => {
@@ -68,6 +81,7 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
     const [userNotification, setUserNotification] = useState<
         PostNotification[]
     >([]);
+    const [numberOfNewMessage, setNumberOfNewMessage] = useState(0);
 
     const getUserCommunityNotification = async (userId: string) => {
         const communityDocsRef = collection(
@@ -126,6 +140,28 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
         if (user) {
             setUserNotification([]);
             getUserCommunityNotification(user.uid);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (user) {
+            const q = query(
+                collection(
+                    fireStore,
+                    firebaseRoute.getUserMessageRoute(user.uid)
+                ),
+                orderBy("latestCreatedAt", "desc")
+            );
+            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+                let numberOfNew = 0;
+                querySnapshot.docs.forEach((doc) => {
+                    const { numberOfUnseens } =
+                        doc.data() as UserMessageSnippet;
+                    numberOfNew += numberOfUnseens > 0 ? 1 : 0;
+                });
+                setNumberOfNewMessage(numberOfNew);
+            });
+            return unsubscribe;
         }
     }, [user]);
 
@@ -207,13 +243,35 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                         </PopoverContent>
                     </Popover>
                     <Link href={routes.getMessagePage()}>
-                        <IconButton
-                            size="lg"
-                            variant="ghost"
-                            aria-label="Notification"
-                            borderRadius="full"
-                            icon={<RiChat3Line />}
-                        />
+                        <Box position="relative">
+                            <IconButton
+                                size="lg"
+                                variant="ghost"
+                                aria-label="Notification"
+                                borderRadius="full"
+                                icon={<RiChat3Line />}
+                            />
+                            {numberOfNewMessage > 0 && (
+                                <Flex
+                                    w="4"
+                                    h="4"
+                                    rounded="full"
+                                    bg="red"
+                                    position="absolute"
+                                    bottom="2"
+                                    right="2"
+                                    color="white"
+                                    fontSize={10}
+                                    fontWeight={500}
+                                    align="center"
+                                    justify="center"
+                                >
+                                    {numberOfNewMessage <= 99
+                                        ? numberOfNewMessage
+                                        : `99+`}
+                                </Flex>
+                            )}
+                        </Box>
                     </Link>
                 </>
             )}
@@ -237,15 +295,20 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                     minW={"xs"}
                 >
                     <Stack>
-                        {defaultNavList.map((item, idx) => (
-                            <NavItem
-                                key={item.label}
-                                {...item}
-                                onClick={() => {
-                                    idx === 0 && toggleView("createCommunity");
-                                }}
-                            />
-                        ))}
+                        {defaultNavList.map((item, idx) => {
+                            return (
+                                <NavItem
+                                    key={item.label}
+                                    {...item}
+                                    onClick={
+                                        idx === 0
+                                            ? () =>
+                                                  toggleView("createCommunity")
+                                            : undefined
+                                    }
+                                />
+                            );
+                        })}
                         {user && user.role === WRITER_ROLE && (
                             <>
                                 {writerNavList.map((item) => (

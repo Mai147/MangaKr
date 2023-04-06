@@ -9,7 +9,7 @@ const BookError: React.FC<BookErrorProps> = () => {
         <Flex align="center" justify="center" direction="column" flexGrow={1}>
             <Icon as={CgUnavailable} fontSize={60} color="brand.100" />
             <Text fontSize={24} fontWeight={600}>
-                Sorry this book is not available now
+                Manga này không tồn tại hoặc đã bị xóa
             </Text>
         </Flex>
     );

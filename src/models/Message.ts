@@ -5,6 +5,7 @@ export interface Message {
     latestContent?: string;
     contents?: string[];
     imageUrls: string[];
+    imageRefs: string[];
     type: "RECEIVE" | "SEND";
     createdAt?: Timestamp;
 }
@@ -13,4 +14,5 @@ export const defaultMessageForm: Message = {
     contents: [],
     type: "SEND",
     imageUrls: [],
+    imageRefs: [],
 };

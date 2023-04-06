@@ -2,7 +2,8 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Character } from "@/models/Character";
 import CharacterUtils from "@/utils/CharacterUtils";
-import { doc, collection, writeBatch } from "firebase/firestore";
+import FileUtils from "@/utils/FileUtils";
+import { doc, collection, writeBatch, getDoc } from "firebase/firestore";
 import {
     ref,
     uploadString,
@@ -24,14 +25,17 @@ class CharacterService {
             const characterDocRef = doc(
                 collection(fireStore, firebaseRoute.getAllCharacterRoute())
             );
-            let charImage;
+            let charImageUrl;
+            let charImageRef;
             if (character.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getCharacterImageRoute(characterDocRef.id)
-                );
-                await uploadString(imageRef, character.imageUrl, "data_url");
-                charImage = await getDownloadURL(imageRef);
+                const res = await FileUtils.uploadFile({
+                    imageRoute: firebaseRoute.getCharacterImageRoute(
+                        characterDocRef.id!
+                    ),
+                    imageUrl: character.imageUrl,
+                });
+                charImageUrl = res?.downloadUrl;
+                charImageRef = res?.downloadRef;
             }
 
             const { id, ...info } = character;
@@ -39,7 +43,8 @@ class CharacterService {
                 ...info,
                 id: characterDocRef.id,
                 bookId,
-                imageUrl: charImage,
+                imageUrl: charImageUrl,
+                imageRef: charImageRef,
             });
             const characterSnippetRef = doc(
                 collection(
@@ -51,7 +56,8 @@ class CharacterService {
             batch.set(characterSnippetRef, {
                 ...CharacterUtils.toCharacterSnippet(character),
                 id: characterDocRef.id,
-                imageUrl: charImage,
+                imageUrl: charImageUrl,
+                imageRef: charImageRef,
             });
             await batch.commit();
             return characterDocRef.id;
@@ -71,21 +77,17 @@ class CharacterService {
         try {
             const batch = writeBatch(fireStore);
             // Change image
-            let charImage;
             if (character.imageUrl !== oldCharacter?.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getCharacterImageRoute(character.id!)
-                );
                 if (character.imageUrl) {
-                    await uploadString(
-                        imageRef,
-                        character.imageUrl,
-                        "data_url"
-                    );
-                    charImage = await getDownloadURL(imageRef);
-                } else {
-                    await deleteObject(imageRef);
+                    const res = await FileUtils.uploadFile({
+                        imageRoute: firebaseRoute.getCharacterImageRoute(
+                            character.id!
+                        ),
+                        imageUrl: character.imageUrl,
+                    });
+                }
+                if (oldCharacter.imageRef) {
+                    await deleteObject(ref(storage, oldCharacter.imageRef));
                 }
             }
             // Update character
@@ -113,18 +115,20 @@ class CharacterService {
     static delete = async ({ id, bookId }: { id: string; bookId: string }) => {
         try {
             const batch = writeBatch(fireStore);
-            // Delete image
-            const imageRef = ref(
-                storage,
-                firebaseRoute.getCharacterImageRoute(id)
-            );
-            await deleteObject(imageRef);
-            // Delete character
             const characterDocRef = doc(
                 fireStore,
                 firebaseRoute.getAllCharacterRoute(),
                 id
             );
+            // Delete image
+            const characterDoc = await getDoc(characterDocRef);
+            if (characterDoc.exists()) {
+                const { imageRef } = characterDoc.data();
+                if (imageRef) {
+                    await deleteObject(imageRef);
+                }
+            }
+            // Delete character
             batch.delete(characterDocRef);
             // Delete Book Character snippet
             const bookCharacterSnippetDocRef = doc(

@@ -56,6 +56,10 @@ export const triGram = (txt: string) => {
     };
 };
 
+export const getFileExtensionFromBase64 = (url: string) => {
+    return url.split("data:image/")[1].split(";base64")[0];
+};
+
 export const isToday = (timestampDate: Timestamp) => {
     const date = new Date(timestampDate.seconds * 1000);
     const today = new Date();

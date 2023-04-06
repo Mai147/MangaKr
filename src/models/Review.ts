@@ -26,6 +26,7 @@ export interface Review {
     creatorDisplayName: string;
     title: string;
     imageUrl?: string;
+    imageRef?: string;
     tagReview: TagReview;
     content: string;
     rating: number;

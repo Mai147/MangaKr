@@ -10,10 +10,20 @@ const MessageItemImage: React.FC<MessageItemImageProps> = ({ url }) => {
     const onImageLoad = (e: BaseSyntheticEvent) => {
         setImageLoad(false);
     };
+    const onImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        setImageLoad(false);
+        console.log("Image not Found");
+    };
     return imageLoad ? (
         <>
             <Skeleton w="100%" h={"150px"} />
-            <Image src={url} w="100%" onLoad={onImageLoad} display="none" />
+            <Image
+                src={url}
+                w="100%"
+                onLoad={onImageLoad}
+                onError={onImageError}
+                display="none"
+            />
         </>
     ) : (
         <Image src={url} maxW="100%" />

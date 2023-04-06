@@ -1,7 +1,7 @@
 import useCommunity from "@/hooks/useCommunity";
 import { useMessage } from "@/hooks/useMessage";
 import { compareDate } from "@/utils/StringUtils";
-import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
+import { Box, Divider, Flex, Spinner, Text } from "@chakra-ui/react";
 import moment from "moment";
 import React, { useEffect, useRef } from "react";
 import MessageItem from "./MessageItem";
@@ -69,8 +69,19 @@ const MessageList: React.FC<MessageListProps> = () => {
                 if (idx === 0) {
                     return (
                         <Box key={message.id}>
-                            <Flex align="center" justify="center" mb={2}>
-                                <Box bg="white" py={2} px={6} rounded="full">
+                            <Flex
+                                align="center"
+                                justify="center"
+                                mb={2}
+                                position="relative"
+                            >
+                                <Box
+                                    bg="white"
+                                    py={2}
+                                    px={6}
+                                    rounded="full"
+                                    zIndex={2}
+                                >
                                     <Text>
                                         {moment(
                                             new Date(
@@ -80,6 +91,13 @@ const MessageList: React.FC<MessageListProps> = () => {
                                         ).format("DD/MM/YYYY")}
                                     </Text>
                                 </Box>
+                                <Divider
+                                    position="absolute"
+                                    top="50%"
+                                    left={0}
+                                    right={0}
+                                    borderColor="gray.300"
+                                />
                             </Flex>
                             <MessageItem message={message} />
                         </Box>

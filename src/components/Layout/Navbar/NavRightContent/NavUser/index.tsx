@@ -13,7 +13,7 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { FiChevronDown, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
-import { BiRegistered } from "react-icons/bi";
+import { BiLibrary, BiRegistered } from "react-icons/bi";
 import { CgProfile } from "react-icons/cg";
 import { auth } from "@/firebase/clientApp";
 import AuthButtons from "./AuthButtons";
@@ -65,6 +65,11 @@ const NavUser: React.FC<NavUserProps> = () => {
                             icon={CgProfile}
                             title="Hồ sơ"
                             href={routes.getProfilePage()}
+                        />
+                        <NavUserMenuItem
+                            icon={BiLibrary}
+                            title="Thư viện"
+                            href={routes.getProfileLibraryPage()}
                         />
                         <MenuDivider />
                         <NavUserMenuItem

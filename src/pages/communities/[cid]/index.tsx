@@ -4,6 +4,7 @@ import CommunityPostTab from "@/components/Community/PostTab";
 import CommunityTopicTab from "@/components/Community/TopicTab";
 import NotAvailable from "@/components/Error/NotAvailable";
 import TabItem from "@/components/Tab/TabItem";
+import { PostProvider } from "@/context/PostContext";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
@@ -142,7 +143,11 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                                     align="center"
                                     w="100%"
                                 >
-                                    <CommunityPostTab />
+                                    <PostProvider>
+                                        <CommunityPostTab
+                                            community={community}
+                                        />
+                                    </PostProvider>
                                 </Flex>
                             </Flex>
                         </>

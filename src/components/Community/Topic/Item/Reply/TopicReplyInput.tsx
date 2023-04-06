@@ -1,8 +1,6 @@
-import CommentInputs from "@/components/Comment/CommentInput";
 import InputText from "@/components/Input/InputText";
 import { defaultTopicReplyForm, Topic, TopicReply } from "@/models/Topic";
 import { UserModel } from "@/models/User";
-import TopicService from "@/services/TopicService";
 import { Button, Flex } from "@chakra-ui/react";
 import { serverTimestamp, Timestamp } from "firebase/firestore";
 import React, { useState } from "react";

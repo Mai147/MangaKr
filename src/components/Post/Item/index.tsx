@@ -1,20 +1,21 @@
-import { Post } from "@/models/Post";
-import { Box, Stack, VStack } from "@chakra-ui/react";
+import { Box, VStack } from "@chakra-ui/react";
 import React, { useState } from "react";
 import "moment/locale/vi";
-import PostReactionBar from "./ReactionBar";
+import { PostItemState } from "@/context/PostContext";
 import PostItemHeader from "./Header";
-import PostItemImages from "./Images";
 import PostItemContent from "./Content";
+import PostItemImages from "./Images";
 import PostCommentInput from "./Comment/PostCommentInput";
 import PostComments from "./Comment";
+import PostReactionBar from "./ReactionBar";
 
 type PostItemProps = {
-    post: Post;
+    postData: PostItemState;
 };
 
-const PostItem: React.FC<PostItemProps> = ({ post }) => {
+const PostItem: React.FC<PostItemProps> = ({ postData }) => {
     const [showCommentInput, setShowCommentInput] = useState(false);
+    const [showCommentList, setShowCommentList] = useState(false);
     return (
         <Box
             border="1px solid"
@@ -26,24 +27,25 @@ const PostItem: React.FC<PostItemProps> = ({ post }) => {
             w="100%"
         >
             <VStack align="flex-start" w="100%">
-                <PostItemHeader post={post} />
-                <PostItemContent post={post} />
+                <PostItemHeader post={postData.post} />
+                <PostItemContent post={postData.post} />
                 <Box w="100%">
-                    <PostItemImages imageList={post.imageUrls} />
+                    <PostItemImages imageList={postData.post.imageUrls} />
                 </Box>
                 <PostReactionBar
-                    post={post}
+                    post={postData.post}
                     setShowCommentInput={setShowCommentInput}
+                    setShowCommentList={setShowCommentList}
                 />
                 {showCommentInput && (
                     <Box pb={3} w="100%">
                         <PostCommentInput
-                            post={post}
+                            post={postData.post}
                             onHidden={() => setShowCommentInput(false)}
                         />
                     </Box>
                 )}
-                <PostComments post={post} />
+                {showCommentList && <PostComments post={postData.post} />}
             </VStack>
         </Box>
     );

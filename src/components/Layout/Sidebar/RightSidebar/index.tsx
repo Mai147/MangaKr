@@ -22,7 +22,12 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
         setTopBooksLoading(true);
         const books = await BookService.getAll({
             bookLimit: 3,
-            bookOrderBy: "rating",
+            bookOrders: [
+                {
+                    bookOrderBy: "rating",
+                    bookOrderDirection: "desc",
+                },
+            ],
         });
         setTopBooks(books);
         setTopBooksLoading(false);
@@ -32,7 +37,12 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
         setTopCommunitiesLoading(true);
         const communities = await CommunityService.getAll({
             communityLimit: 3,
-            communityOrderBy: "numberOfMembers",
+            communityOrders: [
+                {
+                    communityOrderBy: "numberOfMembers",
+                    communityOrderDirection: "desc",
+                },
+            ],
         });
         setTopCommunities(communities);
         setTopCommunitiesLoading(false);
@@ -69,6 +79,7 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
                         key={book.id}
                         title={book.name}
                         imageUrl={book.imageUrl}
+                        href={routes.getBookDetailPage(book.id!)}
                         sub={
                             <RatingBar
                                 size={16}

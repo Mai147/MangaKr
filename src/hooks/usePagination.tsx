@@ -35,15 +35,17 @@ export interface PaginationInput {
     isNext: boolean;
     loading: boolean;
     isFirst: boolean;
+    exceptionCount?: number;
 }
 
-export const defaultPaginationInput = {
+export const defaultPaginationInput: PaginationInput = {
     page: 1,
     isNext: true,
     isFirst: true,
     pageCount: 1,
     loading: false,
     totalPage: 1,
+    exceptionCount: 0,
 };
 
 export type FilterValue = "rating" | "popularity" | "numberOfReviews";
@@ -82,6 +84,8 @@ interface PaginationInfo {
     isNext: boolean;
     searchValue?: string;
     isFirst?: boolean;
+    docValue?: DocPosition;
+    exceptionCount?: number;
 }
 
 interface BookPaginationInfo extends PaginationInfo {
@@ -101,6 +105,7 @@ interface CommentPaginationInfo extends PaginationInfo {
 interface PostPaginationInfo extends PaginationInfo {
     communityId?: string;
     isAccept?: boolean;
+    userId?: string;
 }
 
 interface TopicPaginationInfo extends PaginationInfo {
@@ -124,7 +129,15 @@ interface MessagePaginationInfo extends PaginationInfo {
     exceptionCount?: number;
 }
 
-type DocPosition = {
+interface CommunityPaginationInfo extends PaginationInfo {
+    userId?: string;
+}
+
+interface ReviewPaginationInfo extends PaginationInfo {
+    bookId?: string;
+}
+
+export type DocPosition = {
     firstDoc: QueryDocumentSnapshot<DocumentData> | null;
     lastDoc: QueryDocumentSnapshot<DocumentData> | null;
 };
@@ -216,6 +229,7 @@ const usePagination = () => {
         field,
         isFirst,
         exceptionCount = 0,
+        docValue,
     }: {
         docsRef: CollectionReference<DocumentData>;
         queryConstraints: any[];
@@ -223,6 +237,7 @@ const usePagination = () => {
         pageCount: number;
         isNext: boolean;
         exceptionCount?: number;
+        docValue?: DocPosition;
         field:
             | "book"
             | "review"
@@ -240,48 +255,65 @@ const usePagination = () => {
         // Edit here
         isFirst?: boolean;
     }) => {
-        const firstDoc = isFirst
-            ? defaultPaginationDocState[field].firstDoc
-            : paginationDoc[field].firstDoc;
-        const lastDoc = isFirst
-            ? defaultPaginationDocState[field].lastDoc
-            : paginationDoc[field].lastDoc;
-        const snapShot = await getCountFromServer(
-            query(docsRef, ...queryConstraints)
-        );
-        const totalPage = Math.ceil(
-            (snapShot.data().count - exceptionCount) / pageCount
-        );
-        if (isNext) {
-            if (page > 1) {
-                if (page <= totalPage) {
-                    queryConstraints.push(startAfter(lastDoc));
-                    queryConstraints.push(limit(pageCount));
+        try {
+            const firstDoc = docValue
+                ? docValue.firstDoc
+                : isFirst
+                ? defaultPaginationDocState[field].firstDoc
+                : paginationDoc[field].firstDoc;
+            const lastDoc = docValue
+                ? docValue.lastDoc
+                : isFirst
+                ? defaultPaginationDocState[field].lastDoc
+                : paginationDoc[field].lastDoc;
+            const snapShot = await getCountFromServer(
+                query(docsRef, ...queryConstraints)
+            );
+            const totalPage = Math.ceil(
+                (snapShot.data().count - exceptionCount) / pageCount
+            );
+
+            if (isNext) {
+                if (page > 1) {
+                    if (page <= totalPage) {
+                        queryConstraints.push(startAfter(lastDoc));
+                        queryConstraints.push(limit(pageCount));
+                    } else return;
+                }
+            } else {
+                if (page >= 1) {
+                    queryConstraints.push(endBefore(firstDoc));
+                    queryConstraints.push(limitToLast(pageCount));
                 } else return;
             }
-        } else {
-            if (page >= 1) {
-                queryConstraints.push(endBefore(firstDoc));
-                queryConstraints.push(limitToLast(pageCount));
-            } else return;
+            let docQuery = query(
+                docsRef,
+                limit(pageCount),
+                ...queryConstraints
+            );
+            const docs = await getDocs(docQuery);
+            const res = docs.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setPaginationDoc((prev) => ({
+                ...prev,
+                [field]: {
+                    firstDoc: docs.docs[0],
+                    lastDoc: docs.docs[docs.docs.length - 1],
+                },
+            }));
+            return {
+                res,
+                totalPage,
+                docValue: {
+                    firstDoc: docs.docs[0],
+                    lastDoc: docs.docs[docs.docs.length - 1],
+                },
+            };
+        } catch (error) {
+            console.log(error);
         }
-        let docQuery = query(docsRef, limit(pageCount), ...queryConstraints);
-        const docs = await getDocs(docQuery);
-        const res = docs.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-        }));
-        setPaginationDoc((prev) => ({
-            ...prev,
-            [field]: {
-                firstDoc: docs.docs[0],
-                lastDoc: docs.docs[docs.docs.length - 1],
-            },
-        }));
-        return {
-            res,
-            totalPage,
-        };
     };
 
     const getBooks = async ({
@@ -340,7 +372,8 @@ const usePagination = () => {
         pageCount,
         searchValue,
         isFirst,
-    }: PaginationInfo) => {
+        bookId,
+    }: ReviewPaginationInfo) => {
         const reviewDocsRef = collection(
             fireStore,
             firebaseRoute.getAllReviewRoute()
@@ -354,6 +387,9 @@ const usePagination = () => {
             });
         } else {
             queryConstraints.push(orderBy("createdAt", "desc"));
+        }
+        if (bookId) {
+            queryConstraints.push(where("bookId", "==", bookId));
         }
         const res = await pagination({
             docsRef: reviewDocsRef,
@@ -444,7 +480,8 @@ const usePagination = () => {
         pageCount,
         searchValue,
         isFirst,
-    }: PaginationInfo) => {
+        userId,
+    }: CommunityPaginationInfo) => {
         const communityDocsRef = collection(
             fireStore,
             firebaseRoute.getAllCommunityRoute()
@@ -456,6 +493,9 @@ const usePagination = () => {
             });
         } else {
             queryConstraints.push(orderBy("createdAt", "desc"));
+        }
+        if (userId) {
+            queryConstraints.push(where("userIds", "array-contains", userId));
         }
         const res = await pagination({
             docsRef: communityDocsRef,
@@ -478,6 +518,8 @@ const usePagination = () => {
         isFirst,
         isNext,
         commentRoute,
+        docValue,
+        exceptionCount,
     }: CommentPaginationInfo) => {
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
@@ -490,10 +532,13 @@ const usePagination = () => {
             isNext,
             field: "comment",
             isFirst,
+            docValue,
+            exceptionCount,
         });
         return {
             comments: res ? (res.res as Comment[]) : [],
             totalPage: res?.totalPage,
+            docValue: res?.docValue,
         };
     };
 
@@ -556,6 +601,7 @@ const usePagination = () => {
         isFirst,
         communityId,
         isAccept,
+        userId,
     }: PostPaginationInfo) => {
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
@@ -566,7 +612,7 @@ const usePagination = () => {
             fireStore,
             communityId
                 ? firebaseRoute.getCommunityPostRoute(communityId)
-                : firebaseRoute.getAllPostRoute()
+                : firebaseRoute.getUserPostRoute(userId!)
         );
         const res = await pagination({
             docsRef: postDocsRef,

@@ -41,7 +41,9 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
                     }
                 >
                     <Text fontWeight={600} lineHeight="1">
-                        {message.type === "RECEIVE" ? user?.displayName : "Bạn"}
+                        {message.type === "RECEIVE"
+                            ? messageState.selectedUser?.displayName
+                            : "Bạn"}
                     </Text>
                     <Text
                         color="gray.400"

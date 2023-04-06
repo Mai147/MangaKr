@@ -19,6 +19,7 @@ import {
     runTransaction,
     limit,
     orderBy,
+    collectionGroup,
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import CharacterService from "./CharacterService";
@@ -27,13 +28,14 @@ import { triGram } from "@/utils/StringUtils";
 
 class BookService {
     static getAll = async ({
-        bookOrderBy,
+        bookOrders,
         bookLimit,
-        bookOrderDirection = "desc",
     }: {
+        bookOrders?: {
+            bookOrderBy: string;
+            bookOrderDirection: "desc" | "asc";
+        }[];
         bookLimit?: number;
-        bookOrderBy?: string;
-        bookOrderDirection?: "asc" | "desc";
     }) => {
         const bookDocsRef = collection(
             fireStore,
@@ -43,8 +45,12 @@ class BookService {
         if (bookLimit) {
             bookConstraints.push(limit(bookLimit));
         }
-        if (bookOrderBy) {
-            bookConstraints.push(orderBy(bookOrderBy, bookOrderDirection));
+        if (bookOrders) {
+            bookOrders.forEach((bookOrder) => {
+                bookConstraints.push(
+                    orderBy(bookOrder.bookOrderBy, bookOrder.bookOrderDirection)
+                );
+            });
         }
         const bookQuery = query(bookDocsRef, ...bookConstraints);
         const bookDocs = await getDocs(bookQuery);
@@ -144,7 +150,7 @@ class BookService {
             const bookDocRef = doc(
                 collection(fireStore, firebaseRoute.getAllBookRoute())
             );
-            const downloadUrl = await FileUtils.uploadFile({
+            const res = await FileUtils.uploadFile({
                 imageRoute: firebaseRoute.getBookImageRoute(bookDocRef.id),
                 imageUrl: bookForm.imageUrl,
             });
@@ -220,7 +226,8 @@ class BookService {
             batch.update(
                 doc(fireStore, firebaseRoute.getAllBookRoute(), bookDocRef.id),
                 {
-                    imageUrl: downloadUrl,
+                    imageUrl: res?.downloadUrl,
+                    imageRef: res?.downloadRef,
                 }
             );
             await batch.commit();
@@ -247,9 +254,9 @@ class BookService {
                 firebaseRoute.getAllBookRoute(),
                 book.id!
             );
-            let downloadUrl;
+            let res;
             if (bookForm.imageUrl && bookForm.imageUrl !== book.imageUrl) {
-                downloadUrl = await FileUtils.uploadFile({
+                res = await FileUtils.uploadFile({
                     imageRoute: firebaseRoute.getBookImageRoute(bookDocRef.id),
                     imageUrl: bookForm.imageUrl,
                 });
@@ -358,54 +365,42 @@ class BookService {
             );
             batch.update(userWritingDocRef, {
                 ...BookUtils.toBookSnippet(bookForm),
-                imageUrl: downloadUrl,
+                imageUrl: res?.downloadUrl,
+                imageRef: res?.downloadRef,
             });
 
             // Update bookName in reviews and communities
-            const reviewDocsRef = collection(
-                fireStore,
-                firebaseRoute.getAllReviewRoute()
-            );
-            const reviewQuery = query(
-                reviewDocsRef,
-                where("bookId", "==", book.id)
-            );
-            const reviewDocs = await getDocs(reviewQuery);
-            reviewDocs.docs.forEach((doc) => {
-                if (doc.exists()) {
-                    batch.update(doc.ref, {
-                        bookName: bookForm.name,
-                    });
-                }
+            await this.updateOtherSnippet({
+                batch,
+                route: "reviews",
+                bookId: book.id!,
+                newValue: {
+                    bookName: bookForm.name,
+                },
             });
 
-            const communityDocsRef = collection(
-                fireStore,
-                firebaseRoute.getAllCommunityRoute()
-            );
-            const commnunityQuery = query(
-                communityDocsRef,
-                where("bookId", "==", book.id)
-            );
-            const communityDocs = await getDocs(commnunityQuery);
-            communityDocs.docs.forEach((doc) => {
-                if (doc.exists()) {
-                    batch.update(doc.ref, {
-                        bookName: bookForm.name,
-                    });
-                }
+            await this.updateOtherSnippet({
+                batch,
+                route: "communities",
+                bookId: book.id!,
+                newValue: {
+                    bookName: bookForm.name,
+                },
+            });
+            await this.updateOtherSnippet({
+                batch,
+                route: "readingBookSnippets",
+                idField: "id",
+                bookId: book.id!,
+                newValue: bookForm,
             });
 
-            // Update image
             batch.update(bookDocRef, {
-                imageUrl: downloadUrl,
+                imageUrl: res?.downloadUrl,
+                imageRef: res?.downloadRef,
             });
-            if (book.imageUrl && !bookForm.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getBookImageRoute(book.id!)
-                );
-                await deleteObject(imageRef);
+            if (book.imageRef && !bookForm.imageUrl) {
+                await deleteObject(ref(storage, book.imageRef));
             }
 
             await batch.commit();
@@ -414,16 +409,37 @@ class BookService {
         }
     };
 
+    private static updateOtherSnippet = async ({
+        batch,
+        route,
+        newValue,
+        idField = "bookId",
+        bookId,
+    }: {
+        batch: WriteBatch;
+        route: string;
+        newValue: {
+            [x: string]: any;
+        };
+        idField?: string;
+        bookId: string;
+    }) => {
+        const docsRef = collectionGroup(fireStore, route);
+        const docsQuery = query(docsRef, where(idField, "==", bookId));
+        const docs = await getDocs(docsQuery);
+        docs.docs.forEach((doc) => {
+            if (doc.exists()) {
+                batch.update(doc.ref, newValue);
+            }
+        });
+    };
+
     static delete = async ({ book }: { book: Book | BookSnippet }) => {
         try {
             const batch = writeBatch(fireStore);
             // Delete Book image
-            if (book.imageUrl) {
-                const imageRef = ref(
-                    storage,
-                    firebaseRoute.getBookImageRoute(book.id!)
-                );
-                await deleteObject(imageRef);
+            if (book.imageRef) {
+                await deleteObject(ref(storage, book.imageRef));
             }
             // Decrease author and genre number
             book.authorIds?.forEach((id) => {
@@ -455,11 +471,13 @@ class BookService {
                         firebaseRoute.getAllCharacterRoute(),
                         id!
                     );
-                    const imageRef = ref(
-                        storage,
-                        firebaseRoute.getCharacterImageRoute(id!)
-                    );
-                    await deleteObject(imageRef);
+                    const characterDoc = await getDoc(characterDocRef);
+                    if (characterDoc.exists()) {
+                        const { imageRef } = characterDoc.data();
+                        if (imageRef) {
+                            await deleteObject(ref(storage, imageRef));
+                        }
+                    }
                     batch.delete(characterDocRef);
                 }
             }

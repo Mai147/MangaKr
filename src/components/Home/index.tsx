@@ -12,25 +12,23 @@ import ReviewSnippetItem from "../Review/Snippet/ReviewSnippetItem";
 import VerticalSkeleton from "../Skeleton/VerticalSkeleton";
 import SectionHeading from "./SectionHeading";
 import HorizontalSkeleton from "../Skeleton/HorizontalSkeleton";
+import CircleHorizontalSkeleton from "../Skeleton/CircleHorizontalSkeleton";
+import CommunitySnippetHorizontalItem from "../Community/Snippet/CommunitySnippetHorizontalItem";
 
 type HomeProps = {};
 
 const Home: React.FC<HomeProps> = () => {
     const {
         bannerBooks,
-        bannerBooksLoading,
         mostFavoriteAuthors,
-        mostFavoriteAuthorsLoading,
+        mostPopularCommunities,
         mostPopularMangas,
-        mostPopularMangasLoading,
         newestMangas,
-        newestMangasLoading,
         newestReviews,
-        newestReviewsLoading,
     } = useHome();
     return (
         <>
-            {bannerBooksLoading && (
+            {bannerBooks.loading && (
                 <Grid templateColumns="repeat(2, minmax(0, 1fr))" gap={4}>
                     <HorizontalSkeleton size="lg" />
                     <HorizontalSkeleton size="lg" />
@@ -38,11 +36,11 @@ const Home: React.FC<HomeProps> = () => {
             )}
             <Flex direction="column" align="flex-start">
                 <BookCarousel
-                    length={bannerBooks.length}
+                    length={bannerBooks.list.length}
                     type="banner"
                     autoplay={true}
                 >
-                    {bannerBooks.map((book) => {
+                    {bannerBooks.list.map((book) => {
                         return <BannerItem book={book} key={book.id} />;
                     })}
                 </BookCarousel>
@@ -53,15 +51,15 @@ const Home: React.FC<HomeProps> = () => {
                         title="Manga vừa ra mắt"
                         href={routes.getBookHomePage()}
                     />
-                    {newestMangasLoading && (
+                    {newestMangas.loading && (
                         <Flex>
                             {[1, 2, 3].map((idx) => (
                                 <VerticalSkeleton key={idx} />
                             ))}
                         </Flex>
                     )}
-                    <BookCarousel length={newestMangas.length}>
-                        {newestMangas.map((book) => (
+                    <BookCarousel length={newestMangas.list.length}>
+                        {newestMangas.list.map((book) => (
                             <BookSnippetItem
                                 key={book.id}
                                 book={book}
@@ -69,20 +67,20 @@ const Home: React.FC<HomeProps> = () => {
                             />
                         ))}
                     </BookCarousel>
-                    <Divider pb={2} />
+                    <Divider pb={2} borderColor="gray.300" />
                     <SectionHeading
                         title="Manga nổi bật nhất"
                         href={routes.getBookTopPage()}
                     />
-                    {mostPopularMangasLoading && (
+                    {mostPopularMangas.loading && (
                         <Flex>
                             {[1, 2, 3].map((idx) => (
                                 <VerticalSkeleton key={idx} />
                             ))}
                         </Flex>
                     )}
-                    <BookCarousel length={mostPopularMangas.length}>
-                        {mostPopularMangas.map((book) => (
+                    <BookCarousel length={mostPopularMangas.list.length}>
+                        {mostPopularMangas.list.map((book) => (
                             <BookSnippetItem
                                 key={book.id}
                                 book={book}
@@ -90,12 +88,12 @@ const Home: React.FC<HomeProps> = () => {
                             />
                         ))}
                     </BookCarousel>
-                    <Divider pb={2} />
+                    <Divider pb={2} borderColor="gray.300" />
                     <SectionHeading
                         title="Đánh giá mới nhất"
                         href={routes.getReviewHomePage()}
                     />
-                    {newestReviewsLoading && (
+                    {newestReviews.loading && (
                         <Grid
                             templateColumns="repeat(2, minmax(0, 1fr))"
                             gap={4}
@@ -105,8 +103,11 @@ const Home: React.FC<HomeProps> = () => {
                             <HorizontalSkeleton size="sm" />
                         </Grid>
                     )}
-                    <BookCarousel length={newestReviews.length} type="banner">
-                        {newestReviews.map((review) => (
+                    <BookCarousel
+                        length={newestReviews.list.length}
+                        type="banner"
+                    >
+                        {newestReviews.list.map((review) => (
                             <ReviewSnippetItem
                                 key={review.id}
                                 review={review}
@@ -118,21 +119,21 @@ const Home: React.FC<HomeProps> = () => {
                             />
                         ))}
                     </BookCarousel>
-                    <Divider pb={2} />
+                    <Divider pb={2} borderColor="gray.300" />
                     <SectionHeading title="Tác giả nổi bật nhất" />
-                    {mostFavoriteAuthorsLoading && (
+                    {mostFavoriteAuthors.loading && (
                         <Flex>
                             {[1, 2, 3].map((idx) => (
                                 <VerticalSkeleton key={idx} />
                             ))}
                         </Flex>
                     )}
-                    <Box pl={2} ml={"calc(2px - 0.5rem)"} pt={2}>
+                    <Box py={2}>
                         <Grid
                             gridTemplateColumns="repeat(5, minmax(0, 1fr))"
                             gap={4}
                         >
-                            {mostFavoriteAuthors.map((author) => (
+                            {mostFavoriteAuthors.list.map((author) => (
                                 <GridItem key={author.id}>
                                     <AuthorSnippetItem
                                         author={author}
@@ -145,7 +146,24 @@ const Home: React.FC<HomeProps> = () => {
                             ))}
                         </Grid>
                     </Box>
-                    <Divider pb={2} />
+                    <Divider py={2} borderColor="gray.300" />
+                    <SectionHeading title="Cộng đồng yêu thích" />
+                    {mostPopularCommunities.loading && (
+                        <VStack w="100%">
+                            {[1, 2, 3].map((idx) => (
+                                <CircleHorizontalSkeleton key={idx} />
+                            ))}
+                        </VStack>
+                    )}
+                    <VStack pt={2} w="100%" align="flex-start" spacing={3}>
+                        {mostPopularCommunities.list.map((community) => (
+                            <Box w="100%" key={community.id}>
+                                <CommunitySnippetHorizontalItem
+                                    community={community}
+                                />
+                            </Box>
+                        ))}
+                    </VStack>
                 </VStack>
                 <RightSidebar />
             </PageContent>

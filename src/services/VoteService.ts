@@ -39,6 +39,7 @@ class VoteService {
             const rootDocRef = doc(fireStore, rootRoute, rootId);
             const batch = writeBatch(fireStore);
             batch.set(voteDocRef, {
+                id: voteDocRef.id,
                 value,
             });
             batch.update(rootDocRef, {

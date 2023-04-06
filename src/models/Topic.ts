@@ -5,6 +5,7 @@ export interface Topic {
     title: string;
     description?: string;
     imageUrl?: string;
+    imageRef?: string;
     communityId: string;
     numberOfReplies: number;
     creatorId: string;

@@ -27,11 +27,13 @@ const UserMessageSnippetItem: React.FC<UserMessageSnippetItemProps> = ({
             cursor="pointer"
             _hover={{ bg: "gray.50" }}
             transition="all 0.5s"
-            onClick={() =>
-                messageAction.switchUser(
-                    UserUtils.messageSnippetToUserSnippet(userMessage)
-                )
-            }
+            onClick={() => {
+                if (!isActive) {
+                    messageAction.switchUser(
+                        UserUtils.messageSnippetToUserSnippet(userMessage)
+                    );
+                }
+            }}
         >
             <Avatar
                 size="md"

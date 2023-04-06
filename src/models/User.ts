@@ -11,6 +11,7 @@ export interface UserSnippet {
 }
 
 export interface UserModel extends User {
+    imageRef?: string;
     role: string;
     bio?: string;
     subBio?: string;
@@ -26,6 +27,7 @@ export interface UserMessageSnippet {
     displayName: string;
     imageUrl?: string | null;
     latestMessage?: string;
+    latestImages?: string[];
     latestCreatedAt?: Timestamp;
     numberOfUnseens: number;
     type: "RECEIVE" | "SEND";

@@ -3,6 +3,7 @@ import ProfilePassword from "@/components/Profile/Password";
 import ProfileShow from "@/components/Profile/Show";
 import ProfileSidebar from "@/components/Profile/Sidebar";
 import { routes } from "@/constants/routes";
+import { PostProvider } from "@/context/PostContext";
 import useAuth from "@/hooks/useAuth";
 import { Box, Flex, Spinner } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
@@ -36,6 +37,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
             p={6}
             boxShadow="lg"
             borderRadius={4}
+            flexGrow={1}
         >
             <ProfileSidebar tab={tab} setTab={setTab} />
             <Box
@@ -44,7 +46,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
                 pl={5}
                 flexGrow={1}
             >
-                {tab == 0 && <ProfileShow user={user} />}
+                {tab == 0 && (
+                    <PostProvider>
+                        <ProfileShow user={user} />
+                    </PostProvider>
+                )}
                 {tab == 1 && <ProfileDetail user={user} />}
                 {tab == 2 && <ProfilePassword user={user} />}
             </Box>

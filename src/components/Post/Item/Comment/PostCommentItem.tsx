@@ -1,15 +1,8 @@
 import CommentInputBasic from "@/components/Comment/CommentInputBasic";
-import { firebaseRoute } from "@/constants/firebaseRoutes";
 import useAuth from "@/hooks/useAuth";
-import useCommunity from "@/hooks/useCommunity";
-import usePagination, {
-    defaultPaginationInput,
-    PaginationInput,
-} from "@/hooks/usePagination";
+import { usePost } from "@/hooks/usePost";
 import { Comment } from "@/models/Comment";
 import { basicVoteList, Vote } from "@/models/Vote";
-import CommentService from "@/services/CommentService";
-import VoteService from "@/services/VoteService";
 import {
     Avatar,
     Box,
@@ -24,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import moment from "moment";
 import "moment/locale/vi";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AiOutlineDelete } from "react-icons/ai";
 import { BsReply } from "react-icons/bs";
 import VotePopup from "../ReactionBar/VotePopup";
@@ -35,14 +28,8 @@ type PostCommentItemProps = {
     comment: Comment;
     isReply?: {
         parentId: string;
-        setReplyCommentList: React.Dispatch<React.SetStateAction<Comment[]>>;
     };
     canReply?: boolean;
-};
-
-const defaultCommentPaginationInput: PaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: 3,
 };
 
 const PostCommentItem: React.FC<PostCommentItemProps> = ({
@@ -52,196 +39,40 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
     canReply = true,
 }) => {
     const [showReplyComment, setShowReplyComment] = useState(false);
-    const [replyCommentPagination, setReplyCommentPagination] =
-        useState<PaginationInput>(defaultCommentPaginationInput);
     const [showReplyCommentList, setShowReplyCommentList] = useState(false);
-    const [replyCommentList, setReplyCommentList] = useState<Comment[]>([]);
     const [deleteLoading, setDeleteLoading] = useState(false);
-    const [userVote, setUserVote] = useState<Vote | undefined>();
-    const [commentLike, setCommentLike] = useState<{
-        numberOfLikes: number;
-        numberOfDislikes: number;
-    }>({
-        numberOfLikes: 0,
-        numberOfDislikes: 0,
-    });
-    const [selectedCommentId, setSelectedCommentId] = useState<
-        string | undefined
-    >();
     const { user } = useAuth();
-    const { communityState, communityAction } = useCommunity();
-    const { getComments } = usePagination();
+    const { postAction, postState } = usePost();
 
-    const getReplyCommentList = async (
-        commentRoute: string,
-        commentId: string
-    ) => {
-        setReplyCommentPagination((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getComments({
-            page: replyCommentPagination.page,
-            pageCount: replyCommentPagination.pageCount,
-            isFirst: false,
-            isNext: replyCommentPagination.isNext,
-            commentRoute: firebaseRoute.getReplyCommentRoute(
-                commentRoute,
-                commentId
-            ),
-        });
-        setReplyCommentPagination((prev) => ({
-            ...prev,
-            totalPage: res?.totalPage || 0,
-            loading: false,
-        }));
-        setReplyCommentList((prev) => [
-            ...prev,
-            ...(res.comments as Comment[]),
-        ]);
-    };
+    const commentDatas = useMemo(() => {
+        return postState.postList[postState.field!].find(
+            (item) => item.post.id === postId
+        )?.commentData;
+    }, [postState.selected, postState.postList[postState.field!]]);
 
-    const onCommentReply = async (commentText: string) => {
-        const res = await communityAction.onPostCommentReply(
-            commentText,
-            postId,
-            comment.id!
-        );
-        if (res) {
-            setReplyCommentList((prev) => [res, ...prev]);
-            setShowReplyComment(false);
+    const replyCommentDatas = useMemo(() => {
+        return commentDatas?.find((item) => item.comment.id === comment.id)
+            ?.replyComments;
+    }, [commentDatas]);
+
+    const replyCommentPaginationInput = useMemo(() => {
+        return postState.paginationInput[postState.field!].replyComment.find(
+            (item) => item.commentId === comment.id
+        )?.inputState;
+    }, [postState.selected, postState.paginationInput[postState.field!]]);
+
+    const userVote = useMemo(() => {
+        if (commentDatas) {
+            return isReply
+                ? commentDatas
+                      ?.find((item) => item.comment.id === isReply.parentId)
+                      ?.replyComments?.find(
+                          (item) => item.comment.id === comment.id
+                      )?.voteValue
+                : commentDatas?.find((item) => item.comment.id === comment.id)
+                      ?.voteValue;
         }
-    };
-
-    const getUserVote = async (userId: string) => {
-        if (isReply) {
-            const vote = await VoteService.get({
-                voteRoute: firebaseRoute.getUserCommentVoteRoute(userId),
-                voteId: comment.id!,
-            });
-            setUserVote(vote as Vote);
-        } else {
-            const vote = communityState.communityPostComments
-                ?.find((postComments) => postComments.postId === postId)
-                ?.comments.find(
-                    (commentData) => commentData.comment.id === comment.id
-                )?.userVote;
-            setUserVote(vote);
-        }
-    };
-
-    const onCommentVote = async (vote: Vote, userId: string) => {
-        if (isReply) {
-            const parentCommentRoute =
-                firebaseRoute.getCommunityPostCommentRoute(
-                    communityState.selectedCommunity?.id!,
-                    postId
-                );
-            if (!userVote) {
-                await VoteService.create({
-                    vote,
-                    voteRoute: firebaseRoute.getUserCommentVoteRoute(userId),
-                    voteId: comment.id!,
-                    rootRoute: firebaseRoute.getReplyCommentRoute(
-                        parentCommentRoute,
-                        isReply.parentId
-                    ),
-                    rootId: comment.id!,
-                });
-            } else {
-                await VoteService.update({
-                    vote,
-                    voteRoute: firebaseRoute.getUserCommentVoteRoute(userId),
-                    voteId: comment.id!,
-                    rootRoute: firebaseRoute.getReplyCommentRoute(
-                        parentCommentRoute,
-                        isReply.parentId
-                    ),
-                    rootId: comment.id!,
-                    userVote,
-                });
-                setCommentLike((prev) => ({
-                    ...prev,
-                    [userVote.field]: prev[userVote.field] - 2,
-                }));
-            }
-            setCommentLike((prev) => ({
-                ...prev,
-                [vote.field]: prev[vote.field] + 1,
-            }));
-            setUserVote(vote);
-        } else {
-            await communityAction.onPostCommentVote(
-                vote as Vote,
-                comment.id!,
-                postId
-            );
-            setSelectedCommentId(comment.id);
-        }
-    };
-
-    const onCommentDelete = async () => {
-        try {
-            setDeleteLoading(true);
-            if (isReply) {
-                const parentRoute = firebaseRoute.getCommunityPostCommentRoute(
-                    communityState.selectedCommunity?.id!,
-                    postId
-                );
-                const res = await CommentService.delete({
-                    commentRoute: firebaseRoute.getReplyCommentRoute(
-                        parentRoute,
-                        isReply.parentId
-                    ),
-                    commentId: comment.id!,
-                    rootRoute: firebaseRoute.getCommunityPostRoute(
-                        communityState.selectedCommunity?.id!
-                    ),
-                    rootId: postId,
-                    reply: {
-                        parentRoute,
-                        parentId: isReply.parentId,
-                    },
-                });
-                isReply.setReplyCommentList((prev) =>
-                    prev.filter((item) => item.id !== comment.id!)
-                );
-            } else {
-                await communityAction.onDeletePostComment(comment, postId);
-            }
-            setDeleteLoading(false);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
-    useEffect(() => {
-        if (user) {
-            getUserVote(user.uid);
-        }
-    }, [selectedCommentId, isReply, user]);
-
-    useEffect(() => {
-        setCommentLike({
-            numberOfLikes: comment.numberOfLikes,
-            numberOfDislikes: comment.numberOfDislikes,
-        });
-    }, [comment]);
-
-    useEffect(() => {
-        if (comment.numberOfReplies > 0) {
-            const commentRoute = firebaseRoute.getCommunityPostCommentRoute(
-                communityState.selectedCommunity?.id!,
-                postId
-            );
-            getReplyCommentList(commentRoute, comment.id!);
-        }
-    }, [
-        replyCommentPagination.page,
-        communityState.selectedCommunity,
-        postId,
-        comment.id,
-    ]);
+    }, [commentDatas]);
 
     return (
         <Flex p={2} w="100%">
@@ -268,10 +99,16 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                     <VotePopup
                         voteList={basicVoteList}
                         onVote={async (vote) => {
-                            if (!user) {
-                                return;
-                            }
-                            await onCommentVote(vote as Vote, user.uid);
+                            await postAction[postState.field!].voteComment(
+                                vote as Vote,
+                                comment.id!,
+                                postId,
+                                isReply
+                                    ? {
+                                          parentId: isReply.parentId,
+                                      }
+                                    : undefined
+                            );
                         }}
                         userVoteValue={userVote}
                         triggerIconSize={20}
@@ -299,18 +136,28 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                                     as={AiOutlineDelete}
                                     cursor="pointer"
                                     fontSize={18}
-                                    onClick={onCommentDelete}
+                                    onClick={async () => {
+                                        setDeleteLoading(true);
+                                        await postAction[
+                                            postState.field!
+                                        ].deleteComment(
+                                            comment,
+                                            postId,
+                                            isReply
+                                        );
+                                        setDeleteLoading(false);
+                                    }}
                                 />
                             )}
                         </>
                     )}
-                    {commentLike.numberOfLikes > 0 ||
-                        (commentLike.numberOfDislikes > 0 && (
+                    {comment.numberOfLikes > 0 ||
+                        (comment.numberOfDislikes > 0 && (
                             <Box w="1" h="1" rounded="full" bg="gray.500" />
                         ))}
-                    {commentLike.numberOfLikes > 0 && (
+                    {comment.numberOfLikes > 0 && (
                         <HStack align="center" spacing={1}>
-                            <Text>{commentLike.numberOfLikes}</Text>
+                            <Text>{comment.numberOfLikes}</Text>
                             <Icon
                                 as={
                                     basicVoteList.find(
@@ -325,9 +172,9 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                             />
                         </HStack>
                     )}
-                    {commentLike.numberOfDislikes > 0 && (
+                    {comment.numberOfDislikes > 0 && (
                         <HStack align="center" spacing={1}>
-                            <Text>{commentLike.numberOfDislikes}</Text>
+                            <Text>{comment.numberOfDislikes}</Text>
                             <Icon
                                 as={
                                     basicVoteList.find(
@@ -346,57 +193,69 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                 {showReplyComment && (
                     <Box w="100%">
                         <CommentInputBasic
-                            onSubmit={onCommentReply}
+                            onSubmit={async (commentText) => {
+                                await postAction[postState.field!].replyComment(
+                                    commentText,
+                                    postId,
+                                    comment.id!
+                                );
+                                setShowReplyComment(false);
+                            }}
                             loading={false}
                             placeholder="Phản hồi..."
                         />
                     </Box>
                 )}
-                {!showReplyCommentList && replyCommentList.length > 0 && (
-                    <Link
-                        color="gray.600"
-                        fontSize={14}
-                        fontWeight={500}
-                        mt={2}
-                        onClick={() => setShowReplyCommentList(true)}
-                    >
-                        Xem phản hồi...
-                    </Link>
-                )}
-                {showReplyCommentList && (
+                {!showReplyCommentList &&
+                    replyCommentDatas &&
+                    replyCommentDatas.length > 0 && (
+                        <Link
+                            color="gray.600"
+                            fontSize={14}
+                            fontWeight={500}
+                            mt={2}
+                            onClick={() => setShowReplyCommentList(true)}
+                        >
+                            Xem phản hồi...
+                        </Link>
+                    )}
+                {showReplyCommentList && replyCommentDatas && (
                     <Flex direction={"column"} w="100%">
-                        {replyCommentList.map((c) => (
+                        {replyCommentDatas.map((replyCommentData) => (
                             <PostCommentItem
-                                key={c.id}
-                                comment={c}
+                                key={replyCommentData.comment.id}
+                                comment={replyCommentData.comment}
                                 postId={postId}
                                 isReply={{
                                     parentId: comment.id!,
-                                    setReplyCommentList,
                                 }}
                                 canReply={false}
                             />
                         ))}
-                        {replyCommentPagination.loading && (
-                            <PostCommentSkeleton />
-                        )}
-                        {replyCommentPagination.page <
-                            replyCommentPagination.totalPage && (
-                            <Button
-                                alignSelf="center"
-                                variant={"link"}
-                                color="brand.100"
-                                onClick={() =>
-                                    setReplyCommentPagination((prev) => ({
-                                        ...prev,
-                                        page: prev.page + 1,
-                                    }))
-                                }
-                                mt={2}
-                            >
-                                Xem thêm
-                            </Button>
-                        )}
+                        {replyCommentPaginationInput &&
+                            replyCommentPaginationInput.loading && (
+                                <PostCommentSkeleton />
+                            )}
+                        {replyCommentPaginationInput &&
+                            replyCommentPaginationInput.page <
+                                replyCommentPaginationInput.totalPage && (
+                                <Button
+                                    alignSelf="center"
+                                    variant={"link"}
+                                    color="brand.100"
+                                    onClick={() =>
+                                        postAction[
+                                            postState.field!
+                                        ].loadMoreReplyComment(
+                                            comment.id!,
+                                            postId
+                                        )
+                                    }
+                                    mt={2}
+                                >
+                                    Xem thêm
+                                </Button>
+                            )}
                     </Flex>
                 )}
             </VStack>

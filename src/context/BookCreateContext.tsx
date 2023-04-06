@@ -91,41 +91,50 @@ export const BookCreateProvider = ({ children }: any) => {
             toggleView("login");
             return;
         }
-        const valRes = await validateCreateBook(bookForm, book?.name);
-        if (!valRes.result) {
-            setErrors(valRes.errors);
-            return;
-        } else {
-            setErrors([]);
-        }
-        if (!book) {
-            await BookService.create({
-                userId: user.uid,
-                bookForm,
-                characters,
-            });
+        try {
+            const valRes = await validateCreateBook(bookForm, book?.name);
+            if (!valRes.result) {
+                setErrors(valRes.errors);
+                return;
+            } else {
+                setErrors([]);
+            }
+            if (!book) {
+                await BookService.create({
+                    userId: user.uid,
+                    bookForm,
+                    characters,
+                });
+                toast({
+                    ...toastOption,
+                    title: "Tạo thành công",
+                    status: "success",
+                });
+                setBookForm(defaultBookForm);
+                setCharacters([]);
+                setCharacterForm(defaultCharacterForm);
+            } else {
+                await BookService.update({
+                    book,
+                    bookForm,
+                    userId: user.uid,
+                    characters,
+                });
+                toast({
+                    ...toastOption,
+                    title: book
+                        ? "Thay đổi thông tin thành công"
+                        : "Tạo thành công",
+                    status: "success",
+                });
+            }
+        } catch (error) {
             toast({
                 ...toastOption,
-                title: "Tạo thành công",
-                status: "success",
+                title: "Có lỗi xảy ra! Vui lòng thử lại",
+                status: "error",
             });
-            setBookForm(defaultBookForm);
-            setCharacters([]);
-            setCharacterForm(defaultCharacterForm);
-        } else {
-            await BookService.update({
-                book,
-                bookForm,
-                userId: user.uid,
-                characters,
-            });
-            toast({
-                ...toastOption,
-                title: book
-                    ? "Thay đổi thông tin thành công"
-                    : "Tạo thành công",
-                status: "success",
-            });
+            console.log(error);
         }
     };
 

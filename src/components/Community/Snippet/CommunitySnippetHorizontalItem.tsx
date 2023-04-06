@@ -6,6 +6,7 @@ import {
     Box,
     Flex,
     FlexProps,
+    HStack,
     Link,
     Text,
     VStack,
@@ -36,10 +37,10 @@ const CommunitySnippetHorizontalItem: React.FC<
                 <Flex>
                     <Avatar
                         src={community.imageUrl || "/images/noImage.jpg"}
-                        size="lg"
+                        size="xl"
                     />
                     <VStack align="flex-start" ml={8}>
-                        <Flex align="center">
+                        <HStack align="center">
                             <Text noOfLines={1} fontWeight={600}>
                                 {community.name}
                             </Text>
@@ -47,7 +48,6 @@ const CommunitySnippetHorizontalItem: React.FC<
                                 flexShrink={0}
                                 fontSize={12}
                                 fontStyle="italic"
-                                ml={2}
                                 color="brand.400"
                             >
                                 {
@@ -57,7 +57,10 @@ const CommunitySnippetHorizontalItem: React.FC<
                                     )?.label
                                 }
                             </Text>
-                        </Flex>
+                        </HStack>
+                        <Text color="gray.500">
+                            {community.numberOfMembers} thành viên
+                        </Text>
                         <Tag label={community.bookName} />
                     </VStack>
                 </Flex>

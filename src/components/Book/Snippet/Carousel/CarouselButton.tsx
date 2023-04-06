@@ -44,7 +44,7 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
             bg="gray.500"
             opacity="30%"
             _hover={{ bg: "brand.700", opacity: "100%" }}
-            transition="all 0.3s"
+            transition="opacity 0.3s, bg 0.3s"
             size="md"
             onClick={async () => {
                 if (btnPos === "left") {
