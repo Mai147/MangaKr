@@ -23,7 +23,7 @@ const edit: React.FC<editProps> = ({ review, user }) => {
         );
     }
     return (
-        <Box p={6} bg="white" borderRadius={4} boxShadow="lg">
+        <Box p={6} bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
             <ReviewForm user={user} bookId={review.bookId} review={review} />
         </Box>
     );

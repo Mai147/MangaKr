@@ -3,6 +3,30 @@ import { AuthorSnippet } from "./Author";
 import { CharacterSnippet } from "./Character";
 import { GenreSnippet } from "./Genre";
 
+export type FilterValue = "rating" | "popularity" | "numberOfReviews";
+
+type FilterLabel = "Điểm Đánh Giá" | "Số Người Đọc" | "Số Bài Đánh Giá";
+
+export type Filter = {
+    label: FilterLabel;
+    value: FilterValue;
+};
+
+export const filterList: Filter[] = [
+    {
+        label: "Số Người Đọc",
+        value: "popularity",
+    },
+    {
+        label: "Số Bài Đánh Giá",
+        value: "numberOfReviews",
+    },
+    {
+        label: "Điểm Đánh Giá",
+        value: "rating",
+    },
+];
+
 export type BookStatus = "DONE" | "GOING" | "DROP";
 
 export const bookStatusList: BookStatusOption[] = [

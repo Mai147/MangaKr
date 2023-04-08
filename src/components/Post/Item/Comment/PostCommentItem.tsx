@@ -1,6 +1,6 @@
 import CommentInputBasic from "@/components/Comment/CommentInputBasic";
 import useAuth from "@/hooks/useAuth";
-import { usePost } from "@/hooks/usePost";
+import { useComment } from "@/hooks/useComment";
 import { Comment } from "@/models/Comment";
 import { basicVoteList, Vote } from "@/models/Vote";
 import {
@@ -40,39 +40,26 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
 }) => {
     const [showReplyComment, setShowReplyComment] = useState(false);
     const [showReplyCommentList, setShowReplyCommentList] = useState(false);
-    const [deleteLoading, setDeleteLoading] = useState(false);
     const { user } = useAuth();
-    const { postAction, postState } = usePost();
+    const { commentAction, commentState } = useComment();
 
-    const commentDatas = useMemo(() => {
-        return postState.postList[postState.field!].find(
-            (item) => item.post.id === postId
-        )?.commentData;
-    }, [postState.selected, postState.postList[postState.field!]]);
+    const commentData = useMemo(() => {
+        return isReply
+            ? commentState.commentPaginationOutput.commentDatas
+                  .find((item) => item.comment.id === isReply.parentId)
+                  ?.replyComments?.find(
+                      (item) => item.comment.id === comment.id
+                  )
+            : commentState.commentPaginationOutput.commentDatas.find(
+                  (item) => item.comment.id === comment.id
+              );
+    }, [commentState.commentPaginationOutput.commentDatas]);
 
-    const replyCommentDatas = useMemo(() => {
-        return commentDatas?.find((item) => item.comment.id === comment.id)
-            ?.replyComments;
-    }, [commentDatas]);
-
-    const replyCommentPaginationInput = useMemo(() => {
-        return postState.paginationInput[postState.field!].replyComment.find(
-            (item) => item.commentId === comment.id
-        )?.inputState;
-    }, [postState.selected, postState.paginationInput[postState.field!]]);
-
-    const userVote = useMemo(() => {
-        if (commentDatas) {
-            return isReply
-                ? commentDatas
-                      ?.find((item) => item.comment.id === isReply.parentId)
-                      ?.replyComments?.find(
-                          (item) => item.comment.id === comment.id
-                      )?.voteValue
-                : commentDatas?.find((item) => item.comment.id === comment.id)
-                      ?.voteValue;
-        }
-    }, [commentDatas]);
+    const replyPaginationOutput = useMemo(() => {
+        return commentState.replyCommentPaginationOutput.find(
+            (item) => item.commentId === isReply?.parentId
+        );
+    }, [commentState.replyCommentPaginationOutput]);
 
     return (
         <Flex p={2} w="100%">
@@ -99,18 +86,13 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                     <VotePopup
                         voteList={basicVoteList}
                         onVote={async (vote) => {
-                            await postAction[postState.field!].voteComment(
+                            await commentAction.vote(
                                 vote as Vote,
                                 comment.id!,
-                                postId,
                                 isReply
-                                    ? {
-                                          parentId: isReply.parentId,
-                                      }
-                                    : undefined
                             );
                         }}
-                        userVoteValue={userVote}
+                        userVoteValue={commentData?.voteValue}
                         triggerIconSize={20}
                     />
                     {canReply && (
@@ -129,7 +111,9 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                     {user?.uid === comment.creatorId && (
                         <>
                             <Box w="1" h="1" rounded="full" bg="gray.500" />
-                            {deleteLoading ? (
+                            {commentState.loading.deleteComment.find(
+                                (item) => item.commentId === comment.id
+                            )?.loading ? (
                                 <Spinner size="sm" />
                             ) : (
                                 <Icon
@@ -137,15 +121,10 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                                     cursor="pointer"
                                     fontSize={18}
                                     onClick={async () => {
-                                        setDeleteLoading(true);
-                                        await postAction[
-                                            postState.field!
-                                        ].deleteComment(
+                                        await commentAction.delete(
                                             comment,
-                                            postId,
                                             isReply
                                         );
-                                        setDeleteLoading(false);
                                     }}
                                 />
                             )}
@@ -194,21 +173,25 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                     <Box w="100%">
                         <CommentInputBasic
                             onSubmit={async (commentText) => {
-                                await postAction[postState.field!].replyComment(
+                                await commentAction.reply(
                                     commentText,
-                                    postId,
                                     comment.id!
                                 );
                                 setShowReplyComment(false);
                             }}
-                            loading={false}
+                            loading={
+                                commentState.loading.reply.find(
+                                    (item) =>
+                                        item.commentId === isReply?.parentId
+                                )?.loading || false
+                            }
                             placeholder="Phản hồi..."
                         />
                     </Box>
                 )}
                 {!showReplyCommentList &&
-                    replyCommentDatas &&
-                    replyCommentDatas.length > 0 && (
+                    commentData?.replyComments &&
+                    commentData!.replyComments!.length > 0 && (
                         <Link
                             color="gray.600"
                             fontSize={14}
@@ -219,9 +202,9 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                             Xem phản hồi...
                         </Link>
                     )}
-                {showReplyCommentList && replyCommentDatas && (
+                {showReplyCommentList && commentData?.replyComments && (
                     <Flex direction={"column"} w="100%">
-                        {replyCommentDatas.map((replyCommentData) => (
+                        {commentData!.replyComments!.map((replyCommentData) => (
                             <PostCommentItem
                                 key={replyCommentData.comment.id}
                                 comment={replyCommentData.comment}
@@ -232,24 +215,18 @@ const PostCommentItem: React.FC<PostCommentItemProps> = ({
                                 canReply={false}
                             />
                         ))}
-                        {replyCommentPaginationInput &&
-                            replyCommentPaginationInput.loading && (
-                                <PostCommentSkeleton />
-                            )}
-                        {replyCommentPaginationInput &&
-                            replyCommentPaginationInput.page <
-                                replyCommentPaginationInput.totalPage && (
+                        {commentState.loading.getReply.find(
+                            (item) => item.commentId === isReply?.parentId
+                        )?.loading && <PostCommentSkeleton />}
+                        {replyPaginationOutput &&
+                            replyPaginationOutput.page <
+                                replyPaginationOutput.totalPage && (
                                 <Button
                                     alignSelf="center"
                                     variant={"link"}
                                     color="brand.100"
                                     onClick={() =>
-                                        postAction[
-                                            postState.field!
-                                        ].loadMoreReplyComment(
-                                            comment.id!,
-                                            postId
-                                        )
+                                        commentAction.loadMoreReply(comment.id!)
                                     }
                                     mt={2}
                                 >

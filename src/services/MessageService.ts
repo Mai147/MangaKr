@@ -6,7 +6,6 @@ import FileUtils from "@/utils/FileUtils";
 import MessageUtils from "@/utils/MessageUtils";
 import { isToday } from "@/utils/StringUtils";
 import {
-    arrayUnion,
     collection,
     doc,
     getDoc,
@@ -129,7 +128,8 @@ class MessageService {
                         displayName: receiverDisplayName,
                         imageUrl: receiverImageUrl,
                         latestMessage: senderLatestContent,
-                        latestImages: messageForm.imageUrls,
+                        // latestImages: messageForm.imageUrls,
+                        latestImages: [],
                         numberOfUnseens: 0,
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "SEND",
@@ -138,7 +138,8 @@ class MessageService {
                 } else {
                     transaction.update(senderMessageDocRef, {
                         latestMessage: senderLatestContent,
-                        latestImages: messageForm.imageUrls,
+                        // latestImages: messageForm.imageUrls,
+                        latestImages: [],
                         numberOfUnseens: 0,
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "SEND",
@@ -166,7 +167,8 @@ class MessageService {
                         displayName: senderDisplayName,
                         imageUrl: senderImageUrl,
                         latestMessage: receiverLatestContent,
-                        latestImages: messageForm.imageUrls,
+                        // latestImages: messageForm.imageUrls,
+                        latestImages: [],
                         numberOfUnseens: 1,
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "RECEIVE",
@@ -175,7 +177,8 @@ class MessageService {
                 } else {
                     transaction.update(receiverMessageDocRef, {
                         latestMessage: receiverLatestContent,
-                        latestImages: messageForm.imageUrls,
+                        // latestImages: messageForm.imageUrls,
+                        latestImages: [],
                         numberOfUnseens: increment(1),
                         latestCreatedAt: serverTimestamp() as Timestamp,
                         type: "RECEIVE",
@@ -204,10 +207,20 @@ class MessageService {
                         senderLatestMessageId
                     );
                     if (messageForm.latestContent) {
-                        transaction.update(senderMessageDetailDocRef, {
-                            contents: arrayUnion(messageForm.latestContent),
-                            createdAt: serverTimestamp() as Timestamp,
-                        });
+                        const senderMessageDetailDoc = await getDoc(
+                            senderMessageDetailDocRef
+                        );
+                        if (senderMessageDetailDoc.exists()) {
+                            const { contents } = senderMessageDetailDoc.data();
+                            const newContents = [
+                                ...contents,
+                                messageForm.latestContent,
+                            ];
+                            transaction.update(senderMessageDetailDocRef, {
+                                contents: newContents,
+                                createdAt: serverTimestamp() as Timestamp,
+                            });
+                        }
                     } else {
                         transaction.update(senderMessageDetailDocRef, {
                             createdAt: serverTimestamp() as Timestamp,
@@ -217,6 +230,8 @@ class MessageService {
                     senderMessageDetailDocRef = newMessageDocRef;
                     transaction.set(senderMessageDetailDocRef, {
                         ...messageForm,
+                        imageUrls: [],
+                        imageRefs: [],
                         id: senderMessageDetailDocRef.id,
                         type: "SEND",
                         contents: messageForm.latestContent
@@ -231,10 +246,21 @@ class MessageService {
                         receiverLatestMessageId
                     );
                     if (messageForm.latestContent) {
-                        transaction.update(receiverMessageDetailDocRef, {
-                            contents: arrayUnion(messageForm.latestContent),
-                            createdAt: serverTimestamp() as Timestamp,
-                        });
+                        const receiverMessageDetailDoc = await getDoc(
+                            receiverMessageDetailDocRef
+                        );
+                        if (receiverMessageDetailDoc.exists()) {
+                            const { contents } =
+                                receiverMessageDetailDoc.data();
+                            const newContents = [
+                                ...contents,
+                                messageForm.latestContent,
+                            ];
+                            transaction.update(receiverMessageDetailDocRef, {
+                                contents: newContents,
+                                createdAt: serverTimestamp() as Timestamp,
+                            });
+                        }
                     } else {
                         transaction.update(receiverMessageDetailDocRef, {
                             createdAt: serverTimestamp() as Timestamp,
@@ -247,6 +273,8 @@ class MessageService {
                     );
                     transaction.set(receiverMessageDetailDocRef, {
                         ...messageForm,
+                        imageUrls: [],
+                        imageRefs: [],
                         id: senderMessageDetailDocRef.id,
                         type: "RECEIVE",
                         contents: messageForm.latestContent
@@ -262,6 +290,12 @@ class MessageService {
                     imageUrls: messageForm.imageUrls,
                 });
                 if (res) {
+                    transaction.update(senderMessageDocRef, {
+                        latestImages: res.downloadUrls,
+                    });
+                    transaction.update(receiverMessageDocRef, {
+                        latestImages: res.downloadUrls,
+                    });
                     transaction.update(senderMessageDetailDocRef, {
                         imageUrls: res.downloadUrls,
                         imageRefs: res.downloadRefs,

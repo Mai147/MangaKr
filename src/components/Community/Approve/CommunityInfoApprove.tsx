@@ -3,10 +3,12 @@ import PostHorizontalSnippetItem from "@/components/Post/Snippet/PostHorizontalS
 import TableHeader, { TableInfoHeader } from "@/components/Table/TableHeader";
 import { POST_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
-import usePagination, {
+import useTestPagination, {
     defaultPaginationInput,
+    defaultPaginationOutput,
     PaginationInput,
-} from "@/hooks/usePagination";
+    PaginationOutput,
+} from "@/hooks/useTestPagination";
 import { Community } from "@/models/Community";
 import { Post } from "@/models/Post";
 import { Topic } from "@/models/Topic";
@@ -32,17 +34,34 @@ type CommunityInfoApproveProps = {
     community: Community;
 };
 
-interface CommunityInfoPaginationInput extends PaginationInput {
-    communityId: string;
+type CommunityInfoApproveState = {
+    field: "topics" | "posts";
     reload: boolean;
-    type: "topics" | "posts";
-}
+    topics: {
+        input: PaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
+    posts: {
+        input: PaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
+};
 
-const defaultCommunityInfoPaginationInput: CommunityInfoPaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: POST_PAGE_COUNT,
-    communityId: "",
-    type: "posts",
+const defaultPaginationState = {
+    input: {
+        ...defaultPaginationInput,
+        pageCount: POST_PAGE_COUNT,
+    },
+    output: defaultPaginationOutput,
+    loading: true,
+};
+
+const defaultCommunityApproveState: CommunityInfoApproveState = {
+    field: "posts",
+    posts: defaultPaginationState,
+    topics: defaultPaginationState,
     reload: false,
 };
 
@@ -85,58 +104,62 @@ export const topicHeaderList: TableInfoHeader[] = [
 const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
     community,
 }) => {
-    const [communityInfoPaginationInput, setCommunityInfoPaginationInput] =
-        useState<CommunityInfoPaginationInput>(
-            defaultCommunityInfoPaginationInput
-        );
-    const [postList, setPostList] = useState<Post[]>([]);
-    const [topicList, setTopicList] = useState<Topic[]>([]);
-    const { getPosts, getTopics } = usePagination();
+    const [communityApproveState, setCommunityApproveState] =
+        useState<CommunityInfoApproveState>(defaultCommunityApproveState);
+    const { getPosts, getTopics } = useTestPagination();
 
     const getCommunityInfos = async () => {
-        setCommunityInfoPaginationInput((prev) => ({
+        setCommunityApproveState((prev) => ({
             ...prev,
-            loading: true,
+            [communityApproveState.field]: {
+                ...prev[communityApproveState.field],
+                loading: true,
+            },
         }));
         let res: any = {};
-        switch (communityInfoPaginationInput.type) {
+        const input: PaginationInput = {
+            ...communityApproveState[communityApproveState.field].input,
+            page: communityApproveState.reload
+                ? 1
+                : communityApproveState[communityApproveState.field].input.page,
+            isFirst: communityApproveState.reload
+                ? true
+                : communityApproveState[communityApproveState.field].input
+                      .isFirst,
+            setDocValue: (docValue: any) => {
+                setCommunityApproveState((prev) => ({
+                    ...prev,
+                    [prev.field]: {
+                        ...prev[prev.field],
+                        input: {
+                            ...prev[prev.field].input,
+                            docValue,
+                        },
+                    },
+                }));
+            },
+        };
+        switch (communityApproveState.field) {
             case "posts": {
-                res = await getPosts({
-                    ...communityInfoPaginationInput,
-                    page: communityInfoPaginationInput.reload
-                        ? 1
-                        : communityInfoPaginationInput.page,
-                    isFirst: communityInfoPaginationInput.reload
-                        ? true
-                        : communityInfoPaginationInput.isFirst,
-                    communityId: community.id,
-                    isAccept: false,
-                });
-                setPostList(res.posts);
+                res = await getPosts({ ...input, communityId: community.id! });
                 break;
             }
             case "topics": {
-                res = await getTopics({
-                    ...communityInfoPaginationInput,
-                    page: communityInfoPaginationInput.reload
-                        ? 1
-                        : communityInfoPaginationInput.page,
-                    isFirst: communityInfoPaginationInput.reload
-                        ? true
-                        : communityInfoPaginationInput.isFirst,
-                    communityId: community.id!,
-                    isAccept: false,
-                });
-                setTopicList(res.topics);
+                res = await getTopics({ ...input, communityId: community.id! });
                 break;
             }
         }
-        setCommunityInfoPaginationInput((prev) => ({
+        setCommunityApproveState((prev) => ({
             ...prev,
-            isFirst: false,
-            loading: false,
-            page: prev.reload ? 1 : prev.page,
-            totalPage: res.totalPage || 0,
+            [prev.field]: {
+                ...prev[prev.field],
+                loading: false,
+                output: res,
+                input: {
+                    ...prev[prev.field].input,
+                    isFirst: false,
+                },
+            },
             reload: false,
         }));
     };
@@ -147,11 +170,19 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
         isAccept: boolean
     ) => {
         await PostService.approve({ post, community, isAccept });
-        setCommunityInfoPaginationInput((prev) => ({
+        setCommunityApproveState((prev) => ({
             ...prev,
             reload: true,
+            posts: {
+                ...prev.posts,
+                output: {
+                    ...prev.posts.output,
+                    list: prev.posts.output.list.filter(
+                        (item: Post) => item.id !== post.id
+                    ),
+                },
+            },
         }));
-        setPostList((prev) => prev.filter((item) => item.id !== post.id));
     };
 
     const handleApproveTopic = async (
@@ -160,16 +191,34 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
         isAccept: boolean
     ) => {
         await TopicService.approve({ topic, community, isAccept });
-        setCommunityInfoPaginationInput((prev) => ({
+        setCommunityApproveState((prev) => ({
             ...prev,
             reload: true,
+            topics: {
+                ...prev.topics,
+                output: {
+                    ...prev.topics.output,
+                    list: prev.topics.output.list.filter(
+                        (item: Topic) => item.id !== topic.id
+                    ),
+                },
+            },
         }));
-        setTopicList((prev) => prev.filter((item) => item.id !== topic.id));
     };
 
     useEffect(() => {
         getCommunityInfos();
-    }, [communityInfoPaginationInput.page, communityInfoPaginationInput.type]);
+    }, [
+        communityApproveState.field,
+        communityApproveState[communityApproveState.field].input.page,
+    ]);
+
+    useEffect(() => {
+        setCommunityApproveState((prev) => ({
+            ...defaultCommunityApproveState,
+            field: prev.field,
+        }));
+    }, [communityApproveState.field]);
 
     return (
         <Flex direction="column" flexGrow={1} justify="space-between">
@@ -186,14 +235,11 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                         <Select
                             w="250px"
                             borderColor="gray.400"
-                            value={communityInfoPaginationInput.type}
+                            value={communityApproveState.field}
                             onChange={(e) => {
-                                setCommunityInfoPaginationInput((prev) => ({
+                                setCommunityApproveState((prev) => ({
                                     ...prev,
-                                    page: 1,
-                                    isFirst: true,
-                                    isNext: true,
-                                    type: e.target.value as "topics" | "posts",
+                                    field: e.target.value as any,
                                 }));
                             }}
                         >
@@ -214,25 +260,51 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                     </HStack>
                 </Flex>
                 <Divider borderColor="gray.300" />
-                {communityInfoPaginationInput.type === "posts" ? (
+                {communityApproveState.field === "posts" ? (
                     <TableHeader list={postHeaderList} />
                 ) : (
                     <TableHeader list={topicHeaderList} />
                 )}
                 <Divider borderColor="gray.300" />
-                {communityInfoPaginationInput.loading ? (
+                {communityApproveState[communityApproveState.field].loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>
                         <Spinner />
                     </Flex>
-                ) : communityInfoPaginationInput.type === "posts" ? (
-                    postList && postList.length > 0 ? (
-                        postList.map((post) => (
-                            <Box key={post.id} w="100%">
-                                <PostHorizontalSnippetItem
-                                    post={post}
+                ) : communityApproveState.field === "posts" ? (
+                    communityApproveState.posts.output.list &&
+                    communityApproveState.posts.output.list.length > 0 ? (
+                        communityApproveState.posts.output.list.map(
+                            (post: Post) => (
+                                <Box key={post.id} w="100%">
+                                    <PostHorizontalSnippetItem
+                                        post={post}
+                                        handleApprove={async (isAccept) => {
+                                            await handleApprovePost(
+                                                post,
+                                                community,
+                                                isAccept
+                                            );
+                                        }}
+                                    />
+                                    <Divider borderColor="gray.300" />
+                                </Box>
+                            )
+                        )
+                    ) : (
+                        <Flex align="center" justify="center" w="100%" py={10}>
+                            <Text>Không có bài viết cần phê duyệt</Text>
+                        </Flex>
+                    )
+                ) : communityApproveState.topics.output.list &&
+                  communityApproveState.topics.output.list.length > 0 ? (
+                    communityApproveState.topics.output.list.map(
+                        (topic: Topic) => (
+                            <Box key={topic.id} w="100%">
+                                <TopicHorizontalSnippetItem
+                                    topic={topic}
                                     handleApprove={async (isAccept) => {
-                                        await handleApprovePost(
-                                            post,
+                                        await handleApproveTopic(
+                                            topic,
                                             community,
                                             isAccept
                                         );
@@ -240,28 +312,8 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                                 />
                                 <Divider borderColor="gray.300" />
                             </Box>
-                        ))
-                    ) : (
-                        <Flex align="center" justify="center" w="100%" py={10}>
-                            <Text>Không có bài viết cần phê duyệt</Text>
-                        </Flex>
+                        )
                     )
-                ) : topicList && topicList.length > 0 ? (
-                    topicList.map((topic) => (
-                        <Box key={topic.id} w="100%">
-                            <TopicHorizontalSnippetItem
-                                topic={topic}
-                                handleApprove={async (isAccept) => {
-                                    await handleApproveTopic(
-                                        topic,
-                                        community,
-                                        isAccept
-                                    );
-                                }}
-                            />
-                            <Divider borderColor="gray.300" />
-                        </Box>
-                    ))
                 ) : (
                     <Flex align="center" justify="center" w="100%" py={10}>
                         <Text>Không có chủ đề cần phê duyệt</Text>
@@ -270,20 +322,38 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
             </VStack>
             <Flex align="center" py={6} justify="center" w="100%">
                 <Pagination
-                    page={communityInfoPaginationInput.page}
-                    totalPage={communityInfoPaginationInput.totalPage}
+                    page={
+                        communityApproveState[communityApproveState.field]
+                            .output.page
+                    }
+                    totalPage={
+                        communityApproveState[communityApproveState.field]
+                            .output.totalPage
+                    }
                     onNext={() =>
-                        setCommunityInfoPaginationInput((prev) => ({
+                        setCommunityApproveState((prev) => ({
                             ...prev,
-                            page: prev.page + 1,
-                            isNext: true,
+                            [prev.field]: {
+                                ...prev[prev.field],
+                                input: {
+                                    ...prev[prev.field].input,
+                                    page: prev[prev.field].input.page + 1,
+                                    isNext: true,
+                                },
+                            },
                         }))
                     }
                     onPrev={() =>
-                        setCommunityInfoPaginationInput((prev) => ({
+                        setCommunityApproveState((prev) => ({
                             ...prev,
-                            page: prev.page - 1,
-                            isNext: false,
+                            [prev.field]: {
+                                ...prev[prev.field],
+                                input: {
+                                    ...prev[prev.field].input,
+                                    page: prev[prev.field].input.page - 1,
+                                    isNext: false,
+                                },
+                            },
                         }))
                     }
                 />

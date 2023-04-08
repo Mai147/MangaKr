@@ -2,10 +2,13 @@ import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHori
 import BookCarousel from "@/components/Book/Snippet/Carousel";
 import Pagination from "@/components/Pagination";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
-import usePagination, {
+import { WRITER_PAGE_COUNT } from "@/constants/pagination";
+import useTestPagination, {
+    BookPaginationInput,
     defaultPaginationInput,
-    PaginationInput,
-} from "@/hooks/usePagination";
+    defaultPaginationOutput,
+    PaginationOutput,
+} from "@/hooks/useTestPagination";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import {
@@ -27,29 +30,38 @@ type AuthorDetailProps = {
     author: Author;
 };
 
-const defaultAuthorPaginationInput: PaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: 2,
-};
-
 const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
-    const [paginationInput, setPaginationInput] = useState(
-        defaultAuthorPaginationInput
-    );
-    const [totalPage, setTotalPage] = useState(0);
-    const [books, setBooks] = useState<Book[]>([]);
-    const { getBooks } = usePagination();
-
-    const getAuthorBooks = async (authorId: string) => {
-        const res = await getBooks({
-            ...paginationInput,
-            authorId,
+    const [authorBookPaginationInput, setAuthorBookPaginationInput] =
+        useState<BookPaginationInput>({
+            ...defaultPaginationInput,
+            pageCount: WRITER_PAGE_COUNT,
+            authorId: author.id!,
+            setDocValue: (docValue) => {
+                setAuthorBookPaginationInput((prev) => ({
+                    ...prev,
+                    docValue,
+                }));
+            },
         });
-        setBooks(res.books);
-        setTotalPage(res.totalPage || 0);
+    const [authorBookPaginationOutput, setAuthorBookPaginationOutput] =
+        useState<PaginationOutput>(defaultPaginationOutput);
+    const [loading, setLoading] = useState(false);
+    const { getBooks } = useTestPagination();
+
+    const getAuthorBooks = async () => {
+        setLoading(true);
+        const res = await getBooks(authorBookPaginationInput);
+        if (res) {
+            setAuthorBookPaginationOutput(res);
+            setAuthorBookPaginationInput((prev) => ({
+                ...prev,
+                isFirst: false,
+            }));
+        }
+        setLoading(false);
     };
 
-    const getBookGroup = () => {
+    const getBookGroup = (books: Book[]) => {
         let bookGroup = [];
         let bookTenthGroup: Book[] = [];
         books.forEach((book, idx) => {
@@ -68,12 +80,8 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
     };
 
     useEffect(() => {
-        setPaginationInput(defaultPaginationInput);
-    }, []);
-
-    useEffect(() => {
-        getAuthorBooks(author.id!);
-    }, [paginationInput.page, paginationInput.isFirst]);
+        getAuthorBooks();
+    }, [authorBookPaginationInput.page]);
 
     return (
         <Flex align="flex-start">
@@ -130,7 +138,7 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                     <Text fontSize={20} fontWeight={600}>
                         Danh sách Manga
                     </Text>
-                    {paginationInput.loading ? (
+                    {loading ? (
                         <Grid
                             templateColumns="repeat(2, minmax(0, 1fr))"
                             gap={4}
@@ -139,13 +147,19 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                             <HorizontalSkeleton size="sm" />
                             <HorizontalSkeleton size="sm" />
                         </Grid>
-                    ) : totalPage > 0 ? (
+                    ) : authorBookPaginationOutput.totalPage > 0 ? (
                         <Flex direction="column" w="100%">
                             <BookCarousel
-                                length={getBookGroup().length}
+                                length={
+                                    getBookGroup(
+                                        authorBookPaginationOutput.list
+                                    ).length
+                                }
                                 type="grid"
                             >
-                                {getBookGroup().map((bookGroup) => (
+                                {getBookGroup(
+                                    authorBookPaginationOutput.list
+                                ).map((bookGroup) => (
                                     <Grid
                                         templateColumns="repeat(2, 1fr)"
                                         gap={4}
@@ -162,17 +176,17 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                                 ))}
                             </BookCarousel>
                             <Pagination
-                                page={paginationInput.page}
-                                totalPage={totalPage}
+                                page={authorBookPaginationOutput.page}
+                                totalPage={authorBookPaginationOutput.totalPage}
                                 onNext={() => {
-                                    setPaginationInput((prev) => ({
+                                    setAuthorBookPaginationInput((prev) => ({
                                         ...prev,
                                         page: prev.page + 1,
                                         isNext: true,
                                     }));
                                 }}
                                 onPrev={() => {
-                                    setPaginationInput((prev) => ({
+                                    setAuthorBookPaginationInput((prev) => ({
                                         ...prev,
                                         page: prev.page - 1,
                                         isNext: false,

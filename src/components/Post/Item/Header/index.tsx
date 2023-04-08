@@ -73,7 +73,9 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
                     >
                         {user &&
                             user.uid === post.creatorId &&
-                            (deletePostLoading ? (
+                            (postState.loading.delete.find(
+                                (item) => item.postId === post.id
+                            )?.loading ? (
                                 <Flex
                                     align="center"
                                     justify="center"
@@ -85,13 +87,13 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
                             ) : (
                                 <Button
                                     variant="unstyled"
-                                    isDisabled={deletePostLoading}
+                                    isDisabled={
+                                        postState.loading.delete.find(
+                                            (item) => item.postId === post.id
+                                        )?.loading
+                                    }
                                     onClick={async () => {
-                                        setDeletePostLoading(true);
-                                        await postAction[
-                                            postState.field!
-                                        ].delete(post);
-                                        setDeletePostLoading(false);
+                                        await postAction.delete(post);
                                     }}
                                 >
                                     <Flex align="center">

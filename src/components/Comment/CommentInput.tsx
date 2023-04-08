@@ -18,6 +18,7 @@ const CommentInputs: React.FC<CommentInputProps> = ({
     user,
 }) => {
     const formRef = useRef<HTMLFormElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     return (
         <form
             onSubmit={(e) => {
@@ -36,6 +37,7 @@ const CommentInputs: React.FC<CommentInputProps> = ({
                             </span>
                         </Text>
                         <Textarea
+                            ref={inputRef}
                             value={commentText}
                             onChange={(event) =>
                                 setCommentText(event.target.value)
@@ -43,13 +45,14 @@ const CommentInputs: React.FC<CommentInputProps> = ({
                             onKeyDown={(e) => {
                                 if (e.key === "Enter" && !e.shiftKey) {
                                     e.preventDefault();
-                                    setCommentText("");
+                                    inputRef.current?.blur();
                                     formRef.current?.dispatchEvent(
                                         new Event("submit", {
                                             cancelable: true,
                                             bubbles: true,
                                         })
                                     );
+                                    setCommentText("");
                                 }
                             }}
                             placeholder="Để lại bình luận..."

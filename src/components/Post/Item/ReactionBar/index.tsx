@@ -52,21 +52,12 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
                     <VotePopup
                         voteList={postVoteList}
                         userVoteValue={
-                            postState.selected.user
-                                ? postState.postList.user.find(
-                                      (item) => item.post.id === post.id
-                                  )?.voteValue
-                                : postState.postList.community.find(
-                                      (item) => item.post.id === post.id
-                                  )?.voteValue
+                            postState.output.list.find(
+                                (item) => item.post.id === post.id
+                            )?.voteValue
                         }
                         onVote={async (value) => {
-                            postState.selected.user
-                                ? await postAction.user.vote(value, post.id!)
-                                : await postAction.community.vote(
-                                      value,
-                                      post.id!
-                                  );
+                            await postAction.vote(value, post.id!);
                         }}
                     />
                     <Icon

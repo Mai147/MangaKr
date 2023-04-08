@@ -1,5 +1,6 @@
 import useCommunity from "@/hooks/useCommunity";
 import { useMessage } from "@/hooks/useMessage";
+import { Message } from "@/models/Message";
 import { compareDate } from "@/utils/StringUtils";
 import { Box, Divider, Flex, Spinner, Text } from "@chakra-ui/react";
 import moment from "moment";
@@ -20,7 +21,10 @@ const MessageList: React.FC<MessageListProps> = () => {
         if (messageState.isNewMessage) {
             scrollToBottom();
         }
-    }, [messageState.isNewMessage, messageState.selectedUserMessageList]);
+    }, [
+        messageState.isNewMessage,
+        messageState.selectedUserMessage.output.list,
+    ]);
 
     return (
         <Box
@@ -33,15 +37,14 @@ const MessageList: React.FC<MessageListProps> = () => {
             maxH="100%"
             className="scroll"
         >
-            {messageState.selectedMessagePaginationInput?.loading ? (
+            {messageState.loading.getListMessageLoading ? (
                 <Flex align="center" justify="center" py={2}>
                     <Spinner />
                 </Flex>
             ) : (
                 <>
-                    {(messageState.selectedMessagePaginationInput?.page || 0) <
-                        (messageState.selectedMessagePaginationInput
-                            ?.totalPage || 0) && (
+                    {messageState.selectedUserMessage.output.page <
+                        messageState.selectedUserMessage.output.totalPage && (
                         <Flex align="center" justify="center">
                             <Text
                                 onClick={messageAction.loadMoreMessage}
@@ -55,7 +58,8 @@ const MessageList: React.FC<MessageListProps> = () => {
                         </Flex>
                     )}
                     {messageState.selectedUser &&
-                        messageState.selectedUserMessageList.length <= 0 && (
+                        messageState.selectedUserMessage.output.list.length <=
+                            0 && (
                             <Flex align="center" justify="center" h="100%">
                                 <Text>
                                     Bạn chưa có cuộc trò chuyện nào với{" "}
@@ -65,62 +69,68 @@ const MessageList: React.FC<MessageListProps> = () => {
                         )}
                 </>
             )}
-            {messageState.selectedUserMessageList.map((message, idx) => {
-                if (idx === 0) {
-                    return (
-                        <Box key={message.id}>
-                            <Flex
-                                align="center"
-                                justify="center"
-                                mb={2}
-                                position="relative"
-                            >
-                                <Box
-                                    bg="white"
-                                    py={2}
-                                    px={6}
-                                    rounded="full"
-                                    zIndex={2}
+            {messageState.selectedUserMessage.output.list.map(
+                (message: Message, idx: number) => {
+                    if (idx === 0) {
+                        return (
+                            <Box key={message.id}>
+                                <Flex
+                                    align="center"
+                                    justify="center"
+                                    mb={2}
+                                    position="relative"
                                 >
-                                    <Text>
-                                        {moment(
-                                            new Date(
-                                                message.createdAt!.seconds *
-                                                    1000
-                                            )
-                                        ).format("DD/MM/YYYY")}
-                                    </Text>
-                                </Box>
-                                <Divider
-                                    position="absolute"
-                                    top="50%"
-                                    left={0}
-                                    right={0}
-                                    borderColor="gray.300"
-                                />
-                            </Flex>
+                                    <Box
+                                        bg="white"
+                                        py={2}
+                                        px={6}
+                                        rounded="full"
+                                        zIndex={2}
+                                    >
+                                        <Text>
+                                            {moment(
+                                                new Date(
+                                                    message.createdAt!.seconds *
+                                                        1000
+                                                )
+                                            ).format("DD/MM/YYYY")}
+                                        </Text>
+                                    </Box>
+                                    <Divider
+                                        position="absolute"
+                                        top="50%"
+                                        left={0}
+                                        right={0}
+                                        borderColor="gray.300"
+                                    />
+                                </Flex>
+                                <MessageItem message={message} />
+                            </Box>
+                        );
+                    }
+                    if (
+                        !compareDate(
+                            message.createdAt!,
+                            messageState.selectedUserMessage.output.list[
+                                idx - 1
+                            ].createdAt!
+                        )
+                    ) {
+                        <Box key={message.id}>
+                            <Box>
+                                {moment(
+                                    new Date(message.createdAt!.seconds * 1000)
+                                ).format("DD/MM/YYYY")}
+                            </Box>
                             <MessageItem message={message} />
-                        </Box>
-                    );
+                        </Box>;
+                    } else {
+                        return (
+                            <MessageItem message={message} key={message.id} />
+                        );
+                    }
                 }
-                if (
-                    !compareDate(
-                        message.createdAt!,
-                        messageState.selectedUserMessageList[idx - 1].createdAt!
-                    )
-                ) {
-                    <Box key={message.id}>
-                        <Box>
-                            {moment(
-                                new Date(message.createdAt!.seconds * 1000)
-                            ).format("DD/MM/YYYY")}
-                        </Box>
-                        <MessageItem message={message} />
-                    </Box>;
-                } else {
-                    return <MessageItem message={message} key={message.id} />;
-                }
-            })}
+            )}
             <Box ref={bottomRef}></Box>
         </Box>
     );

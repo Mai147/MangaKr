@@ -2,7 +2,12 @@ import SearchDropdown from "@/components/Search/Dropdown";
 import { ValidationError } from "@/constants/validation";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import usePagination from "@/hooks/usePagination";
+import useTestPagination, {
+    BookPaginationInput,
+    defaultPaginationInput,
+    defaultPaginationOutput,
+    PaginationOutput,
+} from "@/hooks/useTestPagination";
 import { Book } from "@/models/Book";
 import {
     Community,
@@ -68,18 +73,29 @@ const CreateCommunityModal: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
 
-    const [books, setBooks] = useState<Book[]>();
-    const { getBooks } = usePagination();
-    const [search, setSearch] = useState("");
+    const [bookPaginationInput, setBookPaginationInput] =
+        useState<BookPaginationInput>({
+            ...defaultPaginationInput,
+            pageCount: 10,
+        });
+    const [bookPaginationOutput, setBookPaginationOutput] =
+        useState<PaginationOutput>(defaultPaginationOutput);
+    const { getBooks } = useTestPagination();
 
     const getSearchBooks = async () => {
-        const res = await getBooks({
-            isNext: true,
-            page: 1,
-            pageCount: 10,
-            searchValue: search,
-        });
-        setBooks(res.books);
+        const input: BookPaginationInput = {
+            ...bookPaginationInput,
+            setDocValue: (docValue) => {
+                setBookPaginationInput((prev) => ({
+                    ...prev,
+                    docValue,
+                }));
+            },
+        };
+        const res = await getBooks(input);
+        if (res) {
+            setBookPaginationOutput(res);
+        }
     };
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,18 +199,23 @@ const CreateCommunityModal: React.FC = () => {
 
                         <SearchDropdown
                             options={
-                                books?.map((book) => ({
-                                    label: book.name,
-                                    value: book.id!,
-                                })) || []
+                                bookPaginationOutput.list?.map(
+                                    (book: Book) => ({
+                                        label: book.name,
+                                        value: book.id!,
+                                    })
+                                ) || []
                             }
                             size="sm"
                             onSearch={getSearchBooks}
-                            search={search}
+                            search={bookPaginationInput.searchValue || ""}
                             isSearching={isSearching}
                             setIsSearching={setIsSearching}
                             setSearch={(value: string) => {
-                                setSearch(value);
+                                setBookPaginationInput((prev) => ({
+                                    ...prev,
+                                    searchValue: value,
+                                }));
                                 setCommunityForm((prev) => ({
                                     ...prev,
                                     bookName: value,

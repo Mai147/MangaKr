@@ -1,295 +1,165 @@
 import { SEARCH_PAGE_COUNT } from "@/constants/pagination";
-import usePagination, {
+import useTestPagination, {
+    BookPaginationInput,
+    CommunityPaginationInput,
     defaultPaginationInput,
+    defaultPaginationOutput,
     PaginationInput,
-} from "@/hooks/usePagination";
-import { Author } from "@/models/Author";
-import { Book } from "@/models/Book";
-import { Community } from "@/models/Community";
-import { Review } from "@/models/Review";
-import { UserModel } from "@/models/User";
+    PaginationOutput,
+    ReviewPaginationInput,
+    UserPaginationInput,
+} from "@/hooks/useTestPagination";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
-interface SearchBookState extends PaginationInput {
-    books: Book[];
-}
-
-interface SearchReviewState extends PaginationInput {
-    reviews: Review[];
-}
-
-interface SearchAuthorState extends PaginationInput {
-    authors: Author[];
-}
-
-interface SearchCommunityState extends PaginationInput {
-    communities: Community[];
-}
-
-interface SearchUserState extends PaginationInput {
-    users: UserModel[];
-}
-
-type tabList = "book" | "review" | "author" | "community" | "user";
+type TabList = "book" | "review" | "author" | "community" | "user";
 
 type SearchState = {
+    book: {
+        input: BookPaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
+    review: {
+        input: ReviewPaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
+    author: {
+        input: PaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
+    community: {
+        input: CommunityPaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
+    user: {
+        input: UserPaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+    };
     searchValue: string;
-    book: SearchBookState;
-    review: SearchReviewState;
-    author: SearchAuthorState;
-    community: SearchCommunityState;
-    user: SearchUserState;
-    slideToNextPage: (tab: tabList) => void;
-    slideToPrevPage: (tab: tabList) => void;
+    selectedField: TabList;
 };
 
-const defaultSearchBookState: SearchBookState = {
-    ...defaultPaginationInput,
-    books: [],
-    pageCount: SEARCH_PAGE_COUNT,
+type SearchAction = {
+    onNext: () => void;
+    onPrev: () => void;
+    setSelectedTab: (tab: TabList) => void;
 };
 
-const defaultSearchReviewState: SearchReviewState = {
-    ...defaultPaginationInput,
-    reviews: [],
-    pageCount: SEARCH_PAGE_COUNT,
+type SearchContextState = {
+    searchState: SearchState;
+    searchAction: SearchAction;
 };
 
-const defaultSearchAuthorState: SearchAuthorState = {
-    ...defaultPaginationInput,
-    authors: [],
-    pageCount: SEARCH_PAGE_COUNT,
-};
-
-const defaultSearchCommunityState: SearchCommunityState = {
-    ...defaultPaginationInput,
-    communities: [],
-    pageCount: SEARCH_PAGE_COUNT,
-};
-
-const defaultSearchUserState: SearchUserState = {
-    ...defaultPaginationInput,
-    users: [],
-    pageCount: SEARCH_PAGE_COUNT,
+const defaultPaginationState = {
+    input: {
+        ...defaultPaginationInput,
+        pageCount: SEARCH_PAGE_COUNT,
+    },
+    output: defaultPaginationOutput,
+    loading: false,
 };
 
 const defaultSearchState: SearchState = {
+    book: defaultPaginationState,
+    author: defaultPaginationState,
+    community: defaultPaginationState,
+    review: defaultPaginationState,
+    user: defaultPaginationState,
+    selectedField: "book",
     searchValue: "",
-    book: defaultSearchBookState,
-    review: defaultSearchReviewState,
-    author: defaultSearchAuthorState,
-    community: defaultSearchCommunityState,
-    user: defaultSearchUserState,
-    slideToNextPage: () => {},
-    slideToPrevPage: () => {},
 };
 
-export const SearchContext = createContext<SearchState>(defaultSearchState);
+const defaultSearchAction: SearchAction = {
+    onNext: () => {},
+    onPrev: () => {},
+    setSelectedTab: () => {},
+};
+
+const defaultSearchContextState: SearchContextState = {
+    searchState: defaultSearchState,
+    searchAction: defaultSearchAction,
+};
+
+export const SearchContext = createContext<SearchContextState>(
+    defaultSearchContextState
+);
 
 export const SearchProvider = ({ children }: any) => {
     const rounter = useRouter();
     const { getBooks, getReviews, getAuthors, getCommunities, getUsers } =
-        usePagination();
+        useTestPagination();
     const [searchValue, setSearchValue] = useState("");
-    const [bookTab, setBookTab] = useState<SearchBookState>(
-        defaultSearchBookState
-    );
-    const [reviewTab, setReviewTab] = useState<SearchReviewState>(
-        defaultSearchReviewState
-    );
-    const [authorTab, setAuthorTab] = useState<SearchAuthorState>(
-        defaultSearchAuthorState
-    );
-    const [communityTab, setCommunityTab] = useState<SearchCommunityState>(
-        defaultSearchCommunityState
-    );
-    const [userTab, setUserTab] = useState<SearchUserState>(
-        defaultSearchUserState
-    );
+    const [searchState, setSearchState] =
+        useState<SearchState>(defaultSearchState);
 
-    const getSearchBooks = async (searchValue: string) => {
-        setBookTab((prev) => ({
+    const get = async (field: TabList) => {
+        setSearchState((prev) => ({
             ...prev,
-            loading: true,
+            [field]: {
+                ...prev[field],
+                loading: true,
+            },
         }));
-        const res = await getBooks({
-            page: bookTab.page,
-            isNext: bookTab.isNext,
-            pageCount: bookTab.pageCount,
-            searchValue: searchValue,
-            isFirst: bookTab.isFirst,
-        });
-        setBookTab((prev) => ({
-            ...prev,
-            books: res?.books as Book[],
-            totalPage: res?.totalPage || 0,
-            loading: false,
-        }));
-    };
-
-    const getSearchReviews = async (searchValue: string) => {
-        setReviewTab((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getReviews({
-            page: reviewTab.page,
-            isNext: reviewTab.isNext,
-            pageCount: reviewTab.pageCount,
-            searchValue,
-        });
-        setReviewTab((prev) => ({
-            ...prev,
-            reviews: res?.reviews || [],
-            totalPage: res?.totalPage || 0,
-            loading: false,
-        }));
-    };
-
-    const getSearchAuthors = async (searchValue: string) => {
-        setAuthorTab((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getAuthors({
-            page: authorTab.page,
-            isNext: authorTab.isNext,
-            pageCount: authorTab.pageCount,
-            searchValue,
-        });
-        setAuthorTab((prev) => ({
-            ...prev,
-            authors: res?.authors || [],
-            totalPage: res?.totalPage || 0,
-            loading: false,
-        }));
-    };
-
-    const getSearchCommunitites = async (searchValue: string) => {
-        setCommunityTab((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getCommunities({
-            page: communityTab.page,
-            isNext: communityTab.isNext,
-            pageCount: communityTab.pageCount,
-            searchValue,
-        });
-        setCommunityTab((prev) => ({
-            ...prev,
-            communities: res?.communities || [],
-            totalPage: res?.totalPage || 0,
-            loading: false,
-        }));
-    };
-
-    const getSearchUsers = async (searchValue: string) => {
-        setUserTab((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getUsers({
-            page: communityTab.page,
-            isNext: communityTab.isNext,
-            pageCount: communityTab.pageCount,
-            searchValue,
-        });
-        setUserTab((prev) => ({
-            ...prev,
-            users: (res?.users as UserModel[]) || [],
-            totalPage: res?.totalPage || 0,
-            loading: false,
-        }));
-    };
-
-    const slideToNextPage = (tab: tabList) => {
-        switch (tab) {
-            case "book": {
-                setBookTab((prev) => ({
+        let res: any;
+        const input: PaginationInput = {
+            ...searchState[searchState.selectedField].input,
+            searchValue: searchState.searchValue,
+            setDocValue: (docValue) => {
+                setSearchState((prev) => ({
                     ...prev,
-                    page: prev.page + 1,
-                    isNext: true,
+                    [field]: {
+                        ...prev[field],
+                        input: {
+                            ...prev[field].input,
+                            docValue,
+                        },
+                    },
                 }));
+            },
+        };
+        switch (field) {
+            case "book":
+                res = await getBooks(input);
                 break;
-            }
-            case "review": {
-                setReviewTab((prev) => ({
-                    ...prev,
-                    page: prev.page + 1,
-                    isNext: true,
-                }));
+            case "author":
+                res = await getAuthors(input);
                 break;
-            }
-            case "author": {
-                setAuthorTab((prev) => ({
-                    ...prev,
-                    page: prev.page + 1,
-                    isNext: true,
-                }));
+            case "community":
+                res = await getCommunities(input);
                 break;
-            }
-            case "community": {
-                setCommunityTab((prev) => ({
-                    ...prev,
-                    page: prev.page + 1,
-                    isNext: true,
-                }));
+            case "review":
+                res = await getReviews(input);
                 break;
-            }
-            case "user": {
-                setUserTab((prev) => ({
-                    ...prev,
-                    page: prev.page + 1,
-                    isNext: true,
-                }));
-            }
+            case "user":
+                res = await getUsers(input);
+                break;
         }
-    };
-
-    const slideToPrevPage = (tab: tabList) => {
-        switch (tab) {
-            case "book": {
-                setBookTab((prev) => ({
-                    ...prev,
-                    page: prev.page - 1,
-                    isNext: false,
-                }));
-                break;
-            }
-            case "review": {
-                setReviewTab((prev) => ({
-                    ...prev,
-                    page: prev.page - 1,
-                    isNext: false,
-                }));
-                break;
-            }
-            case "author": {
-                setAuthorTab((prev) => ({
-                    ...prev,
-                    page: prev.page - 1,
-                    isNext: false,
-                }));
-                break;
-            }
-            case "community": {
-                setCommunityTab((prev) => ({
-                    ...prev,
-                    page: prev.page - 1,
-                    isNext: false,
-                }));
-                break;
-            }
-            case "user": {
-                setUserTab((prev) => ({
-                    ...prev,
-                    page: prev.page - 1,
-                    isNext: false,
-                }));
-                break;
-            }
+        if (res) {
+            setSearchState((prev) => ({
+                ...prev,
+                [field]: {
+                    ...prev[field],
+                    output: res,
+                    loading: false,
+                    input: {
+                        ...prev[field].input,
+                        isFirst: false,
+                    },
+                },
+            }));
+        } else {
+            setSearchState((prev) => ({
+                ...prev,
+                [field]: {
+                    ...prev[field],
+                    loading: false,
+                },
+            }));
         }
     };
 
@@ -303,74 +173,66 @@ export const SearchProvider = ({ children }: any) => {
     }, [rounter.query]);
 
     useEffect(() => {
-        setBookTab(defaultSearchBookState);
-        setReviewTab(defaultSearchReviewState);
-        setAuthorTab(defaultSearchAuthorState);
-        setCommunityTab(defaultSearchCommunityState);
-        setUserTab(defaultSearchUserState);
-    }, [searchValue]);
+        setSearchState((prev) => ({
+            ...defaultSearchState,
+            searchValue: searchValue,
+            selectedField: prev.selectedField,
+        }));
+    }, [searchValue, searchState.selectedField]);
 
     useEffect(() => {
-        getSearchBooks(searchValue);
-        if (bookTab.isFirst) {
-            setBookTab((prev) => ({
-                ...prev,
-                isFirst: false,
-            }));
-        }
-    }, [bookTab.page, bookTab.isFirst]);
-
-    useEffect(() => {
-        getSearchReviews(searchValue);
-        if (reviewTab.isFirst) {
-            setReviewTab((prev) => ({
-                ...prev,
-                isFirst: false,
-            }));
-        }
-    }, [reviewTab.page, reviewTab.isFirst]);
-
-    useEffect(() => {
-        getSearchAuthors(searchValue);
-        if (authorTab.isFirst) {
-            setAuthorTab((prev) => ({
-                ...prev,
-                isFirst: false,
-            }));
-        }
-    }, [authorTab.page, authorTab.isFirst]);
-
-    useEffect(() => {
-        getSearchCommunitites(searchValue);
-        if (communityTab.isFirst) {
-            setCommunityTab((prev) => ({
-                ...prev,
-                isFirst: false,
-            }));
-        }
-    }, [communityTab.page, communityTab.isFirst]);
-
-    useEffect(() => {
-        getSearchUsers(searchValue);
-        if (userTab.isFirst) {
-            setUserTab((prev) => ({
-                ...prev,
-                isFirst: false,
-            }));
-        }
-    }, [userTab.page, userTab.isFirst]);
+        get(searchState.selectedField);
+    }, [
+        searchState.selectedField,
+        searchState[searchState.selectedField].input.page,
+        searchState.searchValue,
+    ]);
 
     return (
         <SearchContext.Provider
             value={{
-                searchValue,
-                book: bookTab,
-                review: reviewTab,
-                author: authorTab,
-                community: communityTab,
-                user: userTab,
-                slideToNextPage,
-                slideToPrevPage,
+                searchState,
+                searchAction: {
+                    onNext: () => {
+                        setSearchState((prev) => {
+                            const x = {
+                                ...prev,
+                                [prev.selectedField]: {
+                                    ...prev[prev.selectedField],
+                                    input: {
+                                        ...prev[prev.selectedField].input,
+                                        page:
+                                            prev[prev.selectedField].input
+                                                .page + 1,
+                                        isNext: true,
+                                    },
+                                },
+                            };
+                            console.log(x);
+                            return x;
+                        });
+                    },
+                    onPrev: () => {
+                        setSearchState((prev) => ({
+                            ...prev,
+                            [prev.selectedField]: {
+                                ...prev[prev.selectedField],
+                                input: {
+                                    ...prev[prev.selectedField].input,
+                                    page:
+                                        prev[prev.selectedField].input.page - 1,
+                                    isNext: false,
+                                },
+                            },
+                        }));
+                    },
+                    setSelectedTab: (tab) => {
+                        setSearchState((prev) => ({
+                            ...prev,
+                            selectedField: tab,
+                        }));
+                    },
+                },
             }}
         >
             {children}

@@ -1,59 +1,34 @@
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { Comment } from "@/models/Comment";
+import { useComment } from "@/hooks/useComment";
 import { UserModel } from "@/models/User";
-import CommentService from "@/services/CommentService";
-import React, { useState } from "react";
+import React from "react";
 import CommentInputBasic from "../CommentInputBasic";
 
 type ReplyCommentInputProps = {
     user: UserModel;
     parentCommentId: string;
-    commentRoute: string;
-    rootRoute: string;
-    rootId: string;
-    onHidden: (newComment: Comment) => void;
+    onHidden: () => void;
 };
 
 const ReplyCommentInput: React.FC<ReplyCommentInputProps> = ({
     user,
     parentCommentId,
-    commentRoute,
-    rootId,
-    rootRoute,
     onHidden,
 }) => {
-    const [loading, setLoading] = useState(false);
-
-    const onSubmit = async (commentText: string) => {
-        try {
-            if (commentText) {
-                setLoading(true);
-                const res = await CommentService.create({
-                    commentText,
-                    commentRoute: firebaseRoute.getReplyCommentRoute(
-                        commentRoute,
-                        parentCommentId
-                    ),
-                    rootRoute,
-                    rootId,
-                    user,
-                    reply: {
-                        parentRoute: commentRoute,
-                        parentId: parentCommentId,
-                    },
-                });
-                setLoading(false);
-                if (res) {
-                    onHidden(res);
-                }
-            }
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    const { commentAction, commentState } = useComment();
 
     return (
-        <CommentInputBasic onSubmit={onSubmit} loading={loading} user={user} />
+        <CommentInputBasic
+            onSubmit={async (commentText) => {
+                await commentAction.reply(commentText, parentCommentId);
+                onHidden();
+            }}
+            loading={
+                commentState.loading.reply.find(
+                    (item) => item.commentId === parentCommentId
+                )?.loading || false
+            }
+            user={user}
+        />
     );
 };
 export default ReplyCommentInput;

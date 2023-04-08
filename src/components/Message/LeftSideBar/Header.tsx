@@ -45,7 +45,10 @@ const MessageLeftSideBarHeader: React.FC<
                     <Input
                         type="text"
                         placeholder="Tìm kiếm người dùng..."
-                        value={messageState.searchValue}
+                        value={
+                            messageState.selectedUserMessage.input
+                                .searchValue || ""
+                        }
                         borderColor="gray.400"
                         onChange={(e) => messageAction.search(e.target.value)}
                     />

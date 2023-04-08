@@ -7,12 +7,14 @@ import {
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
-import usePagination, {
+import useTestPagination, {
     defaultPaginationInput,
-    PaginationInput,
-} from "@/hooks/usePagination";
+    defaultPaginationOutput,
+    PaginationOutput,
+    UserPaginationInput,
+} from "@/hooks/useTestPagination";
 import { Community } from "@/models/Community";
-import { CommunityUserSnippet, UserCommunitySnippet } from "@/models/User";
+import { CommunityUserSnippet } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
 import {
     Box,
@@ -35,54 +37,71 @@ type CommunityUserApproveProps = {
     community: Community;
 };
 
-interface CommunityUserPaginationInput extends PaginationInput {
-    communityId: string;
+type CommunityUserApproveState = {
     reload: boolean;
-    isAccept: boolean;
-}
+    paginationInput: UserPaginationInput;
+    paginationOutput: PaginationOutput;
+    loading: boolean;
+};
 
-const defaultCommunityUserPaginationInput: CommunityUserPaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: USER_PAGE_COUNT,
-    communityId: "",
+const defaultCommunityUserApproveState: CommunityUserApproveState = {
     reload: false,
-    isAccept: false,
+    paginationInput: {
+        ...defaultPaginationInput,
+        pageCount: USER_PAGE_COUNT,
+        isAccept: false,
+    },
+    paginationOutput: defaultPaginationOutput,
+    loading: true,
 };
 
 const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
     community,
 }) => {
-    const [userPaginationInput, setUserPaginationInput] =
-        useState<CommunityUserPaginationInput>(
-            defaultCommunityUserPaginationInput
-        );
-    const [userList, setUserList] = useState<CommunityUserSnippet[]>([]);
-    const { getUsers } = usePagination();
+    const [communityUserApproveState, setCommunityUserApproveState] =
+        useState<CommunityUserApproveState>(defaultCommunityUserApproveState);
+    const { getUsers } = useTestPagination();
     const toast = useToast();
     const { user } = useAuth();
 
     const getCommunityUsers = async () => {
-        setUserPaginationInput((prev) => ({
+        setCommunityUserApproveState((prev) => ({
             ...prev,
             loading: true,
         }));
-        const res = await getUsers({
-            ...userPaginationInput,
-            page: userPaginationInput.reload ? 1 : userPaginationInput.page,
-            isFirst: userPaginationInput.reload
+        const input: UserPaginationInput = {
+            ...communityUserApproveState.paginationInput,
+            communityId: community.id!,
+            page: communityUserApproveState.reload
+                ? 1
+                : communityUserApproveState.paginationInput.page,
+            isFirst: communityUserApproveState.reload
                 ? true
-                : userPaginationInput.isFirst,
-            communityId: community.id,
-            isAccept: userPaginationInput.isAccept,
-        });
-        setUserList(res.users as CommunityUserSnippet[]);
-        setUserPaginationInput((prev) => ({
+                : communityUserApproveState.paginationInput.isFirst,
+            setDocValue: (docValue) => {
+                setCommunityUserApproveState((prev) => ({
+                    ...prev,
+                    paginationInput: {
+                        ...prev.paginationInput,
+                        docValue,
+                    },
+                }));
+            },
+        };
+        const res = await getUsers(input);
+        if (res) {
+            setCommunityUserApproveState((prev) => ({
+                ...prev,
+                paginationOutput: res,
+                paginationInput: {
+                    ...prev.paginationInput,
+                    isFirst: false,
+                },
+            }));
+        }
+        setCommunityUserApproveState((prev) => ({
             ...prev,
-            isFirst: false,
             loading: false,
-            page: prev.reload ? 1 : prev.page,
-            totalPage: res.totalPage || 0,
-            reload: false,
         }));
     };
 
@@ -90,7 +109,7 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
         user: CommunityUserSnippet,
         isAccept: boolean
     ) => {
-        if (!userPaginationInput.isAccept) {
+        if (!communityUserApproveState.paginationInput.isAccept) {
             await CommunityService.approveUser({
                 userId: user.id,
                 communityId: community.id!,
@@ -114,16 +133,34 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                 });
             }
         }
-        setUserPaginationInput((prev) => ({
+        setCommunityUserApproveState((prev) => ({
             ...prev,
             reload: true,
+            paginationOutput: {
+                ...prev.paginationOutput,
+                list: prev.paginationOutput.list.filter(
+                    (item: CommunityUserSnippet) => item.id !== user.id
+                ),
+            },
         }));
-        setUserList((prev) => prev.filter((item) => item.id !== user.id));
     };
 
     useEffect(() => {
         getCommunityUsers();
-    }, [userPaginationInput.page, userPaginationInput.isAccept]);
+    }, [
+        communityUserApproveState.paginationInput.page,
+        communityUserApproveState.paginationInput.isAccept,
+    ]);
+
+    useEffect(() => {
+        setCommunityUserApproveState((prev) => ({
+            ...defaultCommunityUserApproveState,
+            paginationInput: {
+                ...defaultCommunityUserApproveState.paginationInput,
+                isAccept: prev.paginationInput.isAccept,
+            },
+        }));
+    }, [communityUserApproveState.paginationInput.isAccept]);
 
     return (
         <Flex direction="column" flexGrow={1} justify="space-between">
@@ -141,13 +178,19 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                         <Select
                             w="250px"
                             borderColor="gray.400"
-                            value={userPaginationInput.isAccept ? 1 : 0}
+                            value={
+                                communityUserApproveState.paginationInput
+                                    .isAccept
+                                    ? 1
+                                    : 0
+                            }
                             onChange={(e) => {
-                                setUserPaginationInput((prev) => ({
+                                setCommunityUserApproveState((prev) => ({
                                     ...prev,
-                                    page: 1,
-                                    isFirst: true,
-                                    isAccept: !!e.target.value,
+                                    paginationInput: {
+                                        ...prev.paginationInput,
+                                        isAccept: !!e.target.value,
+                                    },
                                 }));
                             }}
                         >
@@ -182,32 +225,38 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                         Tên
                     </Text>
                     <Text w="200px" flexShrink={0}>
-                        {!userPaginationInput.isAccept
+                        {!communityUserApproveState.paginationInput.isAccept
                             ? "Ngày yêu cầu"
                             : "Ngày gia nhập"}
                     </Text>
                 </HStack>
                 <Divider borderColor="gray.300" />
-                {userPaginationInput.loading ? (
+                {communityUserApproveState.loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>
                         <Spinner />
                     </Flex>
-                ) : userList && userList.length > 0 ? (
-                    userList.map((u) =>
-                        u.id !== user?.uid ? (
-                            <Box key={u.id} w="100%">
-                                <CommunityUserSnippetApproveItem
-                                    user={u}
-                                    isDeleteOnly={userPaginationInput.isAccept}
-                                    handleApprove={async (isAccept) => {
-                                        await handleApprove(u, isAccept);
-                                    }}
-                                />
-                                <Divider borderColor="gray.300" />
-                            </Box>
-                        ) : (
-                            <Box key={u.id}></Box>
-                        )
+                ) : communityUserApproveState.paginationOutput.list &&
+                  communityUserApproveState.paginationOutput.list.length > 0 ? (
+                    communityUserApproveState.paginationOutput.list.map(
+                        (u: CommunityUserSnippet) =>
+                            u.id !== user?.uid ? (
+                                <Box key={u.id} w="100%">
+                                    <CommunityUserSnippetApproveItem
+                                        user={u}
+                                        isDeleteOnly={
+                                            communityUserApproveState
+                                                .paginationInput.isAccept ||
+                                            false
+                                        }
+                                        handleApprove={async (isAccept) => {
+                                            await handleApprove(u, isAccept);
+                                        }}
+                                    />
+                                    <Divider borderColor="gray.300" />
+                                </Box>
+                            ) : (
+                                <Box key={u.id}></Box>
+                            )
                     )
                 ) : (
                     <Flex align="center" justify="center" w="100%" py={10}>
@@ -217,20 +266,28 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
             </VStack>
             <Flex align="center" py={6} justify="center" w="100%">
                 <Pagination
-                    page={userPaginationInput.page}
-                    totalPage={userPaginationInput.totalPage}
+                    page={communityUserApproveState.paginationOutput.page}
+                    totalPage={
+                        communityUserApproveState.paginationOutput.totalPage
+                    }
                     onNext={() =>
-                        setUserPaginationInput((prev) => ({
+                        setCommunityUserApproveState((prev) => ({
                             ...prev,
-                            page: prev.page + 1,
-                            isNext: true,
+                            paginationInput: {
+                                ...prev.paginationInput,
+                                page: prev.paginationInput.page + 1,
+                                isNext: true,
+                            },
                         }))
                     }
                     onPrev={() =>
-                        setUserPaginationInput((prev) => ({
+                        setCommunityUserApproveState((prev) => ({
                             ...prev,
-                            page: prev.page - 1,
-                            isNext: false,
+                            paginationInput: {
+                                ...prev.paginationInput,
+                                page: prev.paginationInput.page - 1,
+                                isNext: false,
+                            },
                         }))
                     }
                 />

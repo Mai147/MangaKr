@@ -1,18 +1,18 @@
 import { Book } from "@/models/Book";
 import { Box, Divider, Flex } from "@chakra-ui/react";
 import React from "react";
-import useAuth from "@/hooks/useAuth";
 import BookDetailSidebar from "./Sidebar";
 import BookDetailHeader from "./Header";
 import BookDetailContent from "./Content";
 import BookDetailAction from "./Action";
+import { UserModel } from "@/models/User";
 
 type BookDetailProps = {
     book: Book;
+    user?: UserModel | null;
 };
 
-const BookDetail: React.FC<BookDetailProps> = ({ book }) => {
-    const { user } = useAuth();
+const BookDetail: React.FC<BookDetailProps> = ({ book, user }) => {
     return (
         <Flex
             position="relative"

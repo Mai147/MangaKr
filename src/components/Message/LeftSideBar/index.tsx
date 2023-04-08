@@ -2,6 +2,7 @@ import UserHorizontalSnippetItem from "@/components/User/Snippet/UserHorizontalS
 import UserMessageSnippetItem from "@/components/User/Snippet/UserMessageSnippetItem";
 import useAuth from "@/hooks/useAuth";
 import { useMessage } from "@/hooks/useMessage";
+import { UserModel } from "@/models/User";
 import UserUtils from "@/utils/UserUtils";
 import { VStack, Divider, Spinner, Flex, Text, Box } from "@chakra-ui/react";
 import React from "react";
@@ -24,8 +25,8 @@ const MessageLeftSideBar: React.FC<MessageLeftSideBarProps> = () => {
             <MessageLeftSideBarHeader />
             <Divider />
             {messageState.isSearching ? (
-                messageState.listSearchUsers.map(
-                    (us) =>
+                messageState.searchUser.output.list.map(
+                    (us: UserModel) =>
                         us.uid !== user?.uid && (
                             <Box w="100%" key={us.uid}>
                                 <UserHorizontalSnippetItem

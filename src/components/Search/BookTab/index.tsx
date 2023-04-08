@@ -1,20 +1,21 @@
 import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHorizontalItem";
-import Pagination from "@/components/Pagination";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import useSearch from "@/hooks/useSearch";
+import { Book } from "@/models/Book";
 import { Box, Text } from "@chakra-ui/react";
 import React from "react";
 
 type SearchBookTabProps = {};
 
 const SearchBookTab: React.FC<SearchBookTabProps> = () => {
-    const { book, slideToNextPage, slideToPrevPage } = useSearch();
+    const { searchState } = useSearch();
+
     return (
         <Box w="100%">
-            {book.loading ? (
+            {searchState.book.loading ? (
                 [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
-            ) : book.books.length > 0 ? (
-                book.books.map((book) => (
+            ) : searchState.book.output.list.length > 0 ? (
+                searchState.book.output.list.map((book: Book) => (
                     <BookSnippetHorizontalItem book={book} key={book.id} />
                 ))
             ) : (
@@ -22,12 +23,6 @@ const SearchBookTab: React.FC<SearchBookTabProps> = () => {
                     Không có kết quả cần tìm
                 </Text>
             )}
-            <Pagination
-                page={book.page}
-                totalPage={book.totalPage}
-                onNext={() => slideToNextPage("book")}
-                onPrev={() => slideToPrevPage("book")}
-            />
         </Box>
     );
 };

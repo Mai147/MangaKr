@@ -1,25 +1,25 @@
-import Pagination from "@/components/Pagination";
 import useSearch from "@/hooks/useSearch";
 import { Box, Grid, GridItem, Text } from "@chakra-ui/react";
 import React from "react";
 import AuthorSnippetHorizontalItem from "@/components/Author/Snippet/AuthorSnippetHorizontalItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
+import { Author } from "@/models/Author";
 
 type SearchAuthorTabProps = {};
 
 const SearchAuthorTab: React.FC<SearchAuthorTabProps> = () => {
-    const { author, slideToNextPage, slideToPrevPage } = useSearch();
+    const { searchState } = useSearch();
     return (
         <Box w="100%">
-            {author.loading ? (
+            {searchState.author.loading ? (
                 [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
-            ) : author.authors.length > 0 ? (
+            ) : searchState.author.output.list.length > 0 ? (
                 <Grid
                     templateColumns={"repeat(2, minmax(0, 1fr))"}
                     gap={2}
                     mb={4}
                 >
-                    {author.authors.map((author) => (
+                    {searchState.author.output.list.map((author: Author) => (
                         <GridItem key={author.id}>
                             <AuthorSnippetHorizontalItem
                                 author={author}
@@ -33,12 +33,6 @@ const SearchAuthorTab: React.FC<SearchAuthorTabProps> = () => {
                     Không có kết quả cần tìm
                 </Text>
             )}
-            <Pagination
-                page={author.page}
-                totalPage={author.totalPage}
-                onNext={() => slideToNextPage("author")}
-                onPrev={() => slideToPrevPage("author")}
-            />
         </Box>
     );
 };

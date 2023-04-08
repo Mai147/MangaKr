@@ -1,11 +1,14 @@
+import { WRITER_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
-import usePagination, {
+import useTestPagination, {
     defaultPaginationInput,
+    defaultPaginationOutput,
     PaginationInput,
-} from "@/hooks/usePagination";
+    PaginationOutput,
+} from "@/hooks/useTestPagination";
 import { Author } from "@/models/Author";
 import { Genre } from "@/models/Genre";
 import AuthorService from "@/services/AuthorService";
@@ -37,16 +40,37 @@ import TableHeader, { TableInfoHeader } from "../Table/TableHeader";
 
 type WriterEditBoxProps = {};
 
-interface WriterEditBoxInput extends PaginationInput {
-    type: "authors" | "genres";
+type WriterEditBoxState = {
+    field: "authors" | "genres";
     reload: boolean;
     searchValue: string;
-}
+    authors: {
+        input: PaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+        selected?: Author;
+    };
+    genres: {
+        input: PaginationInput;
+        output: PaginationOutput;
+        loading: boolean;
+        selected?: Genre;
+    };
+};
 
-const defaultWriterBoxInput: WriterEditBoxInput = {
-    ...defaultPaginationInput,
-    pageCount: 10,
-    type: "authors",
+const defaultPaginationState = {
+    input: {
+        ...defaultPaginationInput,
+        pageCount: WRITER_PAGE_COUNT,
+    },
+    output: defaultPaginationOutput,
+    loading: true,
+};
+
+const defaultWriterBoxState: WriterEditBoxState = {
+    field: "authors",
+    authors: defaultPaginationState,
+    genres: defaultPaginationState,
     reload: false,
     searchValue: "",
 };
@@ -84,74 +108,90 @@ export const genreHeaderList: TableInfoHeader[] = [
 ];
 
 const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
-    const [writerBoxPaginationInput, setWriterBoxPaginationInput] =
-        useState<WriterEditBoxInput>(defaultWriterBoxInput);
-    const [authorList, setAuthorList] = useState<Author[]>([]);
-    const [genreList, setGenreList] = useState<Genre[]>([]);
-    const { getAuthors, getGenres } = usePagination();
+    const [writerBoxState, setWriterBoxState] = useState<WriterEditBoxState>(
+        defaultWriterBoxState
+    );
+    const { getAuthors, getGenres } = useTestPagination();
     const { toggleView, closeModal } = useModal();
-    const [selectedAuthor, setSelectedAuthor] = useState<Author>();
-    const [selectedGenre, setSelectedGenre] = useState<Genre>();
     const [searchValue, setSearchValue] = useState("");
     const toast = useToast();
     const debouncedSearch = useDebounce(searchValue, 300);
 
     const getInfos = async () => {
-        setWriterBoxPaginationInput((prev) => ({
+        setWriterBoxState((prev) => ({
             ...prev,
-            loading: true,
+            [writerBoxState.field]: {
+                ...prev[writerBoxState.field],
+                loading: true,
+            },
         }));
         let res: any = {};
-        switch (writerBoxPaginationInput.type) {
+        const input: PaginationInput = {
+            ...writerBoxState[writerBoxState.field].input,
+            page: writerBoxState.reload
+                ? 1
+                : writerBoxState[writerBoxState.field].input.page,
+            isFirst: writerBoxState.reload
+                ? true
+                : writerBoxState[writerBoxState.field].input.isFirst,
+            setDocValue: (docValue: any) => {
+                setWriterBoxState((prev) => ({
+                    ...prev,
+                    [prev.field]: {
+                        ...prev[prev.field],
+                        input: {
+                            ...prev[prev.field].input,
+                            docValue,
+                        },
+                    },
+                }));
+            },
+            searchValue: writerBoxState.searchValue,
+        };
+        switch (writerBoxState.field) {
             case "authors": {
-                res = await getAuthors({
-                    ...writerBoxPaginationInput,
-                    page: writerBoxPaginationInput.reload
-                        ? 1
-                        : writerBoxPaginationInput.page,
-                    isFirst: writerBoxPaginationInput.reload
-                        ? true
-                        : writerBoxPaginationInput.isFirst,
-                });
-                setAuthorList(res.authors);
+                res = await getAuthors(input);
                 break;
             }
             case "genres": {
-                res = await getGenres({
-                    ...writerBoxPaginationInput,
-                    page: writerBoxPaginationInput.reload
-                        ? 1
-                        : writerBoxPaginationInput.page,
-                    isFirst: writerBoxPaginationInput.reload
-                        ? true
-                        : writerBoxPaginationInput.isFirst,
-                });
-                setGenreList(res.genres);
+                res = await getGenres(input);
                 break;
             }
         }
-        setWriterBoxPaginationInput((prev) => ({
+        setWriterBoxState((prev) => ({
             ...prev,
-            isFirst: false,
-            loading: false,
-            totalPage: res.totalPage || 0,
-            page: prev.reload ? 1 : prev.page,
+            [prev.field]: {
+                ...prev[prev.field],
+                loading: false,
+                output: res,
+                input: {
+                    ...prev[prev.field].input,
+                    isFirst: false,
+                },
+            },
             reload: false,
         }));
     };
 
     const handleDeleteAuthor = async () => {
         try {
-            if (selectedAuthor) {
+            if (writerBoxState.authors.selected) {
                 const res = await AuthorService.delete({
-                    author: selectedAuthor,
+                    author: writerBoxState.authors.selected,
                 });
                 if (res) {
-                    setAuthorList((prev) =>
-                        prev.filter((item) => item.id !== selectedAuthor.id)
-                    );
-                    setWriterBoxPaginationInput((prev) => ({
+                    setWriterBoxState((prev) => ({
                         ...prev,
+                        authors: {
+                            ...prev.authors,
+                            output: {
+                                ...prev.authors.output,
+                                list: prev.authors.output.list.filter(
+                                    (item: Author) =>
+                                        item.id !== prev.authors.selected?.id
+                                ),
+                            },
+                        },
                         reload: true,
                     }));
                     closeModal();
@@ -176,16 +216,23 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
 
     const handleDeleteGenre = async () => {
         try {
-            if (selectedGenre) {
+            if (writerBoxState.genres.selected) {
                 const res = await GenreService.delete({
-                    genre: selectedGenre,
+                    genre: writerBoxState.genres.selected,
                 });
                 if (res) {
-                    setGenreList((prev) =>
-                        prev.filter((item) => item.id !== selectedGenre.id)
-                    );
-                    setWriterBoxPaginationInput((prev) => ({
+                    setWriterBoxState((prev) => ({
                         ...prev,
+                        genres: {
+                            ...prev.genres,
+                            output: {
+                                ...prev.genres.output,
+                                list: prev.genres.output.list.filter(
+                                    (item: Genre) =>
+                                        item.id !== prev.genres.selected?.id
+                                ),
+                            },
+                        },
                         reload: true,
                     }));
                     closeModal();
@@ -198,7 +245,7 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                     closeModal();
                     toast({
                         ...toastOption,
-                        title: "Không thể xóa tác giả này!",
+                        title: "Không thể xóa thể loại này!",
                         status: "error",
                     });
                 }
@@ -211,41 +258,39 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
     useEffect(() => {
         getInfos();
     }, [
-        writerBoxPaginationInput.page,
-        writerBoxPaginationInput.type,
-        writerBoxPaginationInput.searchValue,
+        writerBoxState.field,
+        writerBoxState[writerBoxState.field].input.page,
+        writerBoxState.searchValue,
     ]);
 
     useEffect(() => {
-        setWriterBoxPaginationInput((prev) => ({
-            ...prev,
+        setWriterBoxState((prev) => ({
+            ...defaultWriterBoxState,
             searchValue,
-            page: 1,
-            isFirst: true,
-            isNext: true,
+            field: prev.field,
         }));
-    }, [debouncedSearch]);
+    }, [debouncedSearch, writerBoxState.field]);
 
     return (
         <Flex direction="column" flexGrow={1} justify="space-between">
             <ConfirmModal
                 title={
-                    writerBoxPaginationInput.type === "authors"
+                    writerBoxState.field === "authors"
                         ? "Xác nhận xóa tác giả"
                         : "Xác nhận xóa thể loại"
                 }
                 content={
-                    writerBoxPaginationInput.type === "authors"
+                    writerBoxState.field === "authors"
                         ? "Bạn chắc chắn muốn xóa tác giả này?"
                         : "Bạn chắc chắn muốn xóa thể loại này?"
                 }
                 subContent={
-                    writerBoxPaginationInput.type === "authors"
+                    writerBoxState.field === "authors"
                         ? "Bạn không thể xóa nếu có Manga thuộc tác giả này!"
                         : "Bạn không thể xóa nếu có Manga thuộc thể loại này!"
                 }
                 onSubmit={
-                    writerBoxPaginationInput.type === "authors"
+                    writerBoxState.field === "authors"
                         ? handleDeleteAuthor
                         : handleDeleteGenre
                 }
@@ -259,7 +304,7 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                         justify="space-between"
                     >
                         <Text>
-                            {writerBoxPaginationInput.type === "authors"
+                            {writerBoxState.field === "authors"
                                 ? "Danh sách tác giả"
                                 : "Danh sách thể loại"}
                         </Text>
@@ -267,14 +312,11 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                             <Select
                                 w="250px"
                                 borderColor="gray.400"
-                                value={writerBoxPaginationInput.type}
+                                value={writerBoxState.field}
                                 onChange={(e) => {
-                                    setWriterBoxPaginationInput((prev) => ({
+                                    setWriterBoxState((prev) => ({
                                         ...prev,
-                                        page: 1,
-                                        isFirst: true,
-                                        isNext: true,
-                                        type: e.target.value as
+                                        field: e.target.value as
                                             | "authors"
                                             | "genres",
                                     }));
@@ -285,7 +327,7 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                             </Select>
                             <Link
                                 href={
-                                    writerBoxPaginationInput.type === "authors"
+                                    writerBoxState.field === "authors"
                                         ? routes.getAuthorCreatePage()
                                         : routes.getGenreCreatePage()
                                 }
@@ -308,7 +350,7 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                         <Input
                             type="text"
                             placeholder={
-                                writerBoxPaginationInput.type === "authors"
+                                writerBoxState.field === "authors"
                                     ? "Tìm kiếm tác giả..."
                                     : "Tìm kiếm thể loại..."
                             }
@@ -318,42 +360,56 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                     </InputGroup>
                 </VStack>
                 <Divider borderColor="gray.300" />
-                {writerBoxPaginationInput.type === "authors" ? (
+                {writerBoxState.field === "authors" ? (
                     <TableHeader list={authorHeaderList} />
                 ) : (
                     <TableHeader list={genreHeaderList} />
                 )}
                 <Divider borderColor="gray.300" />
-                {writerBoxPaginationInput.loading ? (
+                {writerBoxState[writerBoxState.field].loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>
                         <Spinner />
                     </Flex>
-                ) : writerBoxPaginationInput.type === "authors" ? (
-                    authorList && authorList.length > 0 ? (
-                        authorList.map((author) => (
-                            <Box key={author.id} w="100%">
-                                <AuthorTableSnippetItem
-                                    author={author}
-                                    onDelete={(author) => {
-                                        setSelectedAuthor(author);
-                                        toggleView("confirmModal");
-                                    }}
-                                />
-                                <Divider borderColor="gray.300" />
-                            </Box>
-                        ))
+                ) : writerBoxState.field === "authors" ? (
+                    writerBoxState.authors.output.list.length > 0 ? (
+                        writerBoxState.authors.output.list.map(
+                            (author: Author) => (
+                                <Box key={author.id} w="100%">
+                                    <AuthorTableSnippetItem
+                                        author={author}
+                                        onDelete={(author) => {
+                                            setWriterBoxState((prev) => ({
+                                                ...prev,
+                                                authors: {
+                                                    ...prev.authors,
+                                                    selected: author,
+                                                },
+                                            }));
+                                            toggleView("confirmModal");
+                                        }}
+                                    />
+                                    <Divider borderColor="gray.300" />
+                                </Box>
+                            )
+                        )
                     ) : (
                         <Flex align="center" justify="center" w="100%" py={10}>
                             <Text>Chưa có tác giả nào</Text>
                         </Flex>
                     )
-                ) : genreList && genreList.length > 0 ? (
-                    genreList.map((genre) => (
+                ) : writerBoxState.genres.output.list.length > 0 ? (
+                    writerBoxState.genres.output.list.map((genre: Genre) => (
                         <Box key={genre.id} w="100%">
                             <GenreTableSnippetItem
                                 genre={genre}
                                 onDelete={(genre) => {
-                                    setSelectedGenre(genre);
+                                    setWriterBoxState((prev) => ({
+                                        ...prev,
+                                        genres: {
+                                            ...prev.genres,
+                                            selected: genre,
+                                        },
+                                    }));
                                     toggleView("confirmModal");
                                 }}
                             />
@@ -368,20 +424,34 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
             </VStack>
             <Flex align="center" py={6} justify="center" w="100%">
                 <Pagination
-                    page={writerBoxPaginationInput.page}
-                    totalPage={writerBoxPaginationInput.totalPage}
+                    page={writerBoxState[writerBoxState.field].output.page}
+                    totalPage={
+                        writerBoxState[writerBoxState.field].output.totalPage
+                    }
                     onNext={() =>
-                        setWriterBoxPaginationInput((prev) => ({
+                        setWriterBoxState((prev) => ({
                             ...prev,
-                            page: prev.page + 1,
-                            isNext: true,
+                            [prev.field]: {
+                                ...prev[prev.field],
+                                input: {
+                                    ...prev[prev.field].input,
+                                    page: prev[prev.field].input.page + 1,
+                                    isNext: true,
+                                },
+                            },
                         }))
                     }
                     onPrev={() =>
-                        setWriterBoxPaginationInput((prev) => ({
+                        setWriterBoxState((prev) => ({
                             ...prev,
-                            page: prev.page - 1,
-                            isNext: false,
+                            [prev.field]: {
+                                ...prev[prev.field],
+                                input: {
+                                    ...prev[prev.field].input,
+                                    page: prev[prev.field].input.page - 1,
+                                    isNext: false,
+                                },
+                            },
                         }))
                     }
                 />

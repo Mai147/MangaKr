@@ -76,27 +76,6 @@ const AddLibraryModal: React.FC<AddLibraryModalProps> = ({
                     readingBookSnippetForm,
                     userId: user.uid,
                 });
-                // const batch = writeBatch(fireStore);
-                // const userReadingBookDocRef = doc(
-                //     collection(
-                //         fireStore,
-                //         firebaseRoute.getUserReadingBookSnippetRoute(user.uid)
-                //     ),
-                //     book.id!
-                // );
-                // const bookDocRef = doc(
-                //     collection(fireStore, firebaseRoute.getAllBookRoute()),
-                //     book.id!
-                // );
-                // batch.set(userReadingBookDocRef, {
-                //     ...BookUtils.toBookSnippet(book),
-                //     status,
-                //     chap,
-                // });
-                // batch.update(bookDocRef, {
-                //     popularity: increment(1),
-                // });
-                // await batch.commit();
                 setIsInLibrary((prev) => !prev);
                 closeModal();
                 toast({

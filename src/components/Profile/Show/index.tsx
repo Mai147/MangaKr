@@ -21,7 +21,7 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
     const { postState, postAction } = usePost();
 
     useEffect(() => {
-        postAction.user.setSelected(user);
+        postAction.setSelectedUser(user);
     }, [user]);
 
     return (
@@ -55,14 +55,12 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
             <VStack w="100%" justify="center" mt={4}>
                 <Box w="90%">
                     <InfiniteScroll
-                        isLoading={postState.paginationInput.user.post.loading}
-                        page={postState.paginationInput.user.post.page}
-                        totalPage={
-                            postState.paginationInput.user.post.totalPage
-                        }
-                        onNext={postAction.user.loadMorePost}
+                        isLoading={postState.loading.getAll}
+                        page={postState.output.page}
+                        totalPage={postState.output.totalPage}
+                        onNext={postAction.loadMore}
                     >
-                        {postState.postList.user.map((postData) => (
+                        {postState.output.list.map((postData) => (
                             <PostItem
                                 postData={postData}
                                 key={postData.post.id}
@@ -70,7 +68,7 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                         ))}
                     </InfiniteScroll>
                 </Box>
-                {postState.paginationInput.user.post.loading && <Spinner />}
+                {postState.loading.getAll && <Spinner />}
             </VStack>
         </Flex>
     );

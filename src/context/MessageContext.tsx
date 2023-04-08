@@ -3,11 +3,14 @@ import { MESSAGE_PAGE_COUNT, SEARCH_PAGE_COUNT } from "@/constants/pagination";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useDebounce from "@/hooks/useDebounce";
-import usePagination, {
-    defaultPaginationInput,
-    PaginationInput,
-} from "@/hooks/usePagination";
 import useSelectFile from "@/hooks/useSelectFile";
+import useTestPagination, {
+    defaultPaginationInput,
+    defaultPaginationOutput,
+    MessagePaginationInput,
+    PaginationOutput,
+    UserPaginationInput,
+} from "@/hooks/useTestPagination";
 import { Message } from "@/models/Message";
 import { UserMessageSnippet, UserModel, UserSnippet } from "@/models/User";
 import MessageService from "@/services/MessageService";
@@ -20,32 +23,23 @@ import {
 } from "firebase/firestore";
 import { ChangeEvent, createContext, useEffect, useRef, useState } from "react";
 
-interface MessagePaginationInput extends PaginationInput {
-    userId: string;
-    receiverId: string;
-}
-
-const defaultMessagePaginationInput: MessagePaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: MESSAGE_PAGE_COUNT,
-    userId: "",
-    receiverId: "",
-    exceptionCount: 0,
-};
-
 type MessageState = {
     listUsers: UserMessageSnippet[];
-    listSearchUsers: UserModel[];
     selectedUser?: UserSnippet;
-    selectedUserMessageList: Message[];
-    selectedMessagePaginationInput?: MessagePaginationInput;
-    isNewMessage: boolean;
+    searchUser: {
+        input: UserPaginationInput;
+        output: PaginationOutput;
+    };
+    selectedUserMessage: {
+        input: MessagePaginationInput;
+        output: PaginationOutput;
+    };
+    isSearching: boolean;
     messageInput: {
         content: string;
         imageUrls: string[];
     };
-    searchValue: string;
-    isSearching: boolean;
+    isNewMessage: boolean;
     loading: {
         getListUserLoading: boolean;
         getListMessageLoading: boolean;
@@ -71,21 +65,29 @@ type MessageContextState = {
     messageAction: MessageAction;
 };
 
-const defaultSearchInput: PaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: SEARCH_PAGE_COUNT,
-};
-
 const defaultMessageState: MessageState = {
     listUsers: [],
-    listSearchUsers: [],
-    selectedUserMessageList: [],
+    searchUser: {
+        input: {
+            ...defaultPaginationInput,
+            pageCount: SEARCH_PAGE_COUNT,
+        },
+        output: defaultPaginationOutput,
+    },
+    selectedUserMessage: {
+        input: {
+            ...defaultPaginationInput,
+            pageCount: MESSAGE_PAGE_COUNT,
+            userId: "",
+            receiverId: "",
+        },
+        output: defaultPaginationOutput,
+    },
     messageInput: {
         content: "",
         imageUrls: [],
     },
     isNewMessage: false,
-    searchValue: "",
     isSearching: false,
     loading: {
         getListUserLoading: false,
@@ -120,56 +122,120 @@ export const MessageProvider = ({ children }: any) => {
     const { user } = useAuth();
     const [messageState, setMessageState] =
         useState<MessageState>(defaultMessageState);
-    const [searchInput, setSearchInput] =
-        useState<PaginationInput>(defaultSearchInput);
-    const [messagePaginationInput, setMessagePaginationInput] =
-        useState<MessagePaginationInput>(defaultMessagePaginationInput);
-    const debouncedSearch = useDebounce(messageState.searchValue, 300);
+    const debouncedSearch = useDebounce(
+        messageState.searchUser.input.searchValue || "",
+        300
+    );
     const {
         onSelectMultipleFile,
         selectedListFile,
         onPasteFile,
         setSelectedListFile,
     } = useSelectFile();
-    const { getUsers, getMessages } = usePagination();
+    const { getUsers, getMessages } = useTestPagination();
     const isFirst = useRef(true);
     const isFirstLatestMessage = useRef(true);
 
     const getListSearchUsers = async () => {
-        const res = await getUsers({
-            ...searchInput,
-            searchValue: messageState.searchValue,
-        });
         setMessageState((prev) => ({
             ...prev,
-            listSearchUsers: res.users as UserModel[],
+            loading: {
+                ...prev.loading,
+                getListUserLoading: true,
+            },
+        }));
+        const input: UserPaginationInput = {
+            ...messageState.searchUser.input,
+            setDocValue: (docValue) => {
+                setMessageState((prev) => ({
+                    ...prev,
+                    searchUser: {
+                        ...prev.searchUser,
+                        input: {
+                            ...prev.searchUser.input,
+                            docValue,
+                        },
+                    },
+                }));
+            },
+        };
+        const res = await getUsers(input);
+        if (res) {
+            setMessageState((prev) => ({
+                ...prev,
+                searchUser: {
+                    ...prev.searchUser,
+                    input: {
+                        ...prev.searchUser.input,
+                        isFirst: false,
+                    },
+                    output: res,
+                },
+            }));
+        }
+        setMessageState((prev) => ({
+            ...prev,
+            loading: {
+                ...prev.loading,
+                getListUserLoading: false,
+            },
         }));
     };
 
     const getListMessages = async () => {
         if (
-            messagePaginationInput.userId &&
-            messagePaginationInput.receiverId
+            messageState.selectedUserMessage.input.userId &&
+            messageState.selectedUserMessage.input.receiverId
         ) {
-            setMessagePaginationInput((prev) => ({
-                ...prev,
-                loading: true,
-            }));
-            const res = await getMessages({
-                ...messagePaginationInput,
-            });
             setMessageState((prev) => ({
                 ...prev,
-                selectedUserMessageList: [
-                    ...res.messages.reverse(),
-                    ...prev.selectedUserMessageList,
-                ],
+                loading: {
+                    ...prev.loading,
+                    getListMessageLoading: true,
+                },
             }));
-            setMessagePaginationInput((prev) => ({
+            const input: MessagePaginationInput = {
+                ...messageState.selectedUserMessage.input,
+                setDocValue: (docValue) => {
+                    setMessageState((prev) => ({
+                        ...prev,
+                        selectedUserMessage: {
+                            ...prev.selectedUserMessage,
+                            input: {
+                                ...prev.selectedUserMessage.input,
+                                docValue,
+                            },
+                        },
+                    }));
+                },
+            };
+            const res = await getMessages(input);
+            if (res) {
+                setMessageState((prev) => ({
+                    ...prev,
+                    selectedUserMessage: {
+                        ...prev.selectedUserMessage,
+                        output: {
+                            page: res.page,
+                            totalPage: res.totalPage,
+                            list: [
+                                ...res.list.reverse(),
+                                ...prev.selectedUserMessage.output.list,
+                            ],
+                        },
+                        input: {
+                            ...prev.selectedUserMessage.input,
+                            isFirst: false,
+                        },
+                    },
+                }));
+            }
+            setMessageState((prev) => ({
                 ...prev,
-                totalPage: res.totalPage || 0,
-                isFirst: false,
-                loading: false,
+                loading: {
+                    ...prev.loading,
+                    getListMessageLoading: false,
+                },
             }));
         }
     };
@@ -187,23 +253,37 @@ export const MessageProvider = ({ children }: any) => {
             });
             if (message) {
                 if (
-                    !messageState.selectedUserMessageList.find(
-                        (item) => item.id === message.id
+                    !messageState.selectedUserMessage.output.list.find(
+                        (item: Message) => item.id === message.id
                     )
                 ) {
-                    setMessagePaginationInput((prev) => ({
+                    setMessageState((prev) => ({
                         ...prev,
-                        exceptionCount: prev.exceptionCount || 0 + 1,
+                        selectedUserMessage: {
+                            ...prev.selectedUserMessage,
+                            input: {
+                                ...prev.selectedUserMessage.input,
+                                exceptionCount:
+                                    (prev.selectedUserMessage.input
+                                        .exceptionCount || 0) + 1,
+                            },
+                        },
                     }));
                 }
                 setMessageState((prev) => ({
                     ...prev,
-                    selectedUserMessageList: [
-                        ...prev.selectedUserMessageList.filter(
-                            (item) => item.id !== message.id
-                        ),
-                        message,
-                    ],
+                    selectedUserMessage: {
+                        ...prev.selectedUserMessage,
+                        output: {
+                            ...prev.selectedUserMessage.output,
+                            list: [
+                                ...prev.selectedUserMessage.output.list.filter(
+                                    (item: Message) => item.id !== message.id
+                                ),
+                                message,
+                            ],
+                        },
+                    },
                     isNewMessage: true,
                 }));
             }
@@ -213,17 +293,29 @@ export const MessageProvider = ({ children }: any) => {
     };
 
     const loadMoreMessage = () => {
-        setMessagePaginationInput((prev) => ({
+        setMessageState((prev) => ({
             ...prev,
-            page: prev.page + 1,
-            isNext: true,
+            selectedUserMessage: {
+                ...prev.selectedUserMessage,
+                input: {
+                    ...prev.selectedUserMessage.input,
+                    page: prev.selectedUserMessage.input.page + 1,
+                    isNext: true,
+                },
+            },
         }));
     };
 
     const search = (searchValue: string) => {
         setMessageState((prev) => ({
             ...prev,
-            searchValue,
+            selectedUserMessage: {
+                ...prev.selectedUserMessage,
+                input: {
+                    ...prev.selectedUserMessage.input,
+                    searchValue,
+                },
+            },
             isSearching: true,
         }));
     };
@@ -231,24 +323,36 @@ export const MessageProvider = ({ children }: any) => {
     const openSearch = () => {
         setMessageState((prev) => ({
             ...prev,
+            selectedUserMessage: {
+                ...prev.selectedUserMessage,
+                input: {
+                    ...prev.selectedUserMessage.input,
+                    searchValue: "",
+                },
+            },
             isSearching: true,
-            searchValue: "",
         }));
     };
 
     const closeSearch = () => {
         setMessageState((prev) => ({
             ...prev,
+            selectedUserMessage: {
+                ...prev.selectedUserMessage,
+                input: {
+                    ...prev.selectedUserMessage.input,
+                    searchValue: "",
+                },
+            },
             isSearching: false,
-            searchValue: "",
         }));
     };
 
     const switchUser = (user: UserSnippet) => {
         setMessageState((prev) => ({
             ...prev,
-            selectedUser: user,
             isSearching: false,
+            selectedUser: user,
         }));
     };
 
@@ -340,12 +444,6 @@ export const MessageProvider = ({ children }: any) => {
                         ...doc.data(),
                     } as UserMessageSnippet;
                 });
-                if (user && messageState.selectedUser) {
-                    MessageService.seen({
-                        userId: user.uid,
-                        receiverId: messageState.selectedUser.id,
-                    });
-                }
                 setMessageState((prev) => ({
                     ...prev,
                     listUsers: userMessageSnippets,
@@ -357,10 +455,17 @@ export const MessageProvider = ({ children }: any) => {
 
     useEffect(() => {
         if (messageState.selectedUser) {
-            setMessagePaginationInput(defaultMessagePaginationInput);
             setMessageState((prev) => ({
                 ...prev,
-                selectedUserMessageList: [],
+                selectedUserMessage: {
+                    input: {
+                        ...defaultPaginationInput,
+                        pageCount: MESSAGE_PAGE_COUNT,
+                        userId: "",
+                        receiverId: "",
+                    },
+                    output: defaultPaginationOutput,
+                },
                 isNewMessage: true,
             }));
         }
@@ -378,12 +483,18 @@ export const MessageProvider = ({ children }: any) => {
             );
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 const userMessage = snapshot.data() as UserMessageSnippet;
+                MessageService.seen({
+                    userId: user.uid,
+                    receiverId: selectedUser.id,
+                });
                 if (userMessage) {
                     getLatestMessages(
                         user.uid,
                         selectedUser.id,
                         userMessage.messageId
                     );
+                } else {
+                    isFirstLatestMessage.current = false;
                 }
             });
             return unsubscribe;
@@ -396,24 +507,32 @@ export const MessageProvider = ({ children }: any) => {
                 userId: user.uid,
                 receiverId: messageState.selectedUser.id,
             });
-            setMessagePaginationInput((prev) => ({
+            setMessageState((prev) => ({
                 ...prev,
-                userId: user.uid,
-                receiverId: messageState.selectedUser!.id,
+                selectedUserMessage: {
+                    ...prev.selectedUserMessage,
+                    input: {
+                        ...prev.selectedUserMessage.input,
+                        userId: user.uid,
+                        receiverId: messageState.selectedUser!.id,
+                    },
+                },
             }));
         }
     }, [messageState.selectedUser, user]);
 
     useEffect(() => {
-        if (!isFirst.current) {
-            setMessageState((prev) => ({
-                ...prev,
-                isNewMessage: false,
-            }));
-        } else {
-            isFirst.current = false;
+        if (messageState.selectedUserMessage.output.list.length > 0) {
+            if (!isFirst.current) {
+                setMessageState((prev) => ({
+                    ...prev,
+                    isNewMessage: false,
+                }));
+            } else {
+                isFirst.current = false;
+            }
         }
-    }, [messageState.selectedUserMessageList]);
+    }, [messageState.selectedUserMessage.output.list]);
 
     useEffect(() => {
         getListSearchUsers();
@@ -432,18 +551,15 @@ export const MessageProvider = ({ children }: any) => {
     useEffect(() => {
         getListMessages();
     }, [
-        messagePaginationInput.page,
-        messagePaginationInput.userId,
-        messagePaginationInput.receiverId,
+        messageState.selectedUserMessage.input.page,
+        messageState.selectedUserMessage.input.userId,
+        messageState.selectedUserMessage.input.receiverId,
     ]);
 
     return (
         <MessageContext.Provider
             value={{
-                messageState: {
-                    ...messageState,
-                    selectedMessagePaginationInput: messagePaginationInput,
-                },
+                messageState,
                 messageAction: {
                     search,
                     openSearch,

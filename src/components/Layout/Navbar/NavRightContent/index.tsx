@@ -319,15 +319,17 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                     </Stack>
                 </PopoverContent>
             </Popover>
-            <Link href={routes.getWriterPage()}>
-                <IconButton
-                    size="lg"
-                    variant="ghost"
-                    aria-label="Edit"
-                    borderRadius="full"
-                    icon={<AiOutlineEdit />}
-                />
-            </Link>
+            {user && user.role === WRITER_ROLE && (
+                <Link href={routes.getWriterPage()}>
+                    <IconButton
+                        size="lg"
+                        variant="ghost"
+                        aria-label="Edit"
+                        borderRadius="full"
+                        icon={<AiOutlineEdit />}
+                    />
+                </Link>
+            )}
             <NavUser />
         </Flex>
     );

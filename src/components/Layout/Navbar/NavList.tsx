@@ -34,10 +34,10 @@ const defaultNavList: NavItemProps[] = [
             },
         ],
     },
-    {
-        label: "Tin tức",
-        href: routes.getNewsHomePage(),
-    },
+    // {
+    //     label: "Tin tức",
+    //     href: routes.getNewsHomePage(),
+    // },
     {
         label: "Cộng đồng",
         href: routes.getCommunityHomePage(),
@@ -49,20 +49,10 @@ const defaultNavList: NavItemProps[] = [
 ];
 
 const NavList: React.FC<NavListProps> = () => {
-    const { toggleView } = useModal();
     const linkColor = useColorModeValue("gray.700", "gray.200");
     const linkHoverColor = useColorModeValue("gray.800", "white");
     const popoverContentBgColor = useColorModeValue("white", "gray.800");
     const [navItems, setNavItems] = useState<NavItemProps[]>(defaultNavList);
-    const { user } = useAuth();
-
-    // useEffect(() => {
-    //     if (user && user.role === WRITER_ROLE) {
-    //         setNavItems(writerNavList);
-    //     } else {
-    //         setNavItems(defaultNavList);
-    //     }
-    // }, [user]);
 
     return (
         <Stack

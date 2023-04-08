@@ -7,10 +7,12 @@ import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
-import usePagination, {
+import useTestPagination, {
     defaultPaginationInput,
-    PaginationInput,
-} from "@/hooks/usePagination";
+    defaultPaginationOutput,
+    PaginationOutput,
+    UserPaginationInput,
+} from "@/hooks/useTestPagination";
 import { Community } from "@/models/Community";
 import { CommunityUserSnippet } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
@@ -38,18 +40,21 @@ type CommunityUserAuthorizeProps = {
     community: Community;
 };
 
-interface CommunityUserPaginationInput extends PaginationInput {
-    communityId: string;
-    searchValue: string;
+type CommunityUserAuthorizeState = {
     reload: boolean;
-}
+    paginationInput: UserPaginationInput;
+    paginationOutput: PaginationOutput;
+    loading: boolean;
+};
 
-const defaultCommunityUserPaginationInput: CommunityUserPaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: USER_PAGE_COUNT,
-    communityId: "",
+const defaultCommunityUserAuthorizeState: CommunityUserAuthorizeState = {
     reload: false,
-    searchValue: "",
+    paginationInput: {
+        ...defaultPaginationInput,
+        pageCount: USER_PAGE_COUNT,
+    },
+    paginationOutput: defaultPaginationOutput,
+    loading: true,
 };
 
 type RoleInfo = {
@@ -62,40 +67,59 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
     community,
 }) => {
     const { user } = useAuth();
-    const [userPaginationInput, setUserPaginationInput] =
-        useState<CommunityUserPaginationInput>(
-            defaultCommunityUserPaginationInput
+    const [communityUserAuthorizeState, setCommunityUserAuthorizeState] =
+        useState<CommunityUserAuthorizeState>(
+            defaultCommunityUserAuthorizeState
         );
-    const [userList, setUserList] = useState<CommunityUserSnippet[]>([]);
-    const [searchValue, setSearchValue] = useState("");
-    const { getUsers } = usePagination();
-    const debouncedSearch = useDebounce(searchValue, 300);
+    const { getUsers } = useTestPagination();
+    const debouncedSearch = useDebounce(
+        communityUserAuthorizeState.paginationInput.searchValue || "",
+        300
+    );
     const [selectedRole, setSelectedRole] = useState<RoleInfo | undefined>();
     const { toggleView, closeModal } = useModal();
     const { communityAction } = useCommunity();
     const router = useRouter();
 
     const getCommunityUsers = async () => {
-        setUserPaginationInput((prev) => ({
+        setCommunityUserAuthorizeState((prev) => ({
             ...prev,
             loading: true,
         }));
-        const res = await getUsers({
-            ...userPaginationInput,
-            page: userPaginationInput.reload ? 1 : userPaginationInput.page,
-            isFirst: userPaginationInput.reload
+        const input: UserPaginationInput = {
+            ...communityUserAuthorizeState.paginationInput,
+            page: communityUserAuthorizeState.reload
+                ? 1
+                : communityUserAuthorizeState.paginationInput.page,
+            isFirst: communityUserAuthorizeState.reload
                 ? true
-                : userPaginationInput.isFirst,
+                : communityUserAuthorizeState.paginationInput.isFirst,
             communityId: community.id,
-        });
-        setUserList(res.users as CommunityUserSnippet[]);
-        setUserPaginationInput((prev) => ({
+            setDocValue: (docValue) => {
+                setCommunityUserAuthorizeState((prev) => ({
+                    ...prev,
+                    paginationInput: {
+                        ...prev.paginationInput,
+                        docValue,
+                    },
+                }));
+            },
+        };
+        const res = await getUsers(input);
+        if (res) {
+            setCommunityUserAuthorizeState((prev) => ({
+                ...prev,
+                paginationInput: {
+                    ...prev.paginationInput,
+                    isFirst: false,
+                },
+                reload: false,
+                paginationOutput: res,
+            }));
+        }
+        setCommunityUserAuthorizeState((prev) => ({
             ...prev,
-            isFirst: false,
             loading: false,
-            page: prev.reload ? 1 : prev.page,
-            totalPage: res.totalPage || 0,
-            reload: false,
         }));
     };
 
@@ -111,31 +135,41 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
             router.push(routes.getCommunityDetailPage(community.id!));
             return;
         }
-        setUserList((prev) =>
-            prev.map((us) =>
-                us.id !== selectedRole?.user.id
-                    ? us
-                    : {
-                          ...us,
-                          role: selectedRole.role,
-                      }
-            )
-        );
+        setCommunityUserAuthorizeState((prev) => ({
+            ...prev,
+            paginationOutput: {
+                ...prev.paginationOutput,
+                list: prev.paginationOutput.list.map(
+                    (item: CommunityUserSnippet) =>
+                        item.id !== selectedRole?.user.id
+                            ? item
+                            : {
+                                  ...item,
+                                  role: selectedRole?.role,
+                              }
+                ),
+            },
+        }));
         setSelectedRole(undefined);
         closeModal();
     };
 
     useEffect(() => {
-        setUserPaginationInput((prev) => ({
+        setCommunityUserAuthorizeState((prev) => ({
             ...prev,
-            page: 1,
-            searchValue,
+            paginationInput: {
+                ...prev.paginationInput,
+                page: 1,
+            },
         }));
     }, [debouncedSearch]);
 
     useEffect(() => {
         getCommunityUsers();
-    }, [userPaginationInput.page, userPaginationInput.searchValue]);
+    }, [
+        communityUserAuthorizeState.paginationInput.page,
+        communityUserAuthorizeState.paginationInput.searchValue,
+    ]);
 
     return (
         <Flex direction="column" flexGrow={1} justify="space-between">
@@ -175,7 +209,15 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
                             type="text"
                             placeholder="Tìm kiếm thành viên..."
                             borderColor="gray.400"
-                            onChange={(e) => setSearchValue(e.target.value)}
+                            onChange={(e) =>
+                                setCommunityUserAuthorizeState((prev) => ({
+                                    ...prev,
+                                    paginationInput: {
+                                        ...prev.paginationInput,
+                                        searchValue: e.target.value,
+                                    },
+                                }))
+                            }
                         />
                     </InputGroup>
                 </Box>
@@ -209,31 +251,34 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
                     </Flex>
                 </HStack>
                 <Divider borderColor="gray.300" />
-                {userPaginationInput.loading ? (
+                {communityUserAuthorizeState.loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>
                         <Spinner />
                     </Flex>
-                ) : userList && userList.length > 0 ? (
-                    userList.map((u) =>
-                        u.role === COMMUNITY_SUPER_ADMIN_ROLE ||
-                        u.id === user?.uid ? (
-                            <Box key={u.id}></Box>
-                        ) : (
-                            <Box key={u.id} w="100%">
-                                <CommunityUserSnippetAuthorizeItem
-                                    user={u}
-                                    onChangeRole={(user, role, label) => {
-                                        setSelectedRole({
-                                            user,
-                                            label,
-                                            role,
-                                        });
-                                        toggleView("confirmModal");
-                                    }}
-                                />
-                                <Divider borderColor="gray.300" />
-                            </Box>
-                        )
+                ) : communityUserAuthorizeState.paginationOutput.list &&
+                  communityUserAuthorizeState.paginationOutput.list.length >
+                      0 ? (
+                    communityUserAuthorizeState.paginationOutput.list.map(
+                        (u: CommunityUserSnippet) =>
+                            u.role === COMMUNITY_SUPER_ADMIN_ROLE ||
+                            u.id === user?.uid ? (
+                                <Box key={u.id}></Box>
+                            ) : (
+                                <Box key={u.id} w="100%">
+                                    <CommunityUserSnippetAuthorizeItem
+                                        user={u}
+                                        onChangeRole={(user, role, label) => {
+                                            setSelectedRole({
+                                                user,
+                                                label,
+                                                role,
+                                            });
+                                            toggleView("confirmModal");
+                                        }}
+                                    />
+                                    <Divider borderColor="gray.300" />
+                                </Box>
+                            )
                     )
                 ) : (
                     <Flex align="center" justify="center" w="100%" py={10}>
@@ -243,20 +288,28 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
             </VStack>
             <Flex align="center" py={6} justify="center" w="100%">
                 <Pagination
-                    page={userPaginationInput.page}
-                    totalPage={userPaginationInput.totalPage}
+                    page={communityUserAuthorizeState.paginationOutput.page}
+                    totalPage={
+                        communityUserAuthorizeState.paginationOutput.totalPage
+                    }
                     onNext={() =>
-                        setUserPaginationInput((prev) => ({
+                        setCommunityUserAuthorizeState((prev) => ({
                             ...prev,
-                            page: prev.page + 1,
-                            isNext: true,
+                            paginationInput: {
+                                ...prev.paginationInput,
+                                page: prev.paginationInput.page + 1,
+                                isNext: true,
+                            },
                         }))
                     }
                     onPrev={() =>
-                        setUserPaginationInput((prev) => ({
+                        setCommunityUserAuthorizeState((prev) => ({
                             ...prev,
-                            page: prev.page - 1,
-                            isNext: false,
+                            paginationInput: {
+                                ...prev.paginationInput,
+                                page: prev.paginationInput.page - 1,
+                                isNext: false,
+                            },
                         }))
                     }
                 />

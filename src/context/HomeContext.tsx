@@ -43,22 +43,6 @@ type HomeState = {
         list: Review[];
         loading: boolean;
     };
-    // list: {
-    //     bannerBooks: Book[];
-    //     newestMangas: Book[];
-    //     mostPopularMangas: Book[];
-    //     mostFavoriteAuthors: Author[];
-    //     newestReviews: Review[];
-    //     mostPopularCommunities: Community[];
-    // };
-    // loading: {
-    //     bannerBooks: boolean;
-    //     newestMangas: boolean;
-    //     mostPopularMangas: boolean;
-    //     mostFavoriteAuthors: boolean;
-    //     newestReviews: boolean;
-    //     mostPopularCommunities: boolean;
-    // };
 };
 
 const defaultState = {

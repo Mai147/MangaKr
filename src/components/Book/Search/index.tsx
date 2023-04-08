@@ -4,7 +4,7 @@ import Tag from "@/components/Tag";
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
 import useBooks from "@/hooks/useBooks";
-import { Filter, filterList, FilterValue } from "@/hooks/usePagination";
+import { Book, Filter, filterList, FilterValue } from "@/models/Book";
 import { Box, Divider, Flex, Select, Spinner, Text } from "@chakra-ui/react";
 import router from "next/router";
 import React from "react";
@@ -22,21 +22,9 @@ const BookSearch: React.FC<BookSearchProps> = ({
     noResultText,
     pageView = "search",
 }) => {
-    const {
-        selectedGenre,
-        genreLoading,
-        genreList,
-        bookList,
-        bookLoading,
-        page,
-        totalPage,
-        selectedFilter,
-        slideToNextPage,
-        slideToPrevPage,
-        onChangeFilter,
-    } = useBooks();
+    const { bookAction, bookState } = useBooks();
     return (
-        <Box flexGrow={1}>
+        <Flex direction="column" flexGrow={1}>
             <Text fontSize={24} fontWeight={600}>
                 {title}
             </Text>
@@ -47,18 +35,20 @@ const BookSearch: React.FC<BookSearchProps> = ({
                         <Box mx={2}>
                             <Tag
                                 label="Tất cả"
-                                isActive={!selectedGenre?.id}
+                                isActive={!bookState.selectedGenre?.id}
                                 onClick={() => {
                                     router.push(routes.getBookHomePage());
                                 }}
                             />
                         </Box>
-                        {genreLoading && <Spinner />}
-                        {genreList.map((genre) => (
+                        {bookState.loading.getGenre && <Spinner />}
+                        {bookState.genreList.map((genre) => (
                             <Box key={genre.id} mx={2}>
                                 <Tag
                                     label={genre.name}
-                                    isActive={selectedGenre?.id === genre.id}
+                                    isActive={
+                                        bookState.selectedGenre?.id === genre.id
+                                    }
                                     onClick={() => {
                                         router.push(
                                             `${routes.getBookHomePage()}?genreId=${
@@ -72,7 +62,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
                     </Flex>
                     <Flex align="center" justify="center" my={4}>
                         <Text whiteSpace="pre-line">
-                            {selectedGenre?.description}
+                            {bookState.selectedGenre?.description}
                         </Text>
                     </Flex>
                 </>
@@ -81,9 +71,11 @@ const BookSearch: React.FC<BookSearchProps> = ({
                 <Flex justify="center" mb={10}>
                     <Select
                         onChange={(event) => {
-                            onChangeFilter(event.target.value as FilterValue);
+                            bookAction.onChangeFilter(
+                                event.target.value as FilterValue
+                            );
                         }}
-                        value={selectedFilter}
+                        value={bookState.bookPaginationInput.filter}
                         bg="white"
                     >
                         {filterList.map((item: Filter) => (
@@ -94,32 +86,45 @@ const BookSearch: React.FC<BookSearchProps> = ({
                     </Select>
                 </Flex>
             )}
-            {bookLoading &&
+            {bookState.loading.getBook &&
                 [1, 2, 3, 4].map((e, idx) => <HorizontalSkeleton key={idx} />)}
-            {bookList.length <= 0 ? (
-                <Text align="center" mt={10}>
-                    {noResultText}
-                </Text>
+            {bookState.bookPaginationOutput.list.length <= 0 ? (
+                <Box mt={10}>
+                    <Text fontSize={20} align="center">
+                        {noResultText}
+                    </Text>
+                </Box>
             ) : (
-                bookList.map((book, idx) =>
-                    pageView === "search" ? (
-                        <BookSnippetHorizontalItem key={book.id} book={book} />
-                    ) : (
-                        <BookTopSnippetItem
-                            key={book.id}
-                            rank={(page - 1) * BOOK_PAGE_COUNT + 1 + idx}
-                            book={book}
-                        />
-                    )
+                bookState.bookPaginationOutput.list.map(
+                    (book: Book, idx: number) =>
+                        pageView === "search" ? (
+                            <BookSnippetHorizontalItem
+                                key={book.id}
+                                book={book}
+                            />
+                        ) : (
+                            <BookTopSnippetItem
+                                key={book.id}
+                                rank={
+                                    (bookState.bookPaginationOutput.page - 1) *
+                                        BOOK_PAGE_COUNT +
+                                    1 +
+                                    idx
+                                }
+                                book={book}
+                            />
+                        )
                 )
             )}
-            <Pagination
-                page={page}
-                totalPage={totalPage}
-                onNext={slideToNextPage}
-                onPrev={slideToPrevPage}
-            />
-        </Box>
+            <Flex flexGrow={1} align="flex-end" justify="center">
+                <Pagination
+                    page={bookState.bookPaginationOutput.page}
+                    totalPage={bookState.bookPaginationOutput.totalPage}
+                    onNext={bookAction.onNext}
+                    onPrev={bookAction.onPrev}
+                />
+            </Flex>
+        </Flex>
     );
 };
 export default BookSearch;

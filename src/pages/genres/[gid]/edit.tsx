@@ -19,7 +19,7 @@ const GenreEditPage: React.FC<GenreEditPageProps> = ({ genre }) => {
         setDefaultPath(routes.getHomePage()), setNeedAuth(true);
     }, []);
     return (
-        <Box p="6" bg="white" borderRadius={4} boxShadow="lg">
+        <Box p="6" bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
             <GenreForm genre={genre} />
         </Box>
     );

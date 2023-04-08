@@ -24,7 +24,6 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
     setSelected,
     size,
 }) => {
-    // const [isSearching, setIsSearching] = useState(true);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const searchRef = useRef<HTMLInputElement>(null);
     const resultRef = useRef<HTMLDivElement>(null);
@@ -94,6 +93,7 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
                     p={2}
                     maxH="200px"
                     overflow="auto"
+                    className="scroll"
                     ref={resultRef}
                 >
                     {options && options?.length > 0 ? (

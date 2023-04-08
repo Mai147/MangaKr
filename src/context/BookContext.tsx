@@ -1,10 +1,11 @@
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import usePagination, {
+import useTestPagination, {
     BookPaginationInput,
     defaultPaginationInput,
-    FilterValue,
-} from "@/hooks/usePagination";
-import { Book } from "@/models/Book";
+    defaultPaginationOutput,
+    PaginationOutput,
+} from "@/hooks/useTestPagination";
+import { FilterValue } from "@/models/Book";
 import { Genre } from "@/models/Genre";
 import GenreService from "@/services/GenreService";
 import { useRouter } from "next/router";
@@ -17,99 +18,113 @@ const defaultBookPaginationInput: BookPaginationInput = {
 };
 
 type BookState = {
-    bookList: Book[];
-    bookLoading: boolean;
+    bookPaginationInput: BookPaginationInput;
+    bookPaginationOutput: PaginationOutput;
     genreList: Genre[];
-    genreLoading: boolean;
     selectedGenre?: Genre;
-    selectedFilter?: FilterValue;
-    page: number;
-    totalPage: number;
-    slideToNextPage: () => void;
-    slideToPrevPage: () => void;
+    loading: {
+        getGenre: boolean;
+        getBook: boolean;
+    };
+};
+
+type BookAction = {
+    onNext: () => void;
+    onPrev: () => void;
     onChangeFilter: (filter: FilterValue) => void;
 };
 
+type BookContextState = {
+    bookState: BookState;
+    bookAction: BookAction;
+};
+
 const defaultBookState: BookState = {
-    bookList: [],
-    bookLoading: false,
-    genreLoading: false,
+    bookPaginationInput: defaultBookPaginationInput,
+    bookPaginationOutput: defaultPaginationOutput,
     genreList: [],
-    page: defaultPaginationInput.page,
-    totalPage: defaultPaginationInput.totalPage,
-    selectedFilter: "rating",
-    slideToNextPage: () => {},
-    slideToPrevPage: () => {},
+    loading: {
+        getGenre: false,
+        getBook: false,
+    },
+};
+
+const defaultBookAction: BookAction = {
+    onNext: () => {},
+    onPrev: () => {},
     onChangeFilter: () => {},
 };
 
-export const BookContext = createContext<BookState>(defaultBookState);
+const defaulBookContextState: BookContextState = {
+    bookState: defaultBookState,
+    bookAction: defaultBookAction,
+};
+
+export const BookContext = createContext<BookContextState>(
+    defaulBookContextState
+);
 
 export const BookProvider = ({ children }: any) => {
     const [bookState, setBookState] = useState<BookState>(defaultBookState);
-    const [paginationInput, setPaginationInput] = useState<BookPaginationInput>(
-        defaultBookPaginationInput
-    );
     const router = useRouter();
-    const { getBooks } = usePagination();
+    const { getBooks } = useTestPagination();
 
     const getListBook = async () => {
         setBookState((prev) => ({
             ...prev,
-            bookLoading: true,
+            loading: {
+                ...prev.loading,
+                getBook: true,
+            },
         }));
-        const listBook = await getBooks({
-            ...paginationInput,
-        });
-        if (listBook) {
+        const input: BookPaginationInput = {
+            ...bookState.bookPaginationInput,
+            setDocValue: (docValue) => {
+                setBookState((prev) => ({
+                    ...prev,
+                    bookPaginationInput: {
+                        ...prev.bookPaginationInput,
+                        docValue,
+                    },
+                }));
+            },
+        };
+        const res = await getBooks(input);
+        if (res) {
             setBookState((prev) => ({
                 ...prev,
-                bookList: listBook.books,
-            }));
-            setPaginationInput((prev) => ({
-                ...prev,
-                totalPage: listBook.totalPage || 0,
+                bookPaginationOutput: res,
+                bookPaginationInput: {
+                    ...prev.bookPaginationInput,
+                    isFirst: false,
+                },
             }));
         }
         setBookState((prev) => ({
             ...prev,
-            bookLoading: false,
+            loading: {
+                ...prev.loading,
+                getBook: false,
+            },
         }));
     };
 
     const getGenres = async () => {
         setBookState((prev) => ({
             ...prev,
-            genreLoading: true,
+            loading: {
+                ...prev.loading,
+                getGenre: true,
+            },
         }));
         const genres = await GenreService.getAll({});
         setBookState((prev) => ({
             ...prev,
             genreList: genres as Genre[],
-            genreLoading: false,
-        }));
-    };
-
-    const slideToNextPage = () => {
-        setPaginationInput((prev) => ({
-            ...prev,
-            isNext: true,
-            page: prev.page + 1,
-        }));
-    };
-
-    const slideToPrevPage = () => {
-        setPaginationInput((prev) => ({
-            ...prev,
-            isNext: false,
-            page: prev.page - 1,
-        }));
-    };
-
-    const onChangeFilter = (filter: FilterValue) => {
-        setPaginationInput((prev) => ({
-            ...prev,
-            filter,
+            loading: {
+                ...prev.loading,
+                getGenre: false,
+            },
         }));
     };
 
@@ -119,63 +134,82 @@ export const BookProvider = ({ children }: any) => {
 
     useEffect(() => {
         const selectedGenre = bookState.genreList.find(
-            (genre) => genre.id === paginationInput.genreId
+            (genre) => genre.id === bookState.bookPaginationInput.genreId
         );
-        setPaginationInput((prev) => ({
-            ...defaultBookPaginationInput,
-            filter: undefined,
-            genreId: prev.genreId,
-        }));
         setBookState((prev) => ({
             ...prev,
+            bookPaginationInput: {
+                ...defaultBookPaginationInput,
+                filter: undefined,
+                genreId: prev.bookPaginationInput.genreId,
+            },
             selectedGenre,
         }));
-    }, [paginationInput.genreId]);
+    }, [bookState.bookPaginationInput.genreId]);
 
     useEffect(() => {
-        setPaginationInput((prev) => ({
-            ...defaultBookPaginationInput,
-            filter: prev.filter,
-        }));
-    }, [paginationInput.filter]);
-
-    useEffect(() => {
-        setPaginationInput((prev) => ({
+        setBookState((prev) => ({
             ...prev,
-            genreId: router.query.genreId as string,
+            bookPaginationInput: {
+                ...defaultBookPaginationInput,
+                filter: prev.bookPaginationInput.filter,
+            },
+        }));
+    }, [bookState.bookPaginationInput.filter]);
+
+    useEffect(() => {
+        setBookState((prev) => ({
+            ...prev,
+            bookPaginationInput: {
+                ...prev.bookPaginationInput,
+                genreId: router.query.genreId as string,
+            },
         }));
     }, [router.query]);
 
     useEffect(() => {
         getListBook();
-        if (paginationInput.isFirst) {
-            setPaginationInput((prev) => ({
-                ...prev,
-                isFirst: false,
-            }));
-        }
-    }, [paginationInput.page, paginationInput.filter, paginationInput.isFirst]);
-
-    useEffect(() => {
-        setBookState((prev) => ({
-            ...prev,
-            page: paginationInput.page,
-            totalPage: paginationInput.totalPage,
-            selectedFilter: paginationInput.filter,
-        }));
     }, [
-        paginationInput.page,
-        paginationInput.totalPage,
-        paginationInput.filter,
+        bookState.bookPaginationInput.page,
+        bookState.bookPaginationInput.filter,
+        bookState.bookPaginationInput.genreId,
     ]);
 
     return (
         <BookContext.Provider
             value={{
-                ...bookState,
-                slideToNextPage,
-                slideToPrevPage,
-                onChangeFilter,
+                bookState,
+                bookAction: {
+                    onNext: () => {
+                        setBookState((prev) => ({
+                            ...prev,
+                            bookPaginationInput: {
+                                ...prev.bookPaginationInput,
+                                page: prev.bookPaginationInput.page + 1,
+                                isNext: true,
+                            },
+                        }));
+                    },
+                    onPrev: () => {
+                        setBookState((prev) => ({
+                            ...prev,
+                            bookPaginationInput: {
+                                ...prev.bookPaginationInput,
+                                page: prev.bookPaginationInput.page - 1,
+                                isNext: false,
+                            },
+                        }));
+                    },
+                    onChangeFilter: (filter) => {
+                        setBookState((prev) => ({
+                            ...prev,
+                            bookPaginationInput: {
+                                ...prev.bookPaginationInput,
+                                filter,
+                            },
+                        }));
+                    },
+                },
             }}
         >
             {children}

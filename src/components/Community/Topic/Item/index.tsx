@@ -1,11 +1,13 @@
 import { REPLY_TOPIC_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
-import usePagination, {
-    PaginationInput,
+import useTestPagination, {
     defaultPaginationInput,
-} from "@/hooks/usePagination";
-import { Topic, TopicReply } from "@/models/Topic";
+    defaultPaginationOutput,
+    PaginationOutput,
+    TopicReplyPaginationInput,
+} from "@/hooks/useTestPagination";
+import { Topic } from "@/models/Topic";
 import TopicService from "@/services/TopicService";
 import {
     AspectRatio,
@@ -29,45 +31,39 @@ type TopicItemProps = {
     topic: Topic;
 };
 
-interface TopicReplyPaginationInput extends PaginationInput {
-    topicId: string;
-    communityId: string;
-}
-
-const defaultTopicReplyPaginationInput: TopicReplyPaginationInput = {
-    ...defaultPaginationInput,
-    pageCount: REPLY_TOPIC_PAGE_COUNT,
-    communityId: "",
-    topicId: "",
-};
-
 const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
     const { user } = useAuth();
-    const { getTopicReplies } = usePagination();
-    const [replyList, setReplyList] = useState<TopicReply[]>([]);
-    const [topicReplyPaginationInput, setTopicReplyPaginationInput] = useState(
-        defaultTopicReplyPaginationInput
-    );
+    const { getTopicReplies } = useTestPagination();
+    const [topicReplyPaginationInput, setTopicReplyPaginationInput] =
+        useState<TopicReplyPaginationInput>({
+            ...defaultPaginationInput,
+            communityId: topic.communityId,
+            topicId: topic.id!,
+            pageCount: REPLY_TOPIC_PAGE_COUNT,
+            setDocValue: (docValue) => {
+                setTopicReplyPaginationInput((prev) => ({
+                    ...prev,
+                    docValue,
+                }));
+            },
+        });
+    const [topicReplyPaginationOutput, setTopicReplyPaginationOutput] =
+        useState<PaginationOutput>(defaultPaginationOutput);
+    const [getTopicReplyLoading, setGetTopicReplyLoading] = useState(false);
     const [changeStatusLoading, setChangeStatusLoading] = useState(false);
     const router = useRouter();
 
     const getListTopicReply = async () => {
-        setTopicReplyPaginationInput((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getTopicReplies({
-            ...topicReplyPaginationInput,
-            communityId: topic.communityId,
-            topicId: topic.id!,
-        });
-        setTopicReplyPaginationInput((prev) => ({
-            ...prev,
-            loading: false,
-            isFirst: false,
-            totalPage: res.totalPage || 0,
-        }));
-        setReplyList(res.topicReplies);
+        setGetTopicReplyLoading(true);
+        const res = await getTopicReplies(topicReplyPaginationInput);
+        if (res) {
+            setTopicReplyPaginationOutput(res);
+            setTopicReplyPaginationInput((prev) => ({
+                ...prev,
+                isFirst: false,
+            }));
+        }
+        setGetTopicReplyLoading(false);
     };
 
     useEffect(() => {
@@ -146,8 +142,8 @@ const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
             )}
             <Divider my={4} borderColor="gray.400" />
             <TopicReplyList
-                topicReplyList={replyList}
-                topicReplyPaginationInput={topicReplyPaginationInput}
+                topicReplyPaginationOutput={topicReplyPaginationOutput}
+                loading={getTopicReplyLoading}
                 onNext={() =>
                     setTopicReplyPaginationInput((prev) => ({
                         ...prev,
@@ -186,7 +182,14 @@ const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
                             topic,
                         });
                         if (res) {
-                            setReplyList((prev) => [res, ...prev]);
+                            setTopicReplyPaginationOutput((prev) => ({
+                                ...prev,
+                                list: [...prev.list, res],
+                            }));
+                            setTopicReplyPaginationInput((prev) => ({
+                                ...prev,
+                                exceptionCount: (prev.exceptionCount || 0) + 1,
+                            }));
                         }
                     }}
                 />

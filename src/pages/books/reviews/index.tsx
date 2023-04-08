@@ -5,10 +5,12 @@ import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import { REVIEW_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
-import usePagination, {
+import useTestPagination, {
     defaultPaginationInput,
-    PaginationInput,
-} from "@/hooks/usePagination";
+    defaultPaginationOutput,
+    PaginationOutput,
+    ReviewPaginationInput,
+} from "@/hooks/useTestPagination";
 import { Review } from "@/models/Review";
 import { Box, Divider, Text, VStack } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
@@ -20,29 +22,33 @@ type ReviewPageProps = {
 
 const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
     const [reviewPaginationInput, setReviewPaginationInput] =
-        useState<PaginationInput>({
+        useState<ReviewPaginationInput>({
             ...defaultPaginationInput,
             pageCount: REVIEW_PAGE_COUNT,
-            loading: true,
+            bookId,
+            setDocValue: (docValue) => {
+                setReviewPaginationInput((prev) => ({
+                    ...prev,
+                    docValue,
+                }));
+            },
         });
-    const [reviews, setReviews] = useState<Review[]>([]);
-    const { getReviews } = usePagination();
+    const [reviewPaginationOutput, setReviewPaginationOutput] =
+        useState<PaginationOutput>(defaultPaginationOutput);
+    const [loading, setLoading] = useState(false);
+    const { getReviews } = useTestPagination();
 
     const getListReviews = async () => {
-        setReviewPaginationInput((prev) => ({
-            ...prev,
-            loading: true,
-        }));
-        const res = await getReviews({ ...reviewPaginationInput, bookId });
-        if (res.reviews) {
-            setReviews(res.reviews);
+        setLoading(true);
+        const res = await getReviews(reviewPaginationInput);
+        if (res) {
+            setReviewPaginationOutput(res);
+            setReviewPaginationInput((prev) => ({
+                ...prev,
+                isFirst: false,
+            }));
         }
-        setReviewPaginationInput((prev) => ({
-            ...prev,
-            totalPage: res.totalPage || 0,
-            loading: false,
-            isFirst: false,
-        }));
+        setLoading(false);
     };
 
     useEffect(() => {
@@ -56,17 +62,17 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
                     Bài đánh giá
                 </Text>
                 <Divider my={4} borderColor="gray.400" />
-                {reviewPaginationInput.loading ? (
+                {loading ? (
                     [1, 2, 3, 4].map((e, idx) => (
                         <HorizontalSkeleton key={idx} />
                     ))
-                ) : reviews.length <= 0 ? (
+                ) : reviewPaginationOutput.list.length <= 0 ? (
                     <Text align="center" mt={10}>
                         Không có bài đánh giá nào!
                     </Text>
                 ) : (
                     <VStack spacing={4} mb={4} align="flex-start">
-                        {reviews.map((review) => (
+                        {reviewPaginationOutput.list.map((review: Review) => (
                             <ReviewSnippetItem
                                 key={review.id}
                                 review={review}
@@ -79,8 +85,8 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
                     </VStack>
                 )}
                 <Pagination
-                    page={reviewPaginationInput.page}
-                    totalPage={reviewPaginationInput.totalPage}
+                    page={reviewPaginationOutput.page}
+                    totalPage={reviewPaginationOutput.totalPage}
                     onNext={() => {
                         setReviewPaginationInput((prev) => ({
                             ...prev,

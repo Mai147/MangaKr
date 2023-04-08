@@ -1,7 +1,7 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
 import { Author } from "@/models/Author";
-import { Book, BookSnippet } from "@/models/Book";
+import { Book, BookSnippet, FilterValue } from "@/models/Book";
 import { Comment } from "@/models/Comment";
 import { Community } from "@/models/Community";
 import { Genre } from "@/models/Genre";
@@ -47,30 +47,6 @@ export const defaultPaginationInput: PaginationInput = {
     totalPage: 1,
     exceptionCount: 0,
 };
-
-export type FilterValue = "rating" | "popularity" | "numberOfReviews";
-
-type FilterLabel = "Điểm Đánh Giá" | "Số Người Đọc" | "Số Bài Đánh Giá";
-
-export type Filter = {
-    label: FilterLabel;
-    value: FilterValue;
-};
-
-export const filterList: Filter[] = [
-    {
-        label: "Số Người Đọc",
-        value: "popularity",
-    },
-    {
-        label: "Số Bài Đánh Giá",
-        value: "numberOfReviews",
-    },
-    {
-        label: "Điểm Đánh Giá",
-        value: "rating",
-    },
-];
 
 export interface BookPaginationInput extends PaginationInput {
     genreId?: string;

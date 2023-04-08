@@ -11,7 +11,7 @@ const POST_ROUTE = "posts";
 const USER_ROUTE = "users";
 const TOPIC_ROUTE = "topics";
 export const getCommunityPostApprovePage = (communityId: string) => {
-    return `communities/${communityId}/posts/approve`;
+    return `/communities/${communityId}/posts/approve`;
 };
 const SEARCH_ROUTE = "search";
 const WRITER_ROUTE = "writer";

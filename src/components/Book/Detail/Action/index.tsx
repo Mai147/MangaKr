@@ -5,6 +5,7 @@ import BookDetailVote from "./Vote";
 import CommentSection from "../../../Comment";
 import BookDetailReviewAction from "./Review";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { CommentProvider } from "@/context/CommentContext";
 
 type BookDetailActionProps = {
     book: Book;
@@ -16,12 +17,14 @@ const BookDetailAction: React.FC<BookDetailActionProps> = ({ book, user }) => {
         <>
             <BookDetailReviewAction bookId={book.id!} user={user} />
             <BookDetailVote bookId={book.id!} user={user} />
-            <CommentSection
+            <CommentProvider
                 commentRoute={firebaseRoute.getBookCommentRoute(book.id!)}
                 rootRoute={firebaseRoute.getAllBookRoute()}
                 rootId={book.id!}
-                user={user}
-            />
+                setNumberOfCommentsIncrement={() => {}}
+            >
+                <CommentSection user={user} />
+            </CommentProvider>
         </>
     );
 };

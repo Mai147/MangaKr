@@ -1,26 +1,25 @@
-import Pagination from "@/components/Pagination";
 import useSearch from "@/hooks/useSearch";
 import { Box, Grid, GridItem, Text } from "@chakra-ui/react";
 import React from "react";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import UserHorizontalSnippetItem from "@/components/User/Snippet/UserHorizontalSnippetItem";
+import { UserModel } from "@/models/User";
 
 type SearchUserTabProps = {};
 
 const SearchUserTab: React.FC<SearchUserTabProps> = () => {
-    const { user, slideToNextPage, slideToPrevPage } = useSearch();
-    console.log(user);
+    const { searchState } = useSearch();
     return (
         <Box w="100%">
-            {user.loading ? (
+            {searchState.user.loading ? (
                 [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
-            ) : user.users.length > 0 ? (
+            ) : searchState.user.output.list.length > 0 ? (
                 <Grid
                     templateColumns={"repeat(2, minmax(0, 1fr))"}
                     gap={2}
                     mb={4}
                 >
-                    {user.users.map((user) => (
+                    {searchState.user.output.list.map((user: UserModel) => (
                         <GridItem key={user.uid}>
                             <UserHorizontalSnippetItem user={user} h="100%" />
                         </GridItem>
@@ -31,12 +30,6 @@ const SearchUserTab: React.FC<SearchUserTabProps> = () => {
                     Không có kết quả cần tìm
                 </Text>
             )}
-            <Pagination
-                page={user.page}
-                totalPage={user.totalPage}
-                onNext={() => slideToNextPage("user")}
-                onPrev={() => slideToPrevPage("user")}
-            />
         </Box>
     );
 };
