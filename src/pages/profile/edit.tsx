@@ -1,24 +1,22 @@
-import ProfileDetail from "@/components/Profile/Detail";
-import ProfilePassword from "@/components/Profile/Password";
-import ProfileShow from "@/components/Profile/Show";
-import ProfileSidebar from "@/components/Profile/Sidebar";
+import ProfileDetail from "@/components/Profile/Edit/Detail";
+import ProfilePassword from "@/components/Profile/Edit/Password";
+import ProfileSidebar from "@/components/Profile/Edit/Sidebar";
 import { routes } from "@/constants/routes";
-import { PostProvider } from "@/context/PostContext";
 import useAuth from "@/hooks/useAuth";
 import { Box, Flex, Spinner } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
 import React, { useEffect, useState } from "react";
 
-type ProfilePageProps = {};
+type ProfileEditPageProps = {};
 
-const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
-    const { user, setNeedAuth, setDefaultPath } = useAuth();
+const ProfileEditPage: React.FC<ProfileEditPageProps> = ({}) => {
+    const { user, authAction } = useAuth();
     const [tab, setTab] = useState(0);
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     if (!user) {
@@ -46,13 +44,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({}) => {
                 pl={5}
                 flexGrow={1}
             >
-                {tab == 0 && (
-                    <PostProvider>
-                        <ProfileShow user={user} />
-                    </PostProvider>
-                )}
-                {tab == 1 && <ProfileDetail user={user} />}
-                {tab == 2 && <ProfilePassword user={user} />}
+                {tab == 0 && <ProfileDetail user={user} />}
+                {tab == 1 && <ProfilePassword user={user} />}
             </Box>
         </Flex>
     );
@@ -70,4 +63,4 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
 }
 
-export default ProfilePage;
+export default ProfileEditPage;

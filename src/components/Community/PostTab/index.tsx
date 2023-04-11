@@ -1,6 +1,6 @@
 import InfiniteScroll from "@/components/InfiniteScroll";
 import PostItem from "@/components/Post/Item";
-import { usePost } from "@/hooks/usePost";
+import usePost from "@/hooks/usePost";
 import { Community } from "@/models/Community";
 import { Spinner, Text } from "@chakra-ui/react";
 import React, { useEffect } from "react";

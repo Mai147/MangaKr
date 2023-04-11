@@ -15,6 +15,7 @@ import React from "react";
 import { FiChevronDown, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
 import { BiLibrary, BiRegistered } from "react-icons/bi";
 import { CgProfile } from "react-icons/cg";
+import { TiEdit } from "react-icons/ti";
 import { auth } from "@/firebase/clientApp";
 import AuthButtons from "./AuthButtons";
 import NavUserMenuItem from "./NavUserMenuItem";
@@ -27,7 +28,7 @@ type NavUserProps = {};
 
 const NavUser: React.FC<NavUserProps> = () => {
     const { toggleView } = useModal();
-    const { user, logout } = useAuth();
+    const { user, authAction } = useAuth();
     return (
         <Flex alignItems={"center"} ml={2}>
             {user ? (
@@ -62,9 +63,14 @@ const NavUser: React.FC<NavUserProps> = () => {
                         borderColor={useColorModeValue("gray.200", "gray.700")}
                     >
                         <NavUserMenuItem
-                            icon={CgProfile}
+                            icon={TiEdit}
                             title="Hồ sơ"
-                            href={routes.getProfilePage()}
+                            href={routes.getProfileEditPage()}
+                        />
+                        <NavUserMenuItem
+                            icon={CgProfile}
+                            title="Trang cá nhân"
+                            href={routes.getProfilePage(user.uid)}
                         />
                         <NavUserMenuItem
                             icon={BiLibrary}
@@ -76,7 +82,7 @@ const NavUser: React.FC<NavUserProps> = () => {
                             icon={FiLogOut}
                             title="Đăng xuất"
                             onClick={async () => {
-                                await logout();
+                                await authAction.logout();
                                 await signOut(auth);
                             }}
                         />

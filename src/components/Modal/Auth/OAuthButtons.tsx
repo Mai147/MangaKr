@@ -8,7 +8,7 @@ import useModal from "@/hooks/useModal";
 import UserService from "@/services/UserService";
 
 const OAuthButtons: React.FC = () => {
-    const { login } = useAuth();
+    const { authAction } = useAuth();
     const [loginWithGoogle, userCred, loading, error] =
         useSignInWithGoogle(auth);
     const { closeModal } = useModal();
@@ -23,7 +23,7 @@ const OAuthButtons: React.FC = () => {
                     const res = await loginWithGoogle();
                     if (res) {
                         await UserService.create({ user: res.user });
-                        await login(res.user);
+                        await authAction.login(res.user);
                         closeModal();
                     }
                 }}

@@ -1,12 +1,10 @@
 import MessageHeader from "@/components/Message/MessageHeader";
 import MessageLeftSideBar from "@/components/Message/LeftSideBar";
 import { routes } from "@/constants/routes";
-import { UserModel } from "@/models/User";
-import UserService from "@/services/UserService";
-import { Divider, Flex, VStack } from "@chakra-ui/react";
+import { Flex, VStack } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import MessageList from "@/components/Message/MessageList";
 import { MessageProvider } from "@/context/MessageContext";
 import MessageInput from "@/components/Message/Input";
@@ -15,11 +13,11 @@ import useAuth from "@/hooks/useAuth";
 type MessagePageProps = {};
 
 const MessagePage: React.FC<MessagePageProps> = () => {
-    const { setDefaultPath, setNeedAuth } = useAuth();
+    const { authAction } = useAuth();
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     return (

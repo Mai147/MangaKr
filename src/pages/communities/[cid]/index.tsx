@@ -34,7 +34,7 @@ const communityTab = [
 const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
     community,
 }) => {
-    const { setNeedAuth, user } = useAuth();
+    const { authAction, user } = useAuth();
     const { communityAction, communityState } = useCommunity();
     const [selectedTab, setSelectedTab] = useState(communityTab[0].title);
     const [scrollHeight, setScrollHeight] = useState<number[]>([0, 0]);
@@ -44,7 +44,7 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
     }, [community]);
 
     useEffect(() => {
-        setNeedAuth(false);
+        authAction.setNeedAuth(false);
     }, []);
 
     if (!community) {

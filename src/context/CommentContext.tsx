@@ -7,10 +7,10 @@ import CommentService from "@/services/CommentService";
 import VoteService from "@/services/VoteService";
 import { useToast } from "@chakra-ui/react";
 import { createContext, useEffect, useRef, useState } from "react";
-import useTestPagination, {
+import usePagination, {
     CommentPaginationInput,
     defaultPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { COMMENT_PAGE_COUNT } from "@/constants/pagination";
 import useAuth from "@/hooks/useAuth";
 
@@ -137,7 +137,7 @@ export const CommentProvider = ({
     const [selectedCommentId, setSelectedCommentId] = useState<
         string | undefined
     >();
-    const { getComments } = useTestPagination();
+    const { getComments } = usePagination();
     const { toggleView } = useModal();
     const toast = useToast();
 
@@ -849,8 +849,6 @@ export const CommentProvider = ({
             console.log(error);
         }
     };
-
-    console.log(commentRoute);
 
     useEffect(() => {
         setCommentState(defaultCommentState);

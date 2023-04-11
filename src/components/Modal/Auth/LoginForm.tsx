@@ -16,7 +16,7 @@ const LoginForm: React.FC<LoginFormProps> = () => {
     const { toggleView } = useModal();
     const [loginWithEmailAndPassword, user, loading, userError] =
         useSignInWithEmailAndPassword(auth);
-    const { login } = useAuth();
+    const { authAction } = useAuth();
     const [isShowPassword, setIsShowPassword] = useState(false);
     const [loginForm, setLoginForm] = useState({
         email: "",
@@ -34,7 +34,7 @@ const LoginForm: React.FC<LoginFormProps> = () => {
                 loginForm.password
             );
             if (res) {
-                login(res.user);
+                authAction.login(res.user);
             }
         } else {
             setErrors(res.errors);

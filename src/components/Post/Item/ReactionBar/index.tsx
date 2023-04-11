@@ -1,4 +1,4 @@
-import { usePost } from "@/hooks/usePost";
+import usePost from "@/hooks/usePost";
 import { Post } from "@/models/Post";
 import { postVoteList } from "@/models/Vote";
 import { formatNumber } from "@/utils/StringUtils";

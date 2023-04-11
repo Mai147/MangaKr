@@ -1,6 +1,8 @@
 import { PostContext } from "@/context/PostContext";
 import { useContext } from "react";
 
-export const usePost = () => {
+const usePost = () => {
     return useContext(PostContext);
 };
+
+export default usePost;

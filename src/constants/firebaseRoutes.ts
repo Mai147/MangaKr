@@ -23,6 +23,9 @@ const POST_VOTE_ROUTE = `postVotes`;
 const TOPIC_ROUTE = `topics`;
 const TOPIC_REPLY_ROUTE = `replies`;
 const MESSAGE_ROUTE = `messages`;
+const FOLLOW_ROUTE = `follows`;
+const FOLLOWED_ROUTE = `followeds`;
+const NOTIFICATION_ROUTE = `notifications`;
 
 export const firebaseRoute = {
     COMMUNITY_SNIPPET_ROUTE: `communitySnippets`,
@@ -67,6 +70,15 @@ export const firebaseRoute = {
     },
     getUserMessageDetailRoute(firstUserId: string, secondUserId: string) {
         return `${USER_ROUTE}/${firstUserId}/${MESSAGE_ROUTE}/${secondUserId}/messageList`;
+    },
+    getUserFollowRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${FOLLOW_ROUTE}`;
+    },
+    getUserFollowedRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${FOLLOWED_ROUTE}`;
+    },
+    getUserNotificationRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${NOTIFICATION_ROUTE}`;
     },
     getAllAuthorRoute() {
         return AUTHOR_ROUTE;

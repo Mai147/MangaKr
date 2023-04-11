@@ -12,7 +12,9 @@ import React from "react";
 // import { PostProvider } from "@/context/PostContext";
 
 export default function App({ Component, pageProps, ...appProps }: AppProps) {
-    const isLayoutNeeded = ![`/messages`].includes(appProps.router.pathname);
+    const isLayoutNeeded = ![`/messages`, `/messages/[uid]`].includes(
+        appProps.router.pathname
+    );
 
     const LayoutComponent = isLayoutNeeded ? Layout : React.Fragment;
 

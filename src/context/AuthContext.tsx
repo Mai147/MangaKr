@@ -1,4 +1,4 @@
-import { ProfileFormState } from "@/components/Profile/Detail";
+import { ProfileFormState } from "@/components/Profile/Edit/Detail";
 import { routes } from "@/constants/routes";
 import { UserModel } from "@/models/User";
 import UserService from "@/services/UserService";
@@ -7,8 +7,7 @@ import Cookies from "js-cookie";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
-type AuthState = {
-    user?: UserModel | null;
+type AuthAction = {
     updateUser: (user: ProfileFormState) => void;
     login: (user: User) => Promise<void>;
     logout: () => Promise<void>;
@@ -16,16 +15,23 @@ type AuthState = {
     setDefaultPath: (value: string) => void;
 };
 
-const defaultAuthState: AuthState = {
-    user: null,
-    updateUser: () => null,
-    login: async () => {},
-    logout: async () => {},
-    setNeedAuth: () => null,
-    setDefaultPath: () => null,
+type AuthStateState = {
+    user?: UserModel | null;
+    authAction: AuthAction;
 };
 
-export const AuthContext = createContext<AuthState>(defaultAuthState);
+const defaultAuthState: AuthStateState = {
+    user: null,
+    authAction: {
+        updateUser: () => null,
+        login: async () => {},
+        logout: async () => {},
+        setNeedAuth: () => null,
+        setDefaultPath: () => null,
+    },
+};
+
+export const AuthContext = createContext<AuthStateState>(defaultAuthState);
 
 export const AuthProvider = ({ children }: any) => {
     const rounter = useRouter();
@@ -54,7 +60,6 @@ export const AuthProvider = ({ children }: any) => {
                     ...prev,
                     displayName: user.displayName,
                     photoURL: user.photoUrl,
-                    subBio: user.subBio,
                     bio: user.bio,
                 } as UserModel)
         );
@@ -95,11 +100,13 @@ export const AuthProvider = ({ children }: any) => {
         <AuthContext.Provider
             value={{
                 user,
-                updateUser,
-                login,
-                logout,
-                setNeedAuth,
-                setDefaultPath,
+                authAction: {
+                    updateUser,
+                    login,
+                    logout,
+                    setNeedAuth,
+                    setDefaultPath,
+                },
             }}
         >
             {children}

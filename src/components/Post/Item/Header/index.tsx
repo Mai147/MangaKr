@@ -1,5 +1,5 @@
 import useAuth from "@/hooks/useAuth";
-import { usePost } from "@/hooks/usePost";
+import usePost from "@/hooks/usePost";
 import { Post } from "@/models/Post";
 import {
     Flex,

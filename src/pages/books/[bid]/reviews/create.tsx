@@ -16,9 +16,10 @@ const BookReviewCreatePage: React.FC<BookReviewCreatePageProps> = ({
     bookId,
     user,
 }) => {
-    const { setDefaultPath, setNeedAuth } = useAuth();
+    const { authAction } = useAuth();
     useEffect(() => {
-        setDefaultPath(routes.getHomePage()), setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
     }, []);
 
     return (

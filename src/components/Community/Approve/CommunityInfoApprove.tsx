@@ -3,12 +3,12 @@ import PostHorizontalSnippetItem from "@/components/Post/Snippet/PostHorizontalS
 import TableHeader, { TableInfoHeader } from "@/components/Table/TableHeader";
 import { POST_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationInput,
     PaginationOutput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
 import { Post } from "@/models/Post";
 import { Topic } from "@/models/Topic";
@@ -106,7 +106,7 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
 }) => {
     const [communityApproveState, setCommunityApproveState] =
         useState<CommunityInfoApproveState>(defaultCommunityApproveState);
-    const { getPosts, getTopics } = useTestPagination();
+    const { getPosts, getTopics } = usePagination();
 
     const getCommunityInfos = async () => {
         setCommunityApproveState((prev) => ({

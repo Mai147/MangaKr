@@ -1,10 +1,10 @@
 import { BOOK_PAGE_COUNT } from "@/constants/pagination";
-import useTestPagination, {
+import usePagination, {
     BookPaginationInput,
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { FilterValue } from "@/models/Book";
 import { Genre } from "@/models/Genre";
 import GenreService from "@/services/GenreService";
@@ -67,7 +67,7 @@ export const BookContext = createContext<BookContextState>(
 export const BookProvider = ({ children }: any) => {
     const [bookState, setBookState] = useState<BookState>(defaultBookState);
     const router = useRouter();
-    const { getBooks } = useTestPagination();
+    const { getBooks } = usePagination();
 
     const getListBook = async () => {
         setBookState((prev) => ({

@@ -1,27 +1,34 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { MESSAGE_PAGE_COUNT, SEARCH_PAGE_COUNT } from "@/constants/pagination";
+import { routes } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useDebounce from "@/hooks/useDebounce";
 import useSelectFile from "@/hooks/useSelectFile";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     MessagePaginationInput,
     PaginationOutput,
     UserPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Message } from "@/models/Message";
 import { UserMessageSnippet, UserModel, UserSnippet } from "@/models/User";
 import MessageService from "@/services/MessageService";
+import UserService from "@/services/UserService";
+import { isToday } from "@/utils/StringUtils";
+import UserUtils from "@/utils/UserUtils";
 import {
     collection,
     doc,
     onSnapshot,
     orderBy,
     query,
+    Timestamp,
 } from "firebase/firestore";
+import { useRouter } from "next/router";
 import { ChangeEvent, createContext, useEffect, useRef, useState } from "react";
+import { v4 } from "uuid";
 
 type MessageState = {
     listUsers: UserMessageSnippet[];
@@ -120,6 +127,7 @@ export const MessageContext = createContext<MessageContextState>(
 
 export const MessageProvider = ({ children }: any) => {
     const { user } = useAuth();
+    const router = useRouter();
     const [messageState, setMessageState] =
         useState<MessageState>(defaultMessageState);
     const debouncedSearch = useDebounce(
@@ -132,7 +140,7 @@ export const MessageProvider = ({ children }: any) => {
         onPasteFile,
         setSelectedListFile,
     } = useSelectFile();
-    const { getUsers, getMessages } = useTestPagination();
+    const { getUsers, getMessages } = usePagination();
     const isFirst = useRef(true);
     const isFirstLatestMessage = useRef(true);
 
@@ -352,8 +360,9 @@ export const MessageProvider = ({ children }: any) => {
         setMessageState((prev) => ({
             ...prev,
             isSearching: false,
-            selectedUser: user,
+            // selectedUser: user,
         }));
+        router.push(`${routes.getMessageDetailPage(user.id)}`);
     };
 
     const onTypeMessageText = (value: string) => {
@@ -382,7 +391,85 @@ export const MessageProvider = ({ children }: any) => {
             if (!user || !messageState.selectedUser) {
                 return;
             }
+            const latestContentId = v4();
             const { selectedUser, messageInput } = messageState;
+            const messageForm: Message = {
+                id: v4(),
+                latestContent: messageInput.content,
+                imageUrls: messageInput.imageUrls,
+                imageRefs: [],
+                type: "SEND",
+                latestContentId,
+            };
+            const lastItem =
+                messageState.selectedUserMessage.output.list.slice(-1)[0];
+            const isSameFromLatest =
+                lastItem &&
+                lastItem.type === "SEND" &&
+                lastItem.imageUrls.length <= 0 &&
+                messageForm.imageUrls.length <= 0 &&
+                isToday(lastItem.createdAt as Timestamp);
+            setMessageState((prev) => {
+                const mess: Message = {
+                    ...messageForm,
+                    contents: [
+                        {
+                            id: latestContentId,
+                            content: messageForm.latestContent!,
+                            isSent: false,
+                        },
+                    ],
+                    createdAt: Timestamp.fromDate(new Date()),
+                };
+                const list: Message[] =
+                    prev.selectedUserMessage.output.list.map(
+                        (item: Message, idx: number) => {
+                            if (
+                                idx !==
+                                prev.selectedUserMessage.output.list.length - 1
+                            ) {
+                                return item;
+                            } else {
+                                const newItem: Message = {
+                                    ...item,
+                                    contents: [
+                                        ...(item.contents || []),
+                                        {
+                                            id: latestContentId,
+                                            content:
+                                                messageForm.latestContent || "",
+                                            isSent: false,
+                                        },
+                                    ],
+                                    latestContent: messageForm.latestContent,
+                                    createdAt: Timestamp.fromDate(new Date()),
+                                };
+                                return newItem;
+                            }
+                        }
+                    );
+                return {
+                    ...prev,
+                    selectedUserMessage: {
+                        ...prev.selectedUserMessage,
+                        output: {
+                            ...prev.selectedUserMessage.output,
+                            list: isSameFromLatest
+                                ? list
+                                : [
+                                      ...prev.selectedUserMessage.output.list,
+                                      mess,
+                                  ],
+                        },
+                    },
+                    messageInput: {
+                        content: "",
+                        imageUrls: [],
+                    },
+                    isNewMessage: true,
+                };
+            });
+            setSelectedListFile([]);
             const res = await MessageService.create({
                 senderId: user.uid,
                 senderDisplayName: user.displayName!,
@@ -391,22 +478,13 @@ export const MessageProvider = ({ children }: any) => {
                 receiverDisplayName: selectedUser.displayName,
                 receiverImageUrl: selectedUser.imageUrl,
                 messageForm: {
+                    latestContentId,
                     latestContent: messageInput.content,
                     imageUrls: messageInput.imageUrls,
                     imageRefs: [],
                     type: "SEND",
                 },
             });
-            if (res) {
-                setMessageState((prev) => ({
-                    ...prev,
-                    messageInput: {
-                        content: "",
-                        imageUrls: [],
-                    },
-                }));
-                setSelectedListFile([]);
-            }
             setMessageState((prev) => ({
                 ...prev,
                 loading: {
@@ -419,12 +497,30 @@ export const MessageProvider = ({ children }: any) => {
         }
     };
 
-    useEffect(() => {
-        if (messageState.listUsers && !messageState.selectedUser) {
+    const getUser = async (userId: string) => {
+        const user = await UserService.get({ userId });
+        if (user) {
             setMessageState((prev) => ({
                 ...prev,
-                selectedUser: messageState.listUsers[0],
+                selectedUser: UserUtils.toUserSnippet(user),
             }));
+        }
+    };
+
+    useEffect(() => {
+        const { uid } = router.query;
+        if (uid) {
+            getUser(uid as string);
+        }
+    }, [router.query]);
+
+    useEffect(() => {
+        if (messageState.listUsers[0] && !messageState.selectedUser) {
+            switchUser(messageState.listUsers[0]);
+            // setMessageState((prev) => ({
+            //     ...prev,
+            //     selectedUser: messageState.listUsers[0],
+            // }));
         }
     }, [messageState.listUsers]);
 
@@ -488,11 +584,48 @@ export const MessageProvider = ({ children }: any) => {
                     receiverId: selectedUser.id,
                 });
                 if (userMessage) {
-                    getLatestMessages(
-                        user.uid,
-                        selectedUser.id,
-                        userMessage.messageId
-                    );
+                    if (userMessage.type === "RECEIVE") {
+                        getLatestMessages(
+                            user.uid,
+                            selectedUser.id,
+                            userMessage.messageId
+                        );
+                    } else {
+                        setMessageState((prev) => {
+                            return {
+                                ...prev,
+                                selectedUserMessage: {
+                                    ...prev.selectedUserMessage,
+                                    output: {
+                                        ...prev.selectedUserMessage.output,
+                                        list: prev.selectedUserMessage.output.list.map(
+                                            (item: Message, idx: number) =>
+                                                idx !==
+                                                prev.selectedUserMessage.output
+                                                    .list.length -
+                                                    1
+                                                    ? item
+                                                    : {
+                                                          ...item,
+                                                          contents: (
+                                                              item.contents ||
+                                                              []
+                                                          ).map((item) =>
+                                                              item.id !==
+                                                              userMessage.latestContentId
+                                                                  ? item
+                                                                  : {
+                                                                        ...item,
+                                                                        isSent: true,
+                                                                    }
+                                                          ),
+                                                      }
+                                        ),
+                                    },
+                                },
+                            };
+                        });
+                    }
                 } else {
                     isFirstLatestMessage.current = false;
                 }

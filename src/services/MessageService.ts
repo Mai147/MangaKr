@@ -128,6 +128,7 @@ class MessageService {
                         displayName: receiverDisplayName,
                         imageUrl: receiverImageUrl,
                         latestMessage: senderLatestContent,
+                        latestContentId: messageForm.latestContentId,
                         // latestImages: messageForm.imageUrls,
                         latestImages: [],
                         numberOfUnseens: 0,
@@ -138,6 +139,7 @@ class MessageService {
                 } else {
                     transaction.update(senderMessageDocRef, {
                         latestMessage: senderLatestContent,
+                        latestContentId: messageForm.latestContentId,
                         // latestImages: messageForm.imageUrls,
                         latestImages: [],
                         numberOfUnseens: 0,
@@ -167,6 +169,7 @@ class MessageService {
                         displayName: senderDisplayName,
                         imageUrl: senderImageUrl,
                         latestMessage: receiverLatestContent,
+                        latestContentId: messageForm.latestContentId,
                         // latestImages: messageForm.imageUrls,
                         latestImages: [],
                         numberOfUnseens: 1,
@@ -178,6 +181,7 @@ class MessageService {
                     transaction.update(receiverMessageDocRef, {
                         latestMessage: receiverLatestContent,
                         // latestImages: messageForm.imageUrls,
+                        latestContentId: messageForm.latestContentId,
                         latestImages: [],
                         numberOfUnseens: increment(1),
                         latestCreatedAt: serverTimestamp() as Timestamp,
@@ -214,7 +218,11 @@ class MessageService {
                             const { contents } = senderMessageDetailDoc.data();
                             const newContents = [
                                 ...contents,
-                                messageForm.latestContent,
+                                {
+                                    is: messageForm.latestContentId,
+                                    content: messageForm.latestContent,
+                                    isSent: true,
+                                },
                             ];
                             transaction.update(senderMessageDetailDocRef, {
                                 contents: newContents,
@@ -235,7 +243,13 @@ class MessageService {
                         id: senderMessageDetailDocRef.id,
                         type: "SEND",
                         contents: messageForm.latestContent
-                            ? [messageForm.latestContent]
+                            ? [
+                                  {
+                                      is: messageForm.latestContentId,
+                                      content: messageForm.latestContent,
+                                      isSent: true,
+                                  },
+                              ]
                             : [],
                         createdAt: serverTimestamp() as Timestamp,
                     });
@@ -254,7 +268,11 @@ class MessageService {
                                 receiverMessageDetailDoc.data();
                             const newContents = [
                                 ...contents,
-                                messageForm.latestContent,
+                                {
+                                    is: messageForm.latestContentId,
+                                    content: messageForm.latestContent,
+                                    isSent: true,
+                                },
                             ];
                             transaction.update(receiverMessageDetailDocRef, {
                                 contents: newContents,
@@ -278,7 +296,13 @@ class MessageService {
                         id: senderMessageDetailDocRef.id,
                         type: "RECEIVE",
                         contents: messageForm.latestContent
-                            ? [messageForm.latestContent]
+                            ? [
+                                  {
+                                      is: messageForm.latestContentId,
+                                      content: messageForm.latestContent,
+                                      isSent: true,
+                                  },
+                              ]
                             : [],
                         createdAt: serverTimestamp() as Timestamp,
                     });
@@ -305,6 +329,12 @@ class MessageService {
                         imageRefs: res.downloadRefs,
                     });
                 }
+                // transaction.update(senderMessageDetailDocRef, {
+                //     isSent: true,
+                // });
+                // transaction.update(receiverMessageDetailDocRef, {
+                //     isSent: true,
+                // });
             });
             return {
                 ...messageForm,

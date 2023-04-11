@@ -1,5 +1,5 @@
 import { SEARCH_PAGE_COUNT } from "@/constants/pagination";
-import useTestPagination, {
+import usePagination, {
     BookPaginationInput,
     CommunityPaginationInput,
     defaultPaginationInput,
@@ -8,7 +8,7 @@ import useTestPagination, {
     PaginationOutput,
     ReviewPaginationInput,
     UserPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { useRouter } from "next/router";
 import { createContext, useEffect, useState } from "react";
 
@@ -92,7 +92,7 @@ export const SearchContext = createContext<SearchContextState>(
 export const SearchProvider = ({ children }: any) => {
     const rounter = useRouter();
     const { getBooks, getReviews, getAuthors, getCommunities, getUsers } =
-        useTestPagination();
+        usePagination();
     const [searchValue, setSearchValue] = useState("");
     const [searchState, setSearchState] =
         useState<SearchState>(defaultSearchState);

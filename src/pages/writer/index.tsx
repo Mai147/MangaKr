@@ -10,11 +10,11 @@ import React, { useEffect } from "react";
 type WriterPageProps = {};
 
 const WriterPage: React.FC<WriterPageProps> = () => {
-    const { setNeedAuth, setDefaultPath } = useAuth();
+    const { authAction } = useAuth();
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     return (

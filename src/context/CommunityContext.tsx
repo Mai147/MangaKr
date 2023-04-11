@@ -4,12 +4,12 @@ import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
     TopicPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
 import CommunityService from "@/services/CommunityService";
 import { validateCreateCommunity } from "@/validation/communityValidation";
@@ -99,7 +99,7 @@ export const CommunityProvider = ({ children }: any) => {
         communityState.topic.input.searchValue || "",
         300
     );
-    const { getTopics } = useTestPagination();
+    const { getTopics } = usePagination();
     const toast = useToast();
 
     const getCommunity = async (communityId: string) => {
@@ -339,6 +339,11 @@ export const CommunityProvider = ({ children }: any) => {
         if (userId) {
             await getUserCommunityRole(community.id!, userId);
             await CommunityService.updateUserLatestPost(userId, community);
+        } else {
+            setCommunityState((prev) => ({
+                ...prev,
+                userCommunityRole: undefined,
+            }));
         }
         setCommunityState((prev) => ({
             ...prev,

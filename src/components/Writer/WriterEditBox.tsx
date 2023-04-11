@@ -3,12 +3,12 @@ import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationInput,
     PaginationOutput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Author } from "@/models/Author";
 import { Genre } from "@/models/Genre";
 import AuthorService from "@/services/AuthorService";
@@ -111,7 +111,7 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
     const [writerBoxState, setWriterBoxState] = useState<WriterEditBoxState>(
         defaultWriterBoxState
     );
-    const { getAuthors, getGenres } = useTestPagination();
+    const { getAuthors, getGenres } = usePagination();
     const { toggleView, closeModal } = useModal();
     const [searchValue, setSearchValue] = useState("");
     const toast = useToast();

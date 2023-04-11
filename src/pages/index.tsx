@@ -32,9 +32,9 @@ const inter = Inter({ subsets: ["latin"] });
 type HomePageProps = {};
 
 const HomePage: React.FC<HomePageProps> = () => {
-    const { setNeedAuth, user } = useAuth();
+    const { authAction, user } = useAuth();
     useEffect(() => {
-        setNeedAuth(false);
+        authAction.setNeedAuth(false);
     }, []);
 
     // const testFunction = async () => {
@@ -154,41 +154,48 @@ const HomePage: React.FC<HomePageProps> = () => {
     //     }
     // };
 
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const firstDocsRef = collectionGroup(fireStore, "messageList");
+    //         const firstDocs = await getDocs(firstDocsRef);
+    //         firstDocs.forEach((doc) => {
+    //             batch.delete(doc.ref);
+    //         });
+    //         const secondDocsRef = collectionGroup(fireStore, "messages");
+    //         const secondDocs = await getDocs(secondDocsRef);
+    //         secondDocs.forEach((doc) => {
+    //             batch.delete(doc.ref);
+    //         });
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
+
     const testFunction = async () => {
         try {
             const batch = writeBatch(fireStore);
-            const firstDocsRef = collectionGroup(fireStore, "messageList");
-            const firstDocs = await getDocs(firstDocsRef);
-            firstDocs.forEach((doc) => {
-                batch.delete(doc.ref);
-            });
-            const secondDocsRef = collectionGroup(fireStore, "messages");
-            const secondDocs = await getDocs(secondDocsRef);
-            secondDocs.forEach((doc) => {
-                batch.delete(doc.ref);
-            });
+            const docsRef = collectionGroup(fireStore, "users");
+            const docs = await getDocs(docsRef);
+            for (const doc of docs.docs) {
+                const { displayName } = doc.data();
+                const trigramName = triGram(displayName);
+                batch.update(doc.ref, { trigramName: deleteField() });
+                batch.update(doc.ref, { trigramName: trigramName.obj });
+                // batch.update(doc.ref, {
+                //     // id: doc.ref.id,
+                //     numberOfFollows: 0,
+                //     numberOfFolloweds: 0,
+                // });
+            }
             await batch.commit();
             console.log(1);
         } catch (error) {
             console.log(error);
         }
     };
-
-    // const testFunction = async () => {
-    //     try {
-    //         const batch = writeBatch(fireStore);
-    //         const docsRef = collectionGroup(fireStore, "commentVotes");
-    //         const docs = await getDocs(docsRef);
-    //         for (const doc of docs.docs) {
-    //             batch.update(doc.ref, {
-    //                 id: doc.ref.id,
-    //             });
-    //         }
-    //         await batch.commit();
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
 
     return (
         <>

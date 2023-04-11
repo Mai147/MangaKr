@@ -5,12 +5,12 @@ import ReviewSnippetItem from "@/components/Review/Snippet/ReviewSnippetItem";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import { REVIEW_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
     ReviewPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Review } from "@/models/Review";
 import { Box, Divider, Text, VStack } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
@@ -36,7 +36,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
     const [reviewPaginationOutput, setReviewPaginationOutput] =
         useState<PaginationOutput>(defaultPaginationOutput);
     const [loading, setLoading] = useState(false);
-    const { getReviews } = useTestPagination();
+    const { getReviews } = usePagination();
 
     const getListReviews = async () => {
         setLoading(true);

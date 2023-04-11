@@ -1,5 +1,5 @@
 import Pagination from "@/components/Pagination";
-import { PaginationOutput } from "@/hooks/useTestPagination";
+import { PaginationOutput } from "@/hooks/usePagination";
 import { TopicReply } from "@/models/Topic";
 import { Box, Flex, Spinner } from "@chakra-ui/react";
 import React from "react";

@@ -6,12 +6,12 @@ import Pagination from "@/components/Pagination";
 import CircleHorizontalSkeleton from "@/components/Skeleton/CircleHorizontalSkeleton";
 import { COMMUNITY_PAGE_COUNT } from "@/constants/pagination";
 import useAuth from "@/hooks/useAuth";
-import useTestPagination, {
+import usePagination, {
     CommunityPaginationInput,
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
 import CommunityService from "@/services/CommunityService";
 import { Box, Divider, Flex, Text, VStack } from "@chakra-ui/react";
@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 type CommunityPageProps = {};
 
 const CommunityPage: React.FC<CommunityPageProps> = () => {
-    const { user, setNeedAuth } = useAuth();
+    const { user, authAction } = useAuth();
     const [communities, setCommunities] = useState<{
         related: Community[];
         top: Community[];
@@ -52,7 +52,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
         });
     const [communityPaginationOutput, setCommunityPaginationOutput] =
         useState<PaginationOutput>(defaultPaginationOutput);
-    const { getCommunities } = useTestPagination();
+    const { getCommunities } = usePagination();
 
     const getRelatedCommunities = async (userId: string) => {
         setLoading((prev) => ({
@@ -139,7 +139,7 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     }, [user]);
 
     useEffect(() => {
-        setNeedAuth(false);
+        authAction.setNeedAuth(false);
     }, []);
 
     return (

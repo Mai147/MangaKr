@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 type ProfileLibaryPageProps = {};
 
 const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
-    const { setDefaultPath, setNeedAuth } = useAuth();
+    const { authAction } = useAuth();
     const [confirmTitle, setConfirmTitle] = useState("");
     const [confirmContent, setConfirmContent] = useState("");
     const [confirmSubContent, setConfirmSubContent] = useState("");
@@ -20,8 +20,8 @@ const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
     >(() => async () => {});
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     return (

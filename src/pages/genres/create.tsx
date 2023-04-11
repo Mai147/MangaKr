@@ -11,11 +11,11 @@ import React, { useEffect } from "react";
 type GenreCreatePageProps = {};
 
 const GenreCreatePage: React.FC<GenreCreatePageProps> = () => {
-    const { setNeedAuth, setDefaultPath } = useAuth();
+    const { authAction } = useAuth();
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     return (

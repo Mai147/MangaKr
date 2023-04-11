@@ -9,7 +9,7 @@ import PostCommentInput from "./Comment/PostCommentInput";
 import PostComments from "./Comment";
 import PostReactionBar from "./ReactionBar";
 import { CommentProvider } from "@/context/CommentContext";
-import { usePost } from "@/hooks/usePost";
+import usePost from "@/hooks/usePost";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 
 type PostItemProps = {
@@ -29,6 +29,7 @@ const PostItem: React.FC<PostItemProps> = ({ postData }) => {
             overflow="hidden"
             mb={10}
             w="100%"
+            bg="white"
         >
             <VStack align="flex-start" w="100%">
                 <PostItemHeader post={postData.post} />

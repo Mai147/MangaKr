@@ -1,35 +1,50 @@
-import { Stack, Box, Text, Flex, Icon, Link, Avatar } from "@chakra-ui/react";
-import { Timestamp } from "firebase/firestore";
+import useAuth from "@/hooks/useAuth";
+import useModal from "@/hooks/useModal";
+import { Notification } from "@/models/Notification";
+import UserService from "@/services/UserService";
+import {
+    Stack,
+    Box,
+    Text,
+    Flex,
+    Icon,
+    Link,
+    Avatar,
+    IconButton,
+    HStack,
+} from "@chakra-ui/react";
 import moment from "moment";
 import "moment/locale/vi";
-import React from "react";
+import React, { SetStateAction, useState } from "react";
+import { AiOutlineCheck } from "react-icons/ai";
 import { BsChevronRight } from "react-icons/bs";
+import { MdOutlineClear } from "react-icons/md";
 
 export type NotificationItemProps = {
-    userName: string;
-    communityName: string;
-    content: string;
-    imageUrl?: string;
-    createdAt?: Timestamp;
+    setNotifications: React.Dispatch<SetStateAction<Notification[]>>;
+    notificationData: Notification;
     href?: string;
     isLast?: boolean;
-    isReading?: boolean;
 };
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
-    communityName,
-    userName,
+    notificationData,
     href,
-    createdAt,
-    imageUrl,
-    content,
     isLast = false,
-    isReading = false,
+    setNotifications,
 }) => {
+    const [acceptFollowLoading, setAcceptFollowLoading] = useState(false);
+    const [declineFollowLoading, setDeclineFollowLoading] = useState(false);
+    const { user } = useAuth();
+    const { toggleView } = useModal();
     return (
         <Flex
             direction="column"
-            bg={isReading ? "white" : "rgba(200,60,30,0.1)"}
+            bg={
+                notificationData.isSeen || notificationData.isRead
+                    ? "white"
+                    : "rgba(200,60,30,0.1)"
+            }
             borderBottom="1px solid"
             borderColor={isLast ? "transparent" : "gray.300"}
         >
@@ -43,7 +58,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                 <Stack direction={"row"} align={"center"}>
                     {
                         <Avatar
-                            src={imageUrl || "/images/noImage.jpg"}
+                            src={
+                                notificationData.imageUrl ||
+                                "/images/noImage.jpg"
+                            }
                             size="md"
                             mr={2}
                         />
@@ -51,21 +69,27 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                     <Box>
                         <Text lineHeight={1.3} mb={1}>
                             <Text as="span" fontWeight={500} display="inline">
-                                {userName}
+                                {notificationData.creatorDisplayName}
                             </Text>{" "}
-                            {content}{" "}
+                            {notificationData.content}{" "}
                             <Text as="span" fontWeight={500} display="inline">
-                                {communityName}
+                                {notificationData.targetName}
                             </Text>
                         </Text>
-                        {createdAt && (
+                        {notificationData.createdAt && (
                             <Text color="gray.600" fontSize={12}>
-                                {moment(new Date(createdAt.seconds * 1000))
+                                {moment(
+                                    new Date(
+                                        notificationData.createdAt.seconds *
+                                            1000
+                                    )
+                                )
                                     .locale("vi")
                                     .fromNow()}
                             </Text>
                         )}
                     </Box>
+
                     <Flex
                         transition={"all .3s ease"}
                         transform={"translateX(-10px)"}
@@ -77,6 +101,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                         justify={"flex-end"}
                         align={"center"}
                         flex={1}
+                        display={href ? "flex" : "none"}
                     >
                         <Icon
                             color={"brand.100"}
@@ -86,6 +111,51 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                         />
                     </Flex>
                 </Stack>
+                {notificationData.type === "FOLLOW_REQUEST" && (
+                    <HStack justify="flex-end" spacing={4}>
+                        <IconButton
+                            aria-label="accept"
+                            icon={<AiOutlineCheck />}
+                            bg="green.300"
+                            fontSize={16}
+                            _hover={{ bg: "green.400" }}
+                            size="md"
+                            isLoading={acceptFollowLoading}
+                            isDisabled={declineFollowLoading}
+                            onClick={async () => {
+                                if (!user) {
+                                    toggleView("login");
+                                    return;
+                                }
+                                setAcceptFollowLoading(true);
+                                await UserService.acceptFollow({
+                                    userId: notificationData.id!,
+                                    follower: {
+                                        id: user.uid,
+                                        displayName: user.displayName!,
+                                        imageUrl: user.photoURL,
+                                    },
+                                });
+                                setNotifications((prev) =>
+                                    prev.filter(
+                                        (item) =>
+                                            item.id !== notificationData.id
+                                    )
+                                );
+                                setAcceptFollowLoading(false);
+                            }}
+                        />
+                        <IconButton
+                            aria-label="accept"
+                            icon={<MdOutlineClear />}
+                            fontSize={16}
+                            size="md"
+                            isLoading={declineFollowLoading}
+                            isDisabled={acceptFollowLoading}
+                            onClick={async () => {}}
+                        />
+                    </HStack>
+                )}
             </Link>
         </Flex>
     );

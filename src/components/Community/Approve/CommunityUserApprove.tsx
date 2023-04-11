@@ -7,12 +7,12 @@ import {
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
     UserPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
 import { CommunityUserSnippet } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
@@ -60,7 +60,7 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
 }) => {
     const [communityUserApproveState, setCommunityUserApproveState] =
         useState<CommunityUserApproveState>(defaultCommunityUserApproveState);
-    const { getUsers } = useTestPagination();
+    const { getUsers } = usePagination();
     const toast = useToast();
     const { user } = useAuth();
 

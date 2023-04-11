@@ -15,9 +15,10 @@ type BookEditProps = {
 };
 
 const BookEditPage: React.FC<BookEditProps> = ({ book }) => {
-    const { setDefaultPath, setNeedAuth } = useAuth();
+    const { authAction } = useAuth();
     useEffect(() => {
-        setDefaultPath(routes.getHomePage()), setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
     }, []);
     return (
         <Box p="6" bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>

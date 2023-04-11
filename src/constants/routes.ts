@@ -21,8 +21,11 @@ export const routes = {
     getHomePage: () => {
         return `${HOME_ROUTE}`;
     },
-    getProfilePage: () => {
-        return `/${PROFILE_ROUTE}`;
+    getProfilePage: (userId: string) => {
+        return `/${PROFILE_ROUTE}/${userId}`;
+    },
+    getProfileEditPage: () => {
+        return `/${PROFILE_ROUTE}/edit`;
     },
     getProfileLibraryPage: () => {
         return `/${PROFILE_ROUTE}/${LIBRARY_ROUTE}`;
@@ -110,6 +113,9 @@ export const routes = {
     },
     getMessagePage: () => {
         return `/${MESSAGE_ROUTE}`;
+    },
+    getMessageDetailPage: (userId: string) => {
+        return `/${MESSAGE_ROUTE}/${userId}`;
     },
     getPostCreatePage: () => {
         return `/${POST_ROUTE}/create`;

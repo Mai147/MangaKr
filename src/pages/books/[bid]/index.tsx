@@ -14,9 +14,9 @@ type BookDetailPageProps = {
 };
 
 const BookDetailPage: React.FC<BookDetailPageProps> = ({ book, user }) => {
-    const { setNeedAuth } = useAuth();
+    const { authAction } = useAuth();
     useEffect(() => {
-        setNeedAuth(false);
+        authAction.setNeedAuth(false);
     }, []);
 
     if (!book) {

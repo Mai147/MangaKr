@@ -30,7 +30,6 @@ export type ProfileFormState = {
     photoUrl?: string | null;
     email: string;
     displayName: string;
-    subBio?: string;
     bio?: string;
     imageRef?: string;
 };
@@ -42,7 +41,7 @@ const defaultProfileFormState: ProfileFormState = {
 };
 
 const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
-    const { updateUser } = useAuth();
+    const { authAction } = useAuth();
     const { selectedFile, onSelectFile, setSelectedFile } = useSelectFile();
     const avatarRef = useRef<HTMLInputElement>(null);
     const [profileForm, setProfileForm] = useState<ProfileFormState>(
@@ -58,7 +57,6 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
             photoUrl: user.photoURL,
             displayName: user.displayName!,
             email: user.email!,
-            subBio: user.subBio,
             bio: user.bio,
             imageRef: user.imageRef,
         });
@@ -86,7 +84,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                     avatarChange,
                 });
                 if (res) {
-                    updateUser({
+                    authAction.updateUser({
                         ...profileForm,
                         photoUrl: res.photoUrl,
                     });
@@ -236,15 +234,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                             onInputChange={handleChange}
                         />
                     </InputField>
-                    <InputField label="Sub Bio">
-                        <InputText
-                            name="subBio"
-                            type="text"
-                            value={profileForm.subBio || ""}
-                            onInputChange={handleChange}
-                        />
-                    </InputField>
-                    <InputField label="Mô tả">
+                    <InputField label="Bio">
                         <InputText
                             name="bio"
                             value={profileForm.bio || ""}

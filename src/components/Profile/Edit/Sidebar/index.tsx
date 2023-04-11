@@ -20,16 +20,11 @@ export interface ItemProps extends ProfileSidebarItemProps {
 const profileSideBar: ProfileSidebarItemProps[] = [
     {
         id: 0,
-        title: "Hồ sơ",
-        icon: FiEye,
-    },
-    {
-        id: 1,
         title: "Thông tin cá nhân",
         icon: FiUser,
     },
     {
-        id: 2,
+        id: 1,
         title: "Mật khẩu",
         icon: RiLockPasswordLine,
     },

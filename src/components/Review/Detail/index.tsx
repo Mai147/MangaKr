@@ -3,6 +3,7 @@ import RatingBar from "@/components/RatingBar";
 import Tag from "@/components/Tag";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { routes } from "@/constants/routes";
+import { CommentProvider } from "@/context/CommentContext";
 import useAuth from "@/hooks/useAuth";
 import { Review, tagReviewList } from "@/models/Review";
 import {
@@ -92,15 +93,16 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
                         }
                     />
                 </Flex>
-
-                <CommentSection
+                <CommentProvider
                     commentRoute={firebaseRoute.getReviewCommentRoute(
                         review.id!
                     )}
                     rootRoute={firebaseRoute.getAllReviewRoute()}
                     rootId={review.id!}
-                    user={user}
-                />
+                    setNumberOfCommentsIncrement={() => {}}
+                >
+                    <CommentSection user={user} />
+                </CommentProvider>
             </VStack>
         </Flex>
     );

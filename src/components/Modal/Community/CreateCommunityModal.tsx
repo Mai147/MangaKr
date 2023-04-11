@@ -2,12 +2,12 @@ import SearchDropdown from "@/components/Search/Dropdown";
 import { ValidationError } from "@/constants/validation";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import useTestPagination, {
+import usePagination, {
     BookPaginationInput,
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Book } from "@/models/Book";
 import {
     Community,
@@ -80,7 +80,7 @@ const CreateCommunityModal: React.FC = () => {
         });
     const [bookPaginationOutput, setBookPaginationOutput] =
         useState<PaginationOutput>(defaultPaginationOutput);
-    const { getBooks } = useTestPagination();
+    const { getBooks } = usePagination();
 
     const getSearchBooks = async () => {
         const input: BookPaginationInput = {

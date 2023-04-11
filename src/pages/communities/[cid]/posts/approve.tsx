@@ -19,11 +19,11 @@ const CommunityPostApprovePage: React.FC<CommunityPostApprovePageProps> = ({
     community,
     user,
 }) => {
-    const { setNeedAuth, setDefaultPath } = useAuth();
+    const { authAction } = useAuth();
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     if (!community) {

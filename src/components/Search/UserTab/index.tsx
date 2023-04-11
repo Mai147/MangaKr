@@ -4,6 +4,7 @@ import React from "react";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import UserHorizontalSnippetItem from "@/components/User/Snippet/UserHorizontalSnippetItem";
 import { UserModel } from "@/models/User";
+import UserUtils from "@/utils/UserUtils";
 
 type SearchUserTabProps = {};
 
@@ -21,7 +22,10 @@ const SearchUserTab: React.FC<SearchUserTabProps> = () => {
                 >
                     {searchState.user.output.list.map((user: UserModel) => (
                         <GridItem key={user.uid}>
-                            <UserHorizontalSnippetItem user={user} h="100%" />
+                            <UserHorizontalSnippetItem
+                                user={UserUtils.toUserSnippet(user)}
+                                h="100%"
+                            />
                         </GridItem>
                     ))}
                 </Grid>

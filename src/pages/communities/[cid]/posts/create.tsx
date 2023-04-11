@@ -20,12 +20,12 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
     community,
     user,
 }) => {
-    const { setNeedAuth, setDefaultPath } = useAuth();
+    const { authAction } = useAuth();
     const { communityAction } = useCommunity();
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     useEffect(() => {

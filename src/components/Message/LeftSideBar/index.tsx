@@ -30,10 +30,11 @@ const MessageLeftSideBar: React.FC<MessageLeftSideBarProps> = () => {
                         us.uid !== user?.uid && (
                             <Box w="100%" key={us.uid}>
                                 <UserHorizontalSnippetItem
-                                    user={us}
+                                    user={UserUtils.toUserSnippet(us)}
                                     border="none"
+                                    boxShadow="none"
+                                    isLink={false}
                                     size="md"
-                                    hiddenSubBio={true}
                                     onClick={() => {
                                         messageAction.switchUser(
                                             UserUtils.toUserSnippet(us)

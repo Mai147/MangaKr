@@ -8,9 +8,9 @@ import React, { useEffect } from "react";
 type BookPageProps = {};
 
 const BookPage: React.FC<BookPageProps> = ({}) => {
-    const { setNeedAuth } = useAuth();
+    const { authAction } = useAuth();
     useEffect(() => {
-        setNeedAuth(false);
+        authAction.setNeedAuth(false);
     }, []);
 
     return (

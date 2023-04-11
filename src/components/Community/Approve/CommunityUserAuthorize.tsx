@@ -7,12 +7,12 @@ import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
     UserPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
 import { CommunityUserSnippet } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
@@ -71,7 +71,7 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
         useState<CommunityUserAuthorizeState>(
             defaultCommunityUserAuthorizeState
         );
-    const { getUsers } = useTestPagination();
+    const { getUsers } = usePagination();
     const debouncedSearch = useDebounce(
         communityUserAuthorizeState.paginationInput.searchValue || "",
         300

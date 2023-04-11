@@ -1,15 +1,6 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { fireStore } from "@/firebase/clientApp";
-import { Author } from "@/models/Author";
-import { Book, BookSnippet, FilterValue } from "@/models/Book";
-import { Comment } from "@/models/Comment";
-import { Community } from "@/models/Community";
-import { Genre } from "@/models/Genre";
-import { Message } from "@/models/Message";
-import { Post } from "@/models/Post";
-import { Review } from "@/models/Review";
-import { Topic, TopicReply } from "@/models/Topic";
-import { CommunityUserSnippet, UserModel } from "@/models/User";
+import { FilterValue } from "@/models/Book";
 import { triGram } from "@/utils/StringUtils";
 import {
     collection,
@@ -26,16 +17,22 @@ import {
     where,
     CollectionReference,
 } from "firebase/firestore";
-import { useState } from "react";
 
 export interface PaginationInput {
     page: number;
-    totalPage: number;
     pageCount: number;
     isNext: boolean;
-    loading: boolean;
-    isFirst: boolean;
+    docValue: DocPosition;
+    searchValue?: string;
+    isFirst?: boolean;
     exceptionCount?: number;
+    setDocValue: (docValue: DocPosition) => void;
+}
+
+export interface PaginationOutput {
+    page: number;
+    totalPage: number;
+    list: any;
 }
 
 export const defaultPaginationInput: PaginationInput = {
@@ -43,9 +40,18 @@ export const defaultPaginationInput: PaginationInput = {
     isNext: true,
     isFirst: true,
     pageCount: 1,
-    loading: false,
-    totalPage: 1,
     exceptionCount: 0,
+    docValue: {
+        firstDoc: null,
+        lastDoc: null,
+    },
+    setDocValue: () => {},
+};
+
+export const defaultPaginationOutput: PaginationOutput = {
+    list: [],
+    page: 1,
+    totalPage: 0,
 };
 
 export interface BookPaginationInput extends PaginationInput {
@@ -54,63 +60,52 @@ export interface BookPaginationInput extends PaginationInput {
     filter?: FilterValue;
 }
 
-interface PaginationInfo {
-    page: number;
-    pageCount: number;
-    isNext: boolean;
-    searchValue?: string;
-    isFirst?: boolean;
-    docValue?: DocPosition;
-    exceptionCount?: number;
-}
-
-interface BookPaginationInfo extends PaginationInfo {
-    genreId?: string;
-    authorId?: string;
-    filter?: string;
-}
-
-interface UserBookSnippetPaginationInfo extends PaginationInfo {
+export interface UserBookSnippetPaginationInput extends PaginationInput {
     userId: string;
 }
 
-interface CommentPaginationInfo extends PaginationInfo {
+export interface CommentPaginationInput extends PaginationInput {
     commentRoute: string;
 }
 
-interface PostPaginationInfo extends PaginationInfo {
+export interface PostPaginationInput extends PaginationInput {
     communityId?: string;
     isAccept?: boolean;
     userId?: string;
 }
 
-interface TopicPaginationInfo extends PaginationInfo {
+export interface TopicPaginationInput extends PaginationInput {
     communityId: string;
     isAccept?: boolean;
 }
 
-interface TopicReplyPaginationInfo extends PaginationInfo {
+export interface TopicReplyPaginationInput extends PaginationInput {
     topicId: string;
     communityId: string;
 }
 
-interface UserPaginationInfo extends PaginationInfo {
+export interface UserPaginationInput extends PaginationInput {
     communityId?: string;
     isAccept?: boolean;
 }
 
-interface MessagePaginationInfo extends PaginationInfo {
+export interface MessagePaginationInput extends PaginationInput {
     userId: string;
     receiverId: string;
     exceptionCount?: number;
 }
 
-interface CommunityPaginationInfo extends PaginationInfo {
+export interface CommunityPaginationInput extends PaginationInput {
     userId?: string;
 }
 
-interface ReviewPaginationInfo extends PaginationInfo {
+export interface ReviewPaginationInput extends PaginationInput {
     bookId?: string;
+}
+
+export interface FollowPaginationInput extends PaginationInput {
+    userId: string;
+    isAccept?: boolean;
 }
 
 export type DocPosition = {
@@ -118,135 +113,36 @@ export type DocPosition = {
     lastDoc: QueryDocumentSnapshot<DocumentData> | null;
 };
 
-// Edit here
-type PaginationDocState = {
-    book: DocPosition;
-    review: DocPosition;
-    author: DocPosition;
-    community: DocPosition;
-    writingBook: DocPosition;
-    readingBook: DocPosition;
-    comment: DocPosition;
-    post: DocPosition;
-    user: DocPosition;
-    topic: DocPosition;
-    topicReply: DocPosition;
-    genre: DocPosition;
-    message: DocPosition;
-};
-
-// Edit here
-const defaultPaginationDocState: PaginationDocState = {
-    book: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    review: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    author: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    community: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    readingBook: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    writingBook: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    comment: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    post: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    user: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    topic: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    topicReply: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    genre: {
-        firstDoc: null,
-        lastDoc: null,
-    },
-    message: {
-        firstDoc: null,
-        lastDoc: null,
-    },
+type PaginationFuncInput = {
+    docsRef: CollectionReference<DocumentData>;
+    queryConstraints: any[];
+    // field: PaginationField;
+    paginationInput: PaginationInput;
 };
 
 const usePagination = () => {
-    const [paginationDoc, setPaginationDoc] = useState<PaginationDocState>(
-        defaultPaginationDocState
-    );
-
-    const pagination = async ({
-        docsRef,
-        queryConstraints,
-        page,
-        pageCount,
-        isNext,
-        field,
-        isFirst,
-        exceptionCount = 0,
-        docValue,
-    }: {
-        docsRef: CollectionReference<DocumentData>;
-        queryConstraints: any[];
-        page: number;
-        pageCount: number;
-        isNext: boolean;
-        exceptionCount?: number;
-        docValue?: DocPosition;
-        field:
-            | "book"
-            | "review"
-            | "author"
-            | "community"
-            | "readingBook"
-            | "writingBook"
-            | "comment"
-            | "post"
-            | "user"
-            | "topic"
-            | "topicReply"
-            | "genre"
-            | "message";
-        // Edit here
-        isFirst?: boolean;
-    }) => {
+    const pagination = async (
+        paginationFuncInput: PaginationFuncInput
+    ): Promise<PaginationOutput | undefined> => {
         try {
-            const firstDoc = docValue
-                ? docValue.firstDoc
-                : isFirst
-                ? defaultPaginationDocState[field].firstDoc
-                : paginationDoc[field].firstDoc;
-            const lastDoc = docValue
-                ? docValue.lastDoc
-                : isFirst
-                ? defaultPaginationDocState[field].lastDoc
-                : paginationDoc[field].lastDoc;
+            const { docsRef, paginationInput, queryConstraints } =
+                paginationFuncInput;
+            const {
+                docValue,
+                isNext,
+                page,
+                pageCount,
+                exceptionCount,
+                setDocValue,
+                isFirst,
+            } = paginationInput;
+            const firstDoc = isFirst ? null : docValue.firstDoc;
+            const lastDoc = isFirst ? null : docValue.lastDoc;
             const snapShot = await getCountFromServer(
                 query(docsRef, ...queryConstraints)
             );
             const totalPage = Math.ceil(
-                (snapShot.data().count - exceptionCount) / pageCount
+                (snapShot.data().count - (exceptionCount || 0)) / pageCount
             );
 
             if (isNext) {
@@ -272,36 +168,22 @@ const usePagination = () => {
                 id: doc.id,
                 ...doc.data(),
             }));
-            setPaginationDoc((prev) => ({
-                ...prev,
-                [field]: {
-                    firstDoc: docs.docs[0],
-                    lastDoc: docs.docs[docs.docs.length - 1],
-                },
-            }));
+            setDocValue({
+                firstDoc: docs.docs[0],
+                lastDoc: docs.docs[docs.docs.length - 1],
+            });
             return {
-                res,
+                list: res,
                 totalPage,
-                docValue: {
-                    firstDoc: docs.docs[0],
-                    lastDoc: docs.docs[docs.docs.length - 1],
-                },
+                page,
             };
         } catch (error) {
             console.log(error);
         }
     };
 
-    const getBooks = async ({
-        page,
-        pageCount,
-        isNext,
-        genreId,
-        authorId,
-        filter,
-        searchValue,
-        isFirst,
-    }: BookPaginationInfo) => {
+    const getBooks = async (input: BookPaginationInput) => {
+        const { searchValue, genreId, authorId, filter } = input;
         const bookDocsRef = collection(
             fireStore,
             firebaseRoute.getAllBookRoute()
@@ -330,26 +212,13 @@ const usePagination = () => {
         const res = await pagination({
             docsRef: bookDocsRef,
             queryConstraints,
-            page,
-            pageCount,
-            isNext,
-            field: "book",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            books: res?.res as Book[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getReviews = async ({
-        page,
-        isNext,
-        pageCount,
-        searchValue,
-        isFirst,
-        bookId,
-    }: ReviewPaginationInfo) => {
+    const getReviews = async (input: ReviewPaginationInput) => {
+        const { searchValue, bookId } = input;
         const reviewDocsRef = collection(
             fireStore,
             firebaseRoute.getAllReviewRoute()
@@ -369,26 +238,14 @@ const usePagination = () => {
         }
         const res = await pagination({
             docsRef: reviewDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "review",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            reviews: res?.res as Review[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getAuthors = async ({
-        page,
-        isNext,
-        pageCount,
-        searchValue,
-        isFirst,
-    }: PaginationInfo) => {
+    const getAuthors = async (input: PaginationInput) => {
+        const { searchValue } = input;
         const authorDocsRef = collection(
             fireStore,
             firebaseRoute.getAllAuthorRoute()
@@ -403,26 +260,14 @@ const usePagination = () => {
         }
         const res = await pagination({
             docsRef: authorDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "author",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            authors: res?.res as Author[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getGenres = async ({
-        page,
-        isNext,
-        pageCount,
-        searchValue,
-        isFirst,
-    }: PaginationInfo) => {
+    const getGenres = async (input: PaginationInput) => {
+        const { searchValue } = input;
         const genreDocsRef = collection(
             fireStore,
             firebaseRoute.getAllGenreRoute()
@@ -437,27 +282,14 @@ const usePagination = () => {
         }
         const res = await pagination({
             docsRef: genreDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "genre",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            genres: res?.res as Genre[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getCommunities = async ({
-        page,
-        isNext,
-        pageCount,
-        searchValue,
-        isFirst,
-        userId,
-    }: CommunityPaginationInfo) => {
+    const getCommunities = async (input: CommunityPaginationInput) => {
+        const { searchValue, userId } = input;
         const communityDocsRef = collection(
             fireStore,
             firebaseRoute.getAllCommunityRoute()
@@ -475,56 +307,29 @@ const usePagination = () => {
         }
         const res = await pagination({
             docsRef: communityDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "community",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            communities: res?.res as Community[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getComments = async ({
-        page,
-        pageCount,
-        isFirst,
-        isNext,
-        commentRoute,
-        docValue,
-        exceptionCount,
-    }: CommentPaginationInfo) => {
+    const getComments = async (input: CommentPaginationInput) => {
+        const { commentRoute } = input;
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
         const commentDocsRef = collection(fireStore, commentRoute);
         const res = await pagination({
             docsRef: commentDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "comment",
-            isFirst,
-            docValue,
-            exceptionCount,
+            paginationInput: input,
         });
-        return {
-            comments: res ? (res.res as Comment[]) : [],
-            totalPage: res?.totalPage,
-            docValue: res?.docValue,
-        };
+        return res;
     };
 
-    const getWritingBookSnippets = async ({
-        page,
-        pageCount,
-        isNext,
-        isFirst,
-        userId,
-    }: UserBookSnippetPaginationInfo) => {
+    const getWritingBookSnippets = async (
+        input: UserBookSnippetPaginationInput
+    ) => {
+        const { userId } = input;
         const writingBookDocsRef = collection(
             fireStore,
             firebaseRoute.getUserWritingBookSnippetRoute(userId)
@@ -532,25 +337,15 @@ const usePagination = () => {
         const res = await pagination({
             docsRef: writingBookDocsRef,
             queryConstraints: [],
-            page,
-            pageCount,
-            isNext,
-            field: "writingBook",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            books: res?.res as BookSnippet[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getReadingBookSnippets = async ({
-        page,
-        pageCount,
-        isNext,
-        isFirst,
-        userId,
-    }: UserBookSnippetPaginationInfo) => {
+    const getReadingBookSnippets = async (
+        input: UserBookSnippetPaginationInput
+    ) => {
+        const { userId } = input;
         const writingBookDocsRef = collection(
             fireStore,
             firebaseRoute.getUserReadingBookSnippetRoute(userId)
@@ -558,27 +353,13 @@ const usePagination = () => {
         const res = await pagination({
             docsRef: writingBookDocsRef,
             queryConstraints: [],
-            page,
-            pageCount,
-            isNext,
-            field: "readingBook",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            books: res?.res as BookSnippet[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getPosts = async ({
-        isNext,
-        page,
-        pageCount,
-        isFirst,
-        communityId,
-        isAccept,
-        userId,
-    }: PostPaginationInfo) => {
+    const getPosts = async (input: PostPaginationInput) => {
+        const { isAccept, communityId, userId } = input;
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
         if (isAccept != undefined) {
@@ -592,28 +373,14 @@ const usePagination = () => {
         );
         const res = await pagination({
             docsRef: postDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "post",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            posts: res?.res as Post[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getTopics = async ({
-        isNext,
-        page,
-        pageCount,
-        isFirst,
-        communityId,
-        isAccept,
-        searchValue,
-    }: TopicPaginationInfo) => {
+    const getTopics = async (input: TopicPaginationInput) => {
+        const { searchValue, isAccept, communityId } = input;
         const queryConstraints = [];
         if (!searchValue) {
             queryConstraints.push(orderBy("createdAt", "desc"));
@@ -633,34 +400,20 @@ const usePagination = () => {
         );
         const res = await pagination({
             docsRef: topicDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "topic",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            topics: res?.res as Topic[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getUsers = async ({
-        isNext,
-        page,
-        pageCount,
-        isFirst,
-        communityId,
-        isAccept,
-        searchValue,
-    }: UserPaginationInfo) => {
+    const getUsers = async (input: UserPaginationInput) => {
+        const { searchValue, isAccept, communityId } = input;
         const queryConstraints = [];
+        if (isAccept != undefined) {
+            queryConstraints.push(where("isAccept", "==", isAccept));
+        }
         if (!searchValue) {
             queryConstraints.push(orderBy("createdAt", "desc"));
-            if (isAccept != undefined) {
-                queryConstraints.push(where("isAccept", "==", isAccept));
-            }
         } else {
             triGram(searchValue).map.forEach((name) => {
                 queryConstraints.push(where(`trigramName.${name}`, "==", true));
@@ -674,37 +427,14 @@ const usePagination = () => {
         );
         const res = await pagination({
             docsRef: userDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "user",
-            isFirst,
+            paginationInput: input,
         });
-        if (!communityId) {
-            const userRes = res?.res.map((e) => {
-                const { id, ...rest } = e;
-                return rest;
-            });
-            return {
-                users: userRes as UserModel[],
-                totalPage: res?.totalPage,
-            };
-        }
-        return {
-            users: res?.res as CommunityUserSnippet[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getTopicReplies = async ({
-        communityId,
-        isNext,
-        page,
-        pageCount,
-        topicId,
-        isFirst,
-    }: TopicReplyPaginationInfo) => {
+    const getTopicReplies = async (input: TopicReplyPaginationInput) => {
+        const { communityId, topicId } = input;
         const queryConstraints = [];
         queryConstraints.push(orderBy("createdAt", "desc"));
         const topicReplyDocsRef = collection(
@@ -713,28 +443,14 @@ const usePagination = () => {
         );
         const res = await pagination({
             docsRef: topicReplyDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "topicReply",
-            isFirst,
+            paginationInput: input,
         });
-        return {
-            topicReplies: res?.res as TopicReply[],
-            totalPage: res?.totalPage,
-        };
+        return res;
     };
 
-    const getMessages = async ({
-        page,
-        isNext,
-        pageCount,
-        isFirst,
-        receiverId,
-        userId,
-        exceptionCount = 0,
-    }: MessagePaginationInfo) => {
+    const getMessages = async (input: MessagePaginationInput) => {
+        const { userId, receiverId } = input;
         const messageDocsRef = collection(
             fireStore,
             firebaseRoute.getUserMessageDetailRoute(userId, receiverId)
@@ -743,18 +459,48 @@ const usePagination = () => {
         queryConstraints.push(orderBy("createdAt", "desc"));
         const res = await pagination({
             docsRef: messageDocsRef,
-            page,
-            pageCount,
             queryConstraints,
-            isNext,
-            field: "message",
-            isFirst,
-            exceptionCount,
+            paginationInput: input,
         });
-        return {
-            messages: res?.res as Message[],
-            totalPage: res?.totalPage,
-        };
+        return res;
+    };
+
+    const getFollows = async (input: FollowPaginationInput) => {
+        const { userId, isAccept } = input;
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        if (isAccept != undefined) {
+            queryConstraints.push(where("isAccept", "==", isAccept));
+        }
+        const followDocsRef = collection(
+            fireStore,
+            firebaseRoute.getUserFollowRoute(userId)
+        );
+        const res = await pagination({
+            docsRef: followDocsRef,
+            queryConstraints,
+            paginationInput: input,
+        });
+        return res;
+    };
+
+    const getFolloweds = async (input: FollowPaginationInput) => {
+        const { userId, isAccept } = input;
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        if (isAccept != undefined) {
+            queryConstraints.push(where("isAccept", "==", isAccept));
+        }
+        const followDocsRef = collection(
+            fireStore,
+            firebaseRoute.getUserFollowedRoute(userId)
+        );
+        const res = await pagination({
+            docsRef: followDocsRef,
+            queryConstraints,
+            paginationInput: input,
+        });
+        return res;
     };
 
     // Edit Here
@@ -773,6 +519,8 @@ const usePagination = () => {
         getTopics,
         getTopicReplies,
         getMessages,
+        getFollows,
+        getFolloweds,
     };
 };
 

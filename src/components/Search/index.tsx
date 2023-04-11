@@ -73,7 +73,7 @@ const SearchResult: React.FC<SearchResultProps> = () => {
                         />
                     ))}
                 </Flex>
-                <Flex p={4}>
+                <Flex>
                     {searchState.selectedField === searchTab[0].field && (
                         <SearchBookTab />
                     )}

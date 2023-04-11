@@ -4,8 +4,9 @@ import { routes } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
-import { PostNotification } from "@/models/Post";
-import { UserCommunitySnippet, UserMessageSnippet } from "@/models/User";
+import { Notification } from "@/models/Notification";
+import { UserMessageSnippet } from "@/models/User";
+import NotificationService from "@/services/NotificationService";
 import {
     Box,
     Flex,
@@ -16,15 +17,8 @@ import {
     PopoverTrigger,
     Stack,
 } from "@chakra-ui/react";
-import {
-    collection,
-    getDocs,
-    onSnapshot,
-    orderBy,
-    query,
-    where,
-} from "firebase/firestore";
-import React, { useEffect, useState } from "react";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import React, { useEffect, useRef, useState } from "react";
 import { AiOutlineEdit, AiOutlinePlus, AiOutlineTags } from "react-icons/ai";
 import { BsFillFileEarmarkPostFill } from "react-icons/bs";
 import { FiBell, FiBook } from "react-icons/fi";
@@ -78,66 +72,78 @@ const writerNavList: NavItemProps[] = [
 const NavRightContent: React.FC<NavRightContentProps> = () => {
     const { user } = useAuth();
     const { toggleView } = useModal();
-    const [userNotification, setUserNotification] = useState<
-        PostNotification[]
-    >([]);
+    const [userNotification, setUserNotification] = useState<Notification[]>(
+        []
+    );
     const [numberOfNewMessage, setNumberOfNewMessage] = useState(0);
+    const isFirstReadNotification = useRef(true);
 
     const getUserCommunityNotification = async (userId: string) => {
-        const communityDocsRef = collection(
-            fireStore,
-            firebaseRoute.getUserCommunitySnippetRoute(userId)
-        );
-        const communityDoc = await getDocs(communityDocsRef);
-        const userCommunities = communityDoc.docs.map(
-            (doc) =>
-                ({
-                    id: doc.id,
-                    ...doc.data(),
-                } as UserCommunitySnippet)
-        );
-        let notifications: PostNotification[] = [];
-        for (const community of userCommunities) {
-            const queryConstraints: any[] = [];
-            queryConstraints.push(where("id", "==", community.id));
-            if (community.latestPost) {
-                queryConstraints.push(
-                    where("latestPost.id", "!=", community.latestPost.id)
-                );
-            } else {
-                queryConstraints.push(where("latestPost.id", "!=", null));
-            }
-            const communityNotiQuery = query(
-                collection(fireStore, firebaseRoute.getAllCommunityRoute()),
-                ...queryConstraints
-            );
-            const communityDocs = await getDocs(communityNotiQuery);
-            if (!communityDocs.empty) {
-                notifications = [
-                    ...notifications,
-                    {
-                        ...communityDocs.docs[0].data().latestPost,
-                        isReading: false,
-                    },
-                ];
-            } else if (community.latestPost) {
-                notifications = [
-                    ...notifications,
-                    {
-                        ...community.latestPost,
-                        isReading: true,
-                    },
-                ];
-            }
+        const res = await NotificationService.getAll({ userId });
+        setUserNotification(res);
+        // const communityDocsRef = collection(
+        //     fireStore,
+        //     firebaseRoute.getUserCommunitySnippetRoute(userId)
+        // );
+        // const communityDoc = await getDocs(communityDocsRef);
+        // const userCommunities = communityDoc.docs.map(
+        //     (doc) =>
+        //         ({
+        //             id: doc.id,
+        //             ...doc.data(),
+        //         } as UserCommunitySnippet)
+        // );
+        // let notifications: PostNotification[] = [];
+        // for (const community of userCommunities) {
+        //     const queryConstraints: any[] = [];
+        //     queryConstraints.push(where("id", "==", community.id));
+        //     if (community.latestPost) {
+        //         queryConstraints.push(
+        //             where("latestPost.id", "!=", community.latestPost.id)
+        //         );
+        //     } else {
+        //         queryConstraints.push(where("latestPost.id", "!=", null));
+        //     }
+        //     const communityNotiQuery = query(
+        //         collection(fireStore, firebaseRoute.getAllCommunityRoute()),
+        //         ...queryConstraints
+        //     );
+        //     const communityDocs = await getDocs(communityNotiQuery);
+        //     if (!communityDocs.empty) {
+        //         notifications = [
+        //             ...notifications,
+        //             {
+        //                 ...communityDocs.docs[0].data().latestPost,
+        //                 isReading: false,
+        //             },
+        //         ];
+        //     } else if (community.latestPost) {
+        //         notifications = [
+        //             ...notifications,
+        //             {
+        //                 ...community.latestPost,
+        //                 isReading: true,
+        //             },
+        //         ];
+        //     }
+        // }
+        // notifications.sort((a, b) =>
+        //     a.createdAt.seconds < b.createdAt.seconds ? 1 : -1
+        // );
+        // setUserNotification(notifications.filter((item, idx) => idx < 10));
+    };
+
+    const readNotification = async () => {
+        if (isFirstReadNotification.current && user) {
+            await NotificationService.seenIfRead({ userId: user.uid });
+        } else {
+            isFirstReadNotification.current = false;
         }
-        notifications.sort((a, b) =>
-            a.createdAt.seconds < b.createdAt.seconds ? 1 : -1
-        );
-        setUserNotification(notifications.filter((item, idx) => idx < 10));
     };
 
     useEffect(() => {
         if (user) {
+            isFirstReadNotification.current = true;
             setUserNotification([]);
             getUserCommunityNotification(user.uid);
         }
@@ -172,9 +178,9 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
             </Flex>
             {user && (
                 <>
-                    <Popover trigger={"hover"} placement={"bottom-start"}>
+                    <Popover trigger={"click"} placement={"bottom-start"}>
                         <PopoverTrigger>
-                            <Box position="relative">
+                            <Box position="relative" onClick={readNotification}>
                                 <IconButton
                                     size="lg"
                                     variant="ghost"
@@ -182,9 +188,8 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                                     borderRadius="full"
                                     icon={<FiBell />}
                                 />
-                                {userNotification.filter(
-                                    (noti) => !noti.isReading
-                                ).length > 0 && (
+                                {userNotification.filter((noti) => !noti.isSeen)
+                                    .length > 0 && (
                                     <Flex
                                         w="4"
                                         h="4"
@@ -201,7 +206,7 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                                     >
                                         {
                                             userNotification.filter(
-                                                (noti) => !noti.isReading
+                                                (noti) => !noti.isSeen
                                             ).length
                                         }
                                     </Flex>
@@ -225,18 +230,14 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                                 {userNotification.map((noti, idx) => (
                                     <NotificationItem
                                         key={noti.id}
-                                        userName={noti.creatorDisplayName}
-                                        communityName={noti.communityName}
-                                        imageUrl={noti.imageUrl}
-                                        content="đã đăng 1 bài viết mới trong"
-                                        createdAt={noti.createdAt}
-                                        href={routes.getCommunityDetailPage(
-                                            noti.communityId
-                                        )}
+                                        notificationData={noti}
+                                        setNotifications={setUserNotification}
+                                        // href={routes.getCommunityDetailPage(
+                                        //     noti.communityId
+                                        // )}
                                         isLast={
                                             idx === userNotification.length - 1
                                         }
-                                        isReading={noti.isReading}
                                     />
                                 ))}
                             </Stack>

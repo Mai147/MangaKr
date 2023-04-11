@@ -11,11 +11,11 @@ import { BookCreateProvider } from "@/context/BookCreateContext";
 type BookCreatePageProps = {};
 
 const BookCreatePage: React.FC<BookCreatePageProps> = () => {
-    const { setNeedAuth, setDefaultPath } = useAuth();
+    const { authAction } = useAuth();
 
     useEffect(() => {
-        setNeedAuth(true);
-        setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+        authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
     return (

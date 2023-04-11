@@ -11,11 +11,11 @@ import VoteService from "@/services/VoteService";
 import { useToast } from "@chakra-ui/react";
 import { createContext, useEffect, useState } from "react";
 import PostService from "@/services/PostService";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PostPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 
 export type PostItemState = {
     post: Post;
@@ -90,7 +90,7 @@ export const PostContext = createContext<PostContextState>(
 export const PostProvider = ({ children }: any) => {
     const { user } = useAuth();
     const [postState, setPostState] = useState<PostState>(defaultPostState);
-    const { getPosts } = useTestPagination();
+    const { getPosts } = usePagination();
     const { toggleView } = useModal();
     const toast = useToast();
 

@@ -1,12 +1,12 @@
 import { REPLY_TOPIC_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
-import useTestPagination, {
+import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
     TopicReplyPaginationInput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Topic } from "@/models/Topic";
 import TopicService from "@/services/TopicService";
 import {
@@ -33,7 +33,7 @@ type TopicItemProps = {
 
 const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
     const { user } = useAuth();
-    const { getTopicReplies } = useTestPagination();
+    const { getTopicReplies } = usePagination();
     const [topicReplyPaginationInput, setTopicReplyPaginationInput] =
         useState<TopicReplyPaginationInput>({
             ...defaultPaginationInput,

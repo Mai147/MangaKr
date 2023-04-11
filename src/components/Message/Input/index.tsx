@@ -89,7 +89,6 @@ const MessageInput: React.FC<MessageInputProps> = () => {
                         icon={<AiOutlineSend />}
                         fontSize={20}
                         color="gray.500"
-                        isLoading={messageState.loading.sendMessageLoading}
                     />
                 </HStack>
             </Flex>

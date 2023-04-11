@@ -3,12 +3,12 @@ import BookCarousel from "@/components/Book/Snippet/Carousel";
 import Pagination from "@/components/Pagination";
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import { WRITER_PAGE_COUNT } from "@/constants/pagination";
-import useTestPagination, {
+import usePagination, {
     BookPaginationInput,
     defaultPaginationInput,
     defaultPaginationOutput,
     PaginationOutput,
-} from "@/hooks/useTestPagination";
+} from "@/hooks/usePagination";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import {
@@ -46,7 +46,7 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
     const [authorBookPaginationOutput, setAuthorBookPaginationOutput] =
         useState<PaginationOutput>(defaultPaginationOutput);
     const [loading, setLoading] = useState(false);
-    const { getBooks } = useTestPagination();
+    const { getBooks } = usePagination();
 
     const getAuthorBooks = async () => {
         setLoading(true);
