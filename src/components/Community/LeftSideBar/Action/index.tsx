@@ -1,4 +1,4 @@
-import { getCommunityPostApprovePage, routes } from "@/constants/routes";
+import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import CommunityService from "@/services/CommunityService";
@@ -122,7 +122,7 @@ const CommunityLeftSideBarAction: React.FC<
                 {canApprovePost && (
                     <Link
                         _hover={{ textDecoration: "none" }}
-                        href={getCommunityPostApprovePage(
+                        href={routes.getCommunityApprovePage(
                             communityState.selectedCommunity?.id!
                         )}
                     >
@@ -218,9 +218,9 @@ const CommunityLeftSideBarAction: React.FC<
                         </Link>
                         <Link
                             _hover={{ textDecoration: "none" }}
-                            // href={getCommunityUserAuthorizePage(
-                            //     communityState.selectedCommunity?.id!
-                            // )}
+                            href={routes.getCommunityVotingCreatePage(
+                                communityState.selectedCommunity?.id!
+                            )}
                         >
                             <Button variant="unstyled">
                                 <Flex align="center">

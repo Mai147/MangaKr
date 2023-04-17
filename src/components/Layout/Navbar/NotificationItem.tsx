@@ -1,7 +1,9 @@
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
+import useNotification from "@/hooks/useNotification";
 import { Notification } from "@/models/Notification";
 import UserService from "@/services/UserService";
+import NotificationUtils from "@/utils/NotificationUtils";
 import {
     Stack,
     Box,
@@ -15,13 +17,12 @@ import {
 } from "@chakra-ui/react";
 import moment from "moment";
 import "moment/locale/vi";
-import React, { SetStateAction, useState } from "react";
+import React, { useState } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineClear } from "react-icons/md";
 
 export type NotificationItemProps = {
-    setNotifications: React.Dispatch<SetStateAction<Notification[]>>;
     notificationData: Notification;
     href?: string;
     isLast?: boolean;
@@ -31,12 +32,12 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     notificationData,
     href,
     isLast = false,
-    setNotifications,
 }) => {
     const [acceptFollowLoading, setAcceptFollowLoading] = useState(false);
     const [declineFollowLoading, setDeclineFollowLoading] = useState(false);
     const { user } = useAuth();
     const { toggleView } = useModal();
+    const { notificationAction } = useNotification();
     return (
         <Flex
             direction="column"
@@ -49,7 +50,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
             borderColor={isLast ? "transparent" : "gray.300"}
         >
             <Link
-                href={href}
+                href={NotificationUtils.getHref(notificationData)}
                 role={"group"}
                 display={"block"}
                 p={2}
@@ -136,12 +137,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                                         imageUrl: user.photoURL,
                                     },
                                 });
-                                setNotifications((prev) =>
-                                    prev.filter(
-                                        (item) =>
-                                            item.id !== notificationData.id
-                                    )
-                                );
+                                notificationAction.clear(notificationData.id!);
                                 setAcceptFollowLoading(false);
                             }}
                         />
@@ -152,7 +148,19 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                             size="md"
                             isLoading={declineFollowLoading}
                             isDisabled={acceptFollowLoading}
-                            onClick={async () => {}}
+                            onClick={async () => {
+                                if (!user) {
+                                    toggleView("login");
+                                    return;
+                                }
+                                setDeclineFollowLoading(true);
+                                await UserService.declineFollow({
+                                    userId: notificationData.id!,
+                                    followerId: user.uid,
+                                });
+                                notificationAction.clear(notificationData.id!);
+                                setDeclineFollowLoading(false);
+                            }}
                         />
                     </HStack>
                 )}

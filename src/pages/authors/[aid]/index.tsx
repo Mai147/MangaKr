@@ -27,17 +27,11 @@ const AuthorDetailPage: React.FC<AuthorDetailPageProps> = ({ author }) => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { aid } = context.query;
     const author = await AuthorService.get({ authorId: aid as string });
-    if (author) {
-        return {
-            props: {
-                author,
-            },
-        };
-    } else {
-        return {
-            props: {},
-        };
-    }
+    return {
+        props: {
+            author: author || null,
+        },
+    };
 }
 
 export default AuthorDetailPage;

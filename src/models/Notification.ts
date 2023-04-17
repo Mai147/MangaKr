@@ -9,12 +9,13 @@ export interface Notification {
     isSeen: boolean;
     isRead: boolean;
     createdAt?: Timestamp;
+    // TODO:
     type:
-        | "FOLLOW_REQUEST"
-        | "FOLLOW_ACCEPT"
-        | "FOLLOWED_POST"
-        | "COMMUNITY_APPROVE"
-        | "COMMUNITY_POST";
+        | "FOLLOW_REQUEST" //DONE
+        | "FOLLOW_ACCEPT" //DONE
+        | "FOLLOWED_POST" //DONE
+        | "COMMUNITY_APPROVE" //DONE
+        | "COMMUNITY_POST"; //DONE;
 }
 
 export const defaultNotification: Notification = {

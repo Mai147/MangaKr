@@ -31,7 +31,9 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
                 selectedListFile.length > 0 && (
                     <ImageShow
                         imageList={selectedListFile}
-                        onHidden={() => setShowImageList(false)}
+                        onHidden={() => {
+                            setShowImageList(false);
+                        }}
                     />
                 )}
             {selectedListFile && selectedListFile.length > 0 ? (

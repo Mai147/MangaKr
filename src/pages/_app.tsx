@@ -9,7 +9,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 import type { AppProps } from "next/app";
 import { CommunityProvider } from "@/context/CommunityContext";
 import React from "react";
-// import { PostProvider } from "@/context/PostContext";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 export default function App({ Component, pageProps, ...appProps }: AppProps) {
     const isLayoutNeeded = ![`/messages`, `/messages/[uid]`].includes(
@@ -21,15 +21,15 @@ export default function App({ Component, pageProps, ...appProps }: AppProps) {
     return (
         <ChakraProvider theme={theme}>
             <AuthProvider>
-                <ModalProvider>
-                    <CommunityProvider>
-                        {/* <PostProvider> */}
-                        <LayoutComponent>
-                            <Component {...pageProps} />
-                        </LayoutComponent>
-                        {/* </PostProvider> */}
-                    </CommunityProvider>
-                </ModalProvider>
+                <NotificationProvider>
+                    <ModalProvider>
+                        <CommunityProvider>
+                            <LayoutComponent>
+                                <Component {...pageProps} />
+                            </LayoutComponent>
+                        </CommunityProvider>
+                    </ModalProvider>
+                </NotificationProvider>
             </AuthProvider>
         </ChakraProvider>
     );

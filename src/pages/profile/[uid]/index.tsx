@@ -14,7 +14,7 @@ type ProfilePageProps = {
 const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
     return (
         <PageContent>
-            <PostProvider>
+            <PostProvider selectedUser={user}>
                 <ProfileShow user={user} />
             </PostProvider>
             <RightSidebar />

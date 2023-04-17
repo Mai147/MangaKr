@@ -1,15 +1,7 @@
-import { TOPIC_PAGE_COUNT } from "@/constants/pagination";
 import { CommunityRole, COMMUNITY_USER_ROLE } from "@/constants/roles";
 import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
-import useDebounce from "@/hooks/useDebounce";
 import useModal from "@/hooks/useModal";
-import usePagination, {
-    defaultPaginationInput,
-    defaultPaginationOutput,
-    PaginationOutput,
-    TopicPaginationInput,
-} from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
 import CommunityService from "@/services/CommunityService";
 import { validateCreateCommunity } from "@/validation/communityValidation";
@@ -20,11 +12,6 @@ import { createContext, useEffect, useState } from "react";
 type CommunityState = {
     selectedCommunity?: Community | null;
     relatedCommunities?: Community[];
-    topic: {
-        input: TopicPaginationInput;
-        output: PaginationOutput;
-        loading: boolean;
-    };
     userCommunityRole?: {
         isAccept: boolean;
         role?: CommunityRole;
@@ -40,9 +27,6 @@ type CommunityAction = {
     joinCommunity: () => Promise<void>;
     leaveCommunity: () => Promise<void>;
     toUserRole: () => Promise<void>;
-    onNextTopic: () => void;
-    onPrevTopic: () => void;
-    searchTopic: (searchValue: string) => void;
 };
 
 type CommunityContextState = {
@@ -50,20 +34,8 @@ type CommunityContextState = {
     communityAction: CommunityAction;
 };
 
-const defaultTopicState = {
-    input: {
-        ...defaultPaginationInput,
-        pageCount: TOPIC_PAGE_COUNT,
-        isAccept: true,
-        communityId: "",
-    },
-    output: defaultPaginationOutput,
-    loading: true,
-};
-
 const defaultCommunityState: CommunityState = {
     communityLoading: true,
-    topic: defaultTopicState,
 };
 
 const defaultCommunityContextState: CommunityContextState = {
@@ -78,9 +50,6 @@ const defaultCommunityContextState: CommunityContextState = {
         updateCommunityImage: async () => {},
         updateCommunityName: async () => {},
         updateCommunityDescription: async () => {},
-        onNextTopic: () => {},
-        onPrevTopic: () => {},
-        searchTopic: () => {},
     },
 };
 
@@ -95,11 +64,6 @@ export const CommunityProvider = ({ children }: any) => {
     const [communityState, setCommunityState] = useState<CommunityState>(
         defaultCommunityState
     );
-    const debouncedSearch = useDebounce(
-        communityState.topic.input.searchValue || "",
-        300
-    );
-    const { getTopics } = usePagination();
     const toast = useToast();
 
     const getCommunity = async (communityId: string) => {
@@ -122,47 +86,6 @@ export const CommunityProvider = ({ children }: any) => {
             ...prev,
             userCommunityRole,
         }));
-    };
-
-    const getCommunityTopics = async (communityId: string) => {
-        setCommunityState((prev) => ({
-            ...prev,
-            topic: {
-                ...prev.topic,
-                loading: true,
-            },
-        }));
-        const input: TopicPaginationInput = {
-            ...communityState.topic.input,
-            communityId,
-            setDocValue: (docValue) => {
-                setCommunityState((prev) => ({
-                    ...prev,
-                    topic: {
-                        ...prev.topic,
-                        input: {
-                            ...prev.topic.input,
-                            docValue,
-                        },
-                    },
-                }));
-            },
-        };
-        const res = await getTopics(input);
-        if (res) {
-            setCommunityState((prev) => ({
-                ...prev,
-                topic: {
-                    ...prev.topic,
-                    output: res,
-                    input: {
-                        ...prev.topic.input,
-                        isFirst: false,
-                    },
-                    loading: false,
-                },
-            }));
-        }
     };
 
     const joinCommunity = async () => {
@@ -338,7 +261,7 @@ export const CommunityProvider = ({ children }: any) => {
         }));
         if (userId) {
             await getUserCommunityRole(community.id!, userId);
-            await CommunityService.updateUserLatestPost(userId, community);
+            // await CommunityService.updateUserLatestPost(userId, community);
         } else {
             setCommunityState((prev) => ({
                 ...prev,
@@ -352,35 +275,11 @@ export const CommunityProvider = ({ children }: any) => {
     };
 
     useEffect(() => {
-        setCommunityState((prev) => ({
-            ...prev,
-            topic: {
-                ...defaultTopicState,
-                input: {
-                    ...defaultTopicState.input,
-                    searchValue: prev.topic.input.searchValue,
-                },
-            },
-        }));
-    }, [debouncedSearch]);
-
-    useEffect(() => {
         const { selectedCommunity } = communityState;
         if (selectedCommunity) {
             getCommunityInfo(selectedCommunity, user?.uid);
         }
     }, [communityState.selectedCommunity?.id, user]);
-
-    useEffect(() => {
-        const { selectedCommunity } = communityState;
-        if (selectedCommunity) {
-            getCommunityTopics(selectedCommunity.id!);
-        }
-    }, [
-        communityState.selectedCommunity?.id,
-        communityState.topic.input.page,
-        communityState.topic.input.searchValue,
-    ]);
 
     useEffect(() => {
         const { cid } = router.query;
@@ -409,44 +308,6 @@ export const CommunityProvider = ({ children }: any) => {
                     joinCommunity,
                     leaveCommunity,
                     toUserRole,
-                    onNextTopic: () => {
-                        setCommunityState((prev) => ({
-                            ...prev,
-                            topic: {
-                                ...prev.topic,
-                                input: {
-                                    ...prev.topic.input,
-                                    page: prev.topic.input.page + 1,
-                                    isNext: true,
-                                },
-                            },
-                        }));
-                    },
-                    onPrevTopic: () => {
-                        setCommunityState((prev) => ({
-                            ...prev,
-                            topic: {
-                                ...prev.topic,
-                                input: {
-                                    ...prev.topic.input,
-                                    page: prev.topic.input.page - 1,
-                                    isNext: false,
-                                },
-                            },
-                        }));
-                    },
-                    searchTopic: (searchValue) => {
-                        setCommunityState((prev) => ({
-                            ...prev,
-                            topic: {
-                                ...prev.topic,
-                                input: {
-                                    ...prev.topic.input,
-                                    searchValue,
-                                },
-                            },
-                        }));
-                    },
                 },
                 communityState,
             }}

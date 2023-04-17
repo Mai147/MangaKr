@@ -1,7 +1,7 @@
-import { Box, Flex, Icon, IconButton, Image } from "@chakra-ui/react";
+import { Flex, IconButton, Image } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { TfiClose } from "react-icons/tfi";
+import Overlay from "../Overlay";
 
 type ImageShowProps = {
     imageList: string[];
@@ -31,57 +31,8 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
     }, []);
 
     return (
-        <Box
-            bg="transparent"
-            position="fixed"
-            top={0}
-            bottom={0}
-            left={0}
-            right={0}
-            zIndex={999}
-        >
-            <Box
-                w="100%"
-                h="100%"
-                bg="black"
-                opacity={0.8}
-                filter="auto"
-                brightness={0.3}
-                cursor="pointer"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onHidden();
-                }}
-                className="test"
-            ></Box>
-            <Icon
-                color="white"
-                as={TfiClose}
-                position="absolute"
-                right={6}
-                top={6}
-                fontSize={24}
-                cursor="pointer"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onHidden();
-                }}
-            />
-            <Flex
-                position="absolute"
-                top="50%"
-                left="50%"
-                translateY="-50%"
-                translateX="-50%"
-                transform="auto"
-                align="center"
-                w="95%"
-                cursor="pointer"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onHidden();
-                }}
-            >
+        <Overlay onHidden={onHidden} contentWidth="95%">
+            <>
                 {imageList.length > 1 && (
                     <IconButton
                         aria-label="Prev button"
@@ -120,8 +71,8 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                         }}
                     />
                 )}
-            </Flex>
-        </Box>
+            </>
+        </Overlay>
     );
 };
 export default ImageShow;

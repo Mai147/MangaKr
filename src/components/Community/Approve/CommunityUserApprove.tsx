@@ -112,7 +112,7 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
         if (!communityUserApproveState.paginationInput.isAccept) {
             await CommunityService.approveUser({
                 userId: user.id,
-                communityId: community.id!,
+                community,
                 isAccept,
             });
         } else {

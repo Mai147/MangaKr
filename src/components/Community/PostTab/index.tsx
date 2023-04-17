@@ -1,20 +1,13 @@
 import InfiniteScroll from "@/components/InfiniteScroll";
 import PostItem from "@/components/Post/Item";
 import usePost from "@/hooks/usePost";
-import { Community } from "@/models/Community";
 import { Spinner, Text } from "@chakra-ui/react";
-import React, { useEffect } from "react";
+import React from "react";
 
-type CommunityPostTabProps = {
-    community: Community;
-};
+type CommunityPostTabProps = {};
 
-const CommunityPostTab: React.FC<CommunityPostTabProps> = ({ community }) => {
+const CommunityPostTab: React.FC<CommunityPostTabProps> = () => {
     const { postAction, postState } = usePost();
-
-    useEffect(() => {
-        postAction.setSelectedCommunity(community);
-    }, [community]);
 
     return (
         <>

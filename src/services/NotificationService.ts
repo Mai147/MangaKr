@@ -3,9 +3,12 @@ import { fireStore } from "@/firebase/clientApp";
 import { Notification } from "@/models/Notification";
 import {
     collection,
+    doc,
+    getDoc,
     getDocs,
     query,
     runTransaction,
+    Transaction,
     where,
     writeBatch,
 } from "firebase/firestore";
@@ -27,7 +30,76 @@ class NotificationService {
         return notifications;
     };
     static create = async ({}: {}) => {};
-    static updateOrCreate = async ({}: {}) => {};
+    static updateOrCreate = async ({
+        notification,
+        userId,
+        transaction,
+    }: {
+        notification: Notification;
+        userId: string;
+        transaction?: Transaction;
+    }) => {
+        try {
+            const userNotificationDocRef = doc(
+                fireStore,
+                firebaseRoute.getUserNotificationRoute(userId),
+                notification.id!
+            );
+            if (transaction) {
+                const userNotificationDoc = await transaction.get(
+                    userNotificationDocRef
+                );
+                if (!userNotificationDoc.exists()) {
+                    transaction.set(userNotificationDocRef, notification);
+                } else {
+                    transaction.update(userNotificationDocRef, {
+                        ...notification,
+                    });
+                }
+            } else {
+                await runTransaction(fireStore, async (transaction) => {
+                    const userNotificationDoc = await transaction.get(
+                        userNotificationDocRef
+                    );
+                    if (!userNotificationDoc.exists()) {
+                        transaction.set(userNotificationDocRef, notification);
+                    } else {
+                        transaction.update(userNotificationDocRef, {
+                            ...notification,
+                        });
+                    }
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static delete = async ({
+        notificationId,
+        userId,
+        transaction,
+    }: {
+        userId: string;
+        notificationId: string;
+        transaction?: Transaction;
+    }) => {
+        try {
+            const userNotificationDocRef = doc(
+                fireStore,
+                firebaseRoute.getUserNotificationRoute(userId),
+                notificationId
+            );
+            if (transaction) {
+                transaction.delete(userNotificationDocRef);
+            } else {
+                await runTransaction(fireStore, async (transaction) => {
+                    transaction.delete(userNotificationDocRef);
+                });
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
     static seenIfRead = async ({ userId }: { userId: string }) => {
         try {
             const batch = writeBatch(fireStore);
@@ -46,6 +118,31 @@ class NotificationService {
                     isSeen: true,
                 });
             });
+            await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static seen = async ({
+        userId,
+        notificationId,
+    }: {
+        userId: string;
+        notificationId: string;
+    }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            const notificationDocRef = doc(
+                fireStore,
+                firebaseRoute.getUserNotificationRoute(userId),
+                notificationId
+            );
+            const notificationDoc = await getDoc(notificationDocRef);
+            if (notificationDoc.exists()) {
+                batch.update(notificationDocRef, {
+                    isSeen: true,
+                });
+            }
             await batch.commit();
         } catch (error) {
             console.log(error);

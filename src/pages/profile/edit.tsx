@@ -1,5 +1,6 @@
 import ProfileDetail from "@/components/Profile/Edit/Detail";
 import ProfilePassword from "@/components/Profile/Edit/Password";
+import ProfileSetting from "@/components/Profile/Edit/Setting";
 import ProfileSidebar from "@/components/Profile/Edit/Sidebar";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
@@ -43,9 +44,11 @@ const ProfileEditPage: React.FC<ProfileEditPageProps> = ({}) => {
                 borderColor="gray.200"
                 pl={5}
                 flexGrow={1}
+                alignSelf="stretch"
             >
                 {tab == 0 && <ProfileDetail user={user} />}
                 {tab == 1 && <ProfilePassword user={user} />}
+                {tab == 2 && <ProfileSetting user={user} />}
             </Box>
         </Flex>
     );

@@ -1,15 +1,10 @@
 import InfiniteScroll from "@/components/InfiniteScroll";
 import PostItem from "@/components/Post/Item";
-import { USER_PAGE_COUNT } from "@/constants/pagination";
+import useAuth from "@/hooks/useAuth";
+import useNotification from "@/hooks/useNotification";
 import usePost from "@/hooks/usePost";
-import usePagination, {
-    defaultPaginationInput,
-    defaultPaginationOutput,
-    FollowPaginationInput,
-    PaginationOutput,
-} from "@/hooks/usePagination";
-import { Follow, UserModel } from "@/models/User";
-import { Box, Divider, Flex, Spinner, Text, VStack } from "@chakra-ui/react";
+import { UserModel } from "@/models/User";
+import { Box, Divider, Flex, Spinner, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { BsFilePostFill } from "react-icons/bs";
 import { RiUserReceivedLine, RiUserShared2Line } from "react-icons/ri";
@@ -53,7 +48,9 @@ const defaultScrollHeight = [
 ];
 
 const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
+    const authState = useAuth();
     const { postState, postAction } = usePost();
+    const { notificationAction } = useNotification();
     const [selectedTab, setSelectedTab] = useState(profileTab[0].title);
     const [scrollHeight, setScrollHeight] = useState(defaultScrollHeight);
 
@@ -78,8 +75,10 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
     };
 
     useEffect(() => {
-        postAction.setSelectedUser(user);
-    }, [user]);
+        if (authState.user) {
+            notificationAction.seen(authState.user.uid, user.uid);
+        }
+    }, [authState.user]);
 
     return (
         <Flex

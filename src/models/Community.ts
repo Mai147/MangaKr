@@ -35,6 +35,7 @@ export interface Community {
     moderators?: UserSnippet[];
     numberOfPosts: number;
     numberOfTopics: number;
+    numberOfVotings: number;
     latestPost?: LatestPost;
 }
 
@@ -47,5 +48,6 @@ export const defaultCommunityForm: Community = {
     privacyType: "public",
     numberOfPosts: 0,
     numberOfTopics: 0,
+    numberOfVotings: 0,
     userIds: [],
 };

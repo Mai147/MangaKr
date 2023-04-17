@@ -1,5 +1,3 @@
-import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { fireStore } from "@/firebase/clientApp";
 import { Author } from "@/models/Author";
 import { Book } from "@/models/Book";
 import { Community } from "@/models/Community";

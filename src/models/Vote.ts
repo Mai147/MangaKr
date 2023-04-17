@@ -1,7 +1,9 @@
+import { Timestamp } from "firebase/firestore";
 import { IconType } from "react-icons";
 import { AiFillLike, AiFillDislike } from "react-icons/ai";
 import { FaLaughSquint, FaAngry } from "react-icons/fa";
 import { MdFavorite } from "react-icons/md";
+import { UserSnippet } from "./User";
 
 export interface Vote {
     value: "like" | "dislike";
@@ -69,3 +71,47 @@ export const basicVoteList: Vote[] = [
         color: "gray.700",
     },
 ];
+
+export interface VotingOption {
+    id?: string;
+    value?: string;
+    imageUrl?: string;
+    imageRef?: string;
+    numberOfVotes: number;
+}
+
+export interface Voting {
+    id?: string;
+    communityId: string;
+    content: string;
+    options: VotingOption[];
+    creatorId: string;
+    creatorDisplayName: string;
+    creatorImageUrl?: string;
+    numberOfOptions: number;
+    numberOfVotes: number;
+    isClose: boolean;
+    isAccept: boolean;
+    timeLast: Timestamp;
+    votingVoteSnippets: UserSnippet[];
+    createdAt?: Timestamp;
+}
+
+export const defaultVotingForm: Voting = {
+    content: "",
+    communityId: "",
+    options: [],
+    creatorId: "",
+    creatorDisplayName: "",
+    numberOfOptions: 0,
+    numberOfVotes: 0,
+    isAccept: false,
+    isClose: false,
+    votingVoteSnippets: [],
+    timeLast: Timestamp.fromDate(new Date()),
+};
+
+export const defaultVotingOption: VotingOption = {
+    numberOfVotes: 0,
+    value: "",
+};

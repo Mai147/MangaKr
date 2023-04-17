@@ -74,3 +74,23 @@ export const compareDate = (
     const secondDate = new Date(secondTimestampDate.seconds * 1000);
     return firstDate.toDateString() === secondDate.toDateString();
 };
+
+export const isDateEnd = (endDate: Timestamp, currentDate?: Timestamp) => {
+    const d = currentDate ? new Date(currentDate.seconds * 1000) : new Date();
+    return d.getTime() >= new Date(endDate.seconds * 1000).getTime();
+};
+
+export const formatDateToDateTimeLocal = (date: Timestamp) => {
+    // const d = date.toDate();
+    // const dateTimeLocalValue = new Date(
+    //     d.getTime() - d.getTimezoneOffset() * 60000
+    // )
+    //     .toISOString()
+    //     .slice(0, -1);
+    const pad = (i: number) => (i < 10 ? `0${i}` : i);
+    const time = date.toDate(); // ensure date object
+    const timeString = `${time.getFullYear()}-${pad(time.getMonth() + 1)}-${pad(
+        time.getDate()
+    )}T${pad(time.getHours())}:${pad(time.getMinutes())}`;
+    return timeString;
+};

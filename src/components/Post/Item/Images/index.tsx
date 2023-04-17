@@ -45,7 +45,7 @@ const PostItemImages: React.FC<PostItemImagesProps> = ({
             <Grid
                 gridTemplateAreas={getGridTemplateArea(imageList.length)}
                 w="100%"
-                gridGap={1}
+                gridGap={size === "sm" ? "2px" : 1}
                 cursor="pointer"
                 onClick={() => setShowImageList(true)}
             >
@@ -71,7 +71,7 @@ const PostItemImages: React.FC<PostItemImagesProps> = ({
                             translateX="-50%"
                             translateY="-50%"
                             transform="auto"
-                            fontSize={32}
+                            fontSize={size === "sm" ? 14 : 32}
                             color="white"
                         >
                             +{imageList.length - 5}

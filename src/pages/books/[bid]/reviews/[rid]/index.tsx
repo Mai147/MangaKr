@@ -28,14 +28,10 @@ const ReviewDetailPage: React.FC<ReviewDetailPageProps> = ({ review }) => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { rid } = context.query;
     const res = await ReviewService.get({ reviewId: rid as string });
-    if (res)
-        return {
-            props: {
-                review: res.review,
-            },
-        };
     return {
-        props: {},
+        props: {
+            review: res?.review || null,
+        },
     };
 }
 

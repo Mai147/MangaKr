@@ -9,13 +9,15 @@ import { UserModel } from "@/models/User";
 import { PostVote } from "@/models/Vote";
 import VoteService from "@/services/VoteService";
 import { useToast } from "@chakra-ui/react";
-import { createContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useEffect, useRef, useState } from "react";
 import PostService from "@/services/PostService";
 import usePagination, {
     defaultPaginationInput,
     defaultPaginationOutput,
     PostPaginationInput,
 } from "@/hooks/usePagination";
+import PostUtils from "@/utils/PostUtils";
+import { PrivacyType } from "@/constants/privacy";
 
 export type PostItemState = {
     post: Post;
@@ -44,9 +46,12 @@ type PostAction = {
     loadMore: () => void;
     vote: (vote: PostVote, postId: string) => Promise<void>;
     delete: (post: Post) => Promise<void>;
-    setSelectedUser: (user: UserModel) => void;
-    setSelectedCommunity: (community: Community) => void;
     setNumberOfCommentsIncrement: (increment: number, postId: string) => void;
+    handleSubmitPrivacy: (
+        postId: string,
+        userId: string,
+        privacy: PrivacyType
+    ) => Promise<void>;
 };
 
 type PostContextState = {
@@ -73,9 +78,8 @@ const defaultPostAction: PostAction = {
     vote: async () => {},
     delete: async () => {},
     loadMore: () => {},
-    setSelectedCommunity: () => {},
-    setSelectedUser: () => {},
     setNumberOfCommentsIncrement: () => {},
+    handleSubmitPrivacy: async () => {},
 };
 
 const defaultPostContextState: PostContextState = {
@@ -87,12 +91,21 @@ export const PostContext = createContext<PostContextState>(
     defaultPostContextState
 );
 
-export const PostProvider = ({ children }: any) => {
+export const PostProvider = ({
+    children,
+    selectedCommunity,
+    selectedUser,
+}: {
+    children: ReactNode;
+    selectedUser?: UserModel;
+    selectedCommunity?: Community;
+}) => {
     const { user } = useAuth();
     const [postState, setPostState] = useState<PostState>(defaultPostState);
     const { getPosts } = usePagination();
     const { toggleView } = useModal();
     const toast = useToast();
+    const isFirstRun = useRef(true);
 
     const getPostData = async (post: Post) => {
         let postVote;
@@ -128,9 +141,16 @@ export const PostProvider = ({ children }: any) => {
                     },
                 }));
             },
-            communityId: postState.selectedCommunity?.id,
-            userId: postState.selectedUser?.uid,
-            isAccept: postState.selectedCommunity ? true : undefined,
+            communityId: selectedCommunity?.id,
+            userId: selectedUser?.uid,
+            isAccept: selectedCommunity ? true : undefined,
+            isLock: selectedCommunity ? true : undefined,
+            privacyTypes: selectedUser?.uid
+                ? await PostUtils.checkPrivacyType({
+                      postCreatorId: selectedUser.uid,
+                      userId: user?.uid,
+                  })
+                : undefined,
         };
         const res = await getPosts(input);
         if (res) {
@@ -163,7 +183,7 @@ export const PostProvider = ({ children }: any) => {
             toggleView("login");
         } else {
             try {
-                if (postState.selectedUser || postState.selectedCommunity) {
+                if (selectedUser || selectedCommunity) {
                     const { value } = vote;
                     const userPostVote = postState.output.list.find(
                         (item) => item.post.id === postId
@@ -171,12 +191,10 @@ export const PostProvider = ({ children }: any) => {
                     const voteRoute = firebaseRoute.getUserPostVoteRoute(
                         user.uid
                     );
-                    const rootRoute = postState.selectedUser
-                        ? firebaseRoute.getUserPostRoute(
-                              postState.selectedUser.uid
-                          )
+                    const rootRoute = selectedUser
+                        ? firebaseRoute.getUserPostRoute(selectedUser.uid)
                         : firebaseRoute.getCommunityPostRoute(
-                              postState.selectedCommunity!.id!
+                              selectedCommunity!.id!
                           );
                     if (!userPostVote) {
                         await VoteService.create({
@@ -280,7 +298,7 @@ export const PostProvider = ({ children }: any) => {
             }));
             await PostService.delete({
                 post,
-                community: postState.selectedCommunity,
+                community: selectedCommunity,
             });
             setPostState((prev) => ({
                 ...prev,
@@ -311,18 +329,67 @@ export const PostProvider = ({ children }: any) => {
         }
     };
 
-    useEffect(() => {
-        if (postState.selectedUser || postState.selectedCommunity) {
-            getListPosts();
+    const handleSubmitPrivacy = async (
+        postId: string,
+        userId: string,
+        privacy: PrivacyType
+    ) => {
+        try {
+            const res = await PostService.changePrivacy({
+                postId,
+                userId,
+                privacy,
+            });
+            if (res) {
+                setPostState((prev) => ({
+                    ...prev,
+                    output: {
+                        ...prev.output,
+                        list: prev.output.list.map((item) =>
+                            item.post.id !== postId
+                                ? item
+                                : {
+                                      ...item,
+                                      post: {
+                                          ...item.post,
+                                          privacyType: res,
+                                      },
+                                  }
+                        ),
+                    },
+                }));
+            }
+        } catch (error) {
+            console.log(error);
         }
-    }, [
-        postState.selectedUser,
-        postState.selectedCommunity,
-        postState.input.page,
-    ]);
+    };
 
     useEffect(() => {
-        if (postState.selectedUser || postState.selectedCommunity) {
+        setPostState((prev) => ({
+            ...prev,
+            selectedUser,
+        }));
+    }, [selectedUser]);
+
+    useEffect(() => {
+        setPostState((prev) => ({
+            ...prev,
+            selectedCommunity,
+        }));
+    }, [selectedCommunity]);
+
+    useEffect(() => {
+        if (!isFirstRun.current || user) {
+            if (selectedUser || selectedCommunity) {
+                getListPosts();
+            }
+        } else {
+            isFirstRun.current = false;
+        }
+    }, [user, selectedUser, selectedCommunity, postState.input.page]);
+
+    useEffect(() => {
+        if (selectedUser || selectedCommunity) {
             const { list } = postState.output;
             setPostState((prev) => ({
                 ...prev,
@@ -335,11 +402,7 @@ export const PostProvider = ({ children }: any) => {
                 },
             }));
         }
-    }, [
-        postState.output.list,
-        postState.selectedUser,
-        postState.selectedCommunity,
-    ]);
+    }, [postState.output.list, selectedUser, selectedCommunity]);
 
     return (
         <PostContext.Provider
@@ -358,18 +421,6 @@ export const PostProvider = ({ children }: any) => {
                     },
                     vote: handleVotePost,
                     delete: handleDeletePost,
-                    setSelectedUser: (user) => {
-                        setPostState((prev) => ({
-                            ...prev,
-                            selectedUser: user,
-                        }));
-                    },
-                    setSelectedCommunity: (community) => {
-                        setPostState((prev) => ({
-                            ...prev,
-                            selectedCommunity: community,
-                        }));
-                    },
                     setNumberOfCommentsIncrement: (increment, postId) => {
                         setPostState((prev) => ({
                             ...prev,
@@ -392,6 +443,7 @@ export const PostProvider = ({ children }: any) => {
                             },
                         }));
                     },
+                    handleSubmitPrivacy,
                 },
             }}
         >

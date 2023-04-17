@@ -22,6 +22,9 @@ const POST_ROUTE = `posts`;
 const POST_VOTE_ROUTE = `postVotes`;
 const TOPIC_ROUTE = `topics`;
 const TOPIC_REPLY_ROUTE = `replies`;
+const VOTING_ROUTE = `votings`;
+const VOTING_OPTION_ROUTE = `options`;
+const VOTING_VOTE_ROUTE = `votingVotes`;
 const MESSAGE_ROUTE = `messages`;
 const FOLLOW_ROUTE = `follows`;
 const FOLLOWED_ROUTE = `followeds`;
@@ -64,6 +67,9 @@ export const firebaseRoute = {
     },
     getUserPostVoteRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${POST_VOTE_ROUTE}`;
+    },
+    getUserVotingVoteRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${VOTING_VOTE_ROUTE}`;
     },
     getUserMessageRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${MESSAGE_ROUTE}`;
@@ -140,6 +146,26 @@ export const firebaseRoute = {
     getCommunityTopicRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}`;
     },
+    getCommunityVotingRoute(communityId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}`;
+    },
+    getCommunityVotingOptionRoute(communityId: string, votingId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/${votingId}/${VOTING_OPTION_ROUTE}`;
+    },
+    getCommunityVotingOptionVoteRoute(
+        communityId: string,
+        votingId: string,
+        voteOptionId: string
+    ) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/${votingId}/${VOTING_OPTION_ROUTE}/${voteOptionId}/${VOTING_VOTE_ROUTE}`;
+    },
+    getCommunityVotingImageRoute(
+        communityId: string,
+        votingId: string,
+        votingOptionId: string
+    ) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/${votingId}/${votingOptionId}/${IMAGE_ROUTE}`;
+    },
     getCommunityImageRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${IMAGE_ROUTE}`;
     },
@@ -149,8 +175,8 @@ export const firebaseRoute = {
     getPostImageRoute(postId: string) {
         return `${POST_ROUTE}/${postId}/${IMAGE_ROUTE}`;
     },
-    getTopicImageRoute(topicId: string) {
-        return `${TOPIC_ROUTE}/${topicId}/${IMAGE_ROUTE}`;
+    getTopicImageRoute(communityId: string, topicId: string) {
+        return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}/${IMAGE_ROUTE}`;
     },
     getCommunityTopicReplyRoute(communityId: string, topicId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}/${TOPIC_REPLY_ROUTE}`;

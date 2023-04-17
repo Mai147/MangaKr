@@ -1,4 +1,7 @@
+import PostEditPrivacyModal from "@/components/Modal/Post/EditPrivacy";
+import { privacyList } from "@/constants/privacy";
 import useAuth from "@/hooks/useAuth";
+import useModal from "@/hooks/useModal";
 import usePost from "@/hooks/usePost";
 import { Post } from "@/models/Post";
 import {
@@ -10,11 +13,12 @@ import {
     Button,
     Icon,
     Spinner,
+    HStack,
 } from "@chakra-ui/react";
 import moment from "moment";
 import "moment/locale/vi";
 import React, { useState } from "react";
-import { AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { FiMoreVertical } from "react-icons/fi";
 
 type PostItemHeaderProps = {
@@ -25,8 +29,15 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
     const { postState, postAction } = usePost();
     const [deletePostLoading, setDeletePostLoading] = useState(false);
     const { user } = useAuth();
+    const [showEditPrivacy, setShowEditPrivacy] = useState(false);
     return (
         <>
+            {showEditPrivacy && (
+                <PostEditPrivacyModal
+                    post={post}
+                    onHidden={() => setShowEditPrivacy(false)}
+                />
+            )}
             <Flex p={4} pb={2} align="center" justify="space-between" w="100%">
                 <Flex align="center">
                     <Avatar
@@ -34,9 +45,30 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
                         mr={2}
                     />
                     <VStack spacing={0} align="flex-start">
-                        <Text fontWeight={500} fontSize={18} lineHeight={1}>
-                            {post.creatorDisplayName}
-                        </Text>
+                        <HStack align="flex-end">
+                            <Text fontWeight={500} fontSize={18} lineHeight={1}>
+                                {post.creatorDisplayName}
+                            </Text>
+                            {user && user.uid === post.creatorId && (
+                                <>
+                                    <Text lineHeight={1}>-</Text>
+                                    <Text
+                                        fontSize={14}
+                                        color="gray.500"
+                                        fontWeight={500}
+                                        lineHeight={1}
+                                    >
+                                        {
+                                            privacyList.find(
+                                                (item) =>
+                                                    item.value ===
+                                                    post.privacyType
+                                            )?.title
+                                        }
+                                    </Text>
+                                </>
+                            )}
+                        </HStack>
                         {post.createdAt?.seconds && (
                             <Text
                                 color="gray.600"
@@ -73,9 +105,7 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
                     >
                         {user &&
                             user.uid === post.creatorId &&
-                            (postState.loading.delete.find(
-                                (item) => item.postId === post.id
-                            )?.loading ? (
+                            (deletePostLoading ? (
                                 <Flex
                                     align="center"
                                     justify="center"
@@ -87,13 +117,11 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
                             ) : (
                                 <Button
                                     variant="unstyled"
-                                    isDisabled={
-                                        postState.loading.delete.find(
-                                            (item) => item.postId === post.id
-                                        )?.loading
-                                    }
+                                    isDisabled={deletePostLoading}
                                     onClick={async () => {
+                                        setDeletePostLoading(true);
                                         await postAction.delete(post);
+                                        setDeletePostLoading(false);
                                     }}
                                 >
                                     <Flex align="center">
@@ -106,6 +134,23 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({ post }) => {
                                     </Flex>
                                 </Button>
                             ))}
+                        {user && user.uid === post.creatorId && (
+                            <Button
+                                variant="unstyled"
+                                onClick={() => {
+                                    setShowEditPrivacy(true);
+                                }}
+                            >
+                                <Flex align="center">
+                                    Sửa chế độ hiển thị
+                                    <Icon
+                                        as={AiOutlineEye}
+                                        fontSize={18}
+                                        ml={1}
+                                    />
+                                </Flex>
+                            </Button>
+                        )}
                     </Box>
                 </Box>
             </Flex>

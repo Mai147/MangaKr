@@ -168,7 +168,8 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
         getCommunityUsers();
     }, [
         communityUserAuthorizeState.paginationInput.page,
-        communityUserAuthorizeState.paginationInput.searchValue,
+        // communityUserAuthorizeState.paginationInput.searchValue,
+        debouncedSearch,
     ]);
 
     return (

@@ -11,6 +11,8 @@ import {
 import React, { useState } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 import { MdOutlineClear } from "react-icons/md";
+import { topicHeaderList } from "../Approve/CommunityInfoApprove";
+import TopicItemPreview from "./Item/TopicPreview";
 
 type TopicHorizontalSnippetItemProps = {
     topic: Topic;
@@ -23,6 +25,7 @@ const TopicHorizontalSnippetItem: React.FC<TopicHorizontalSnippetItemProps> = ({
 }) => {
     const [acceptLoading, setAcceptLoading] = useState(false);
     const [deleLoading, setDeleteLoading] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
 
     return (
         <Flex
@@ -32,17 +35,27 @@ const TopicHorizontalSnippetItem: React.FC<TopicHorizontalSnippetItemProps> = ({
             p={4}
             _hover={{ bg: "gray.50" }}
             transition="all 0.3s"
+            cursor="pointer"
+            onClick={() => setShowPreview(true)}
         >
+            {showPreview && (
+                <TopicItemPreview
+                    topic={topic}
+                    onHidden={() => {
+                        setShowPreview(false);
+                    }}
+                />
+            )}
             <HStack spacing={4} flexGrow={1}>
-                <Text w="100px" flexShrink={0}>
+                <Text w={topicHeaderList[0].width} flexShrink={0}>
                     {topic.creatorDisplayName}
                 </Text>
-                <Box w="80px" flexShrink={0}>
+                <Box w={topicHeaderList[1].width} flexShrink={0}>
                     <AspectRatio ratio={4 / 3} w="90%">
                         <Image src={topic.imageUrl || "/images/noImage.jpg"} />
                     </AspectRatio>
                 </Box>
-                <Text w="300px" flexShrink={0}>
+                <Text w={topicHeaderList[2].width} flexShrink={0}>
                     {topic.title}
                 </Text>
                 <Text flexGrow={1} noOfLines={3} whiteSpace="pre-line">

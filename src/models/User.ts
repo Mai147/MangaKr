@@ -2,7 +2,6 @@ import { CommunityRole } from "@/constants/roles";
 import { User } from "firebase/auth";
 import { Timestamp } from "firebase/firestore";
 import { Book, BookSnippet } from "./Book";
-import { LatestPost } from "./Post";
 
 export interface UserSnippet {
     id: string;
@@ -40,7 +39,6 @@ export interface UserCommunitySnippet {
     name: string;
     role: CommunityRole;
     isAccept: boolean;
-    latestPost?: LatestPost;
 }
 
 export interface CommunityUserSnippet {

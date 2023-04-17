@@ -1,6 +1,8 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { PrivacyType } from "@/constants/privacy";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Community } from "@/models/Community";
+import { Notification } from "@/models/Notification";
 import { LatestPost, Post } from "@/models/Post";
 import FileUtils from "@/utils/FileUtils";
 import {
@@ -14,8 +16,12 @@ import {
     query,
     collectionGroup,
     where,
+    getDoc,
+    runTransaction,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
+import CommunityService from "./CommunityService";
+import NotificationService from "./NotificationService";
 
 class PostService {
     static create = async ({
@@ -26,53 +32,87 @@ class PostService {
         community?: Community;
     }) => {
         try {
-            const batch = writeBatch(fireStore);
-            let postDocRef;
-            let rootDocRef;
-            if (community) {
-                postDocRef = doc(
-                    collection(
+            await runTransaction(fireStore, async (transaction) => {
+                let postDocRef;
+                let rootDocRef;
+                if (community) {
+                    postDocRef = doc(
+                        collection(
+                            fireStore,
+                            firebaseRoute.getCommunityPostRoute(community.id!)
+                        )
+                    );
+                    rootDocRef = doc(
                         fireStore,
-                        firebaseRoute.getCommunityPostRoute(community.id!)
-                    )
-                );
-                rootDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllCommunityRoute(),
-                    community.id!
-                );
-            } else {
-                postDocRef = doc(
-                    collection(
+                        firebaseRoute.getAllCommunityRoute(),
+                        community.id!
+                    );
+                } else {
+                    postDocRef = doc(
+                        collection(
+                            fireStore,
+                            firebaseRoute.getUserPostRoute(postForm.creatorId)
+                        )
+                    );
+                    rootDocRef = doc(
                         fireStore,
-                        firebaseRoute.getUserPostRoute(postForm.creatorId)
-                    )
-                );
-                rootDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getAllUserRoute(),
-                    postForm.creatorId
-                );
-            }
-            const res = await FileUtils.uploadMultipleFile({
-                imagesRoute: firebaseRoute.getPostImageRoute(postDocRef.id),
-                imageUrls: postForm.imageUrls,
-            });
-            batch.set(postDocRef, {
-                ...postForm,
-                communityId: community?.id,
-                createdAt: serverTimestamp() as Timestamp,
-            });
-            batch.update(rootDocRef, {
-                numberOfPosts: increment(1),
-            });
-            if (res) {
-                batch.update(postDocRef, {
-                    imageUrls: res.downloadUrls,
-                    imageRefs: res.downloadRefs,
+                        firebaseRoute.getAllUserRoute(),
+                        postForm.creatorId
+                    );
+                }
+
+                const res = await FileUtils.uploadMultipleFile({
+                    imagesRoute: firebaseRoute.getPostImageRoute(postDocRef.id),
+                    imageUrls: postForm.imageUrls,
                 });
-            }
-            await batch.commit();
+                transaction.set(postDocRef, {
+                    ...postForm,
+                    communityId: community?.id,
+                    createdAt: serverTimestamp() as Timestamp,
+                });
+                transaction.update(rootDocRef, {
+                    numberOfPosts: increment(1),
+                });
+                if (res) {
+                    transaction.update(postDocRef, {
+                        imageUrls: res.downloadUrls,
+                        imageRefs: res.downloadRefs,
+                    });
+                }
+                // Notification
+                if (!community) {
+                    if (postForm.privacyType !== "ONLYME_PRIVACY") {
+                        const followedDocsRef = collection(
+                            fireStore,
+                            firebaseRoute.getUserFollowedRoute(
+                                postForm.creatorId
+                            )
+                        );
+                        const followedDocs = await getDocs(followedDocsRef);
+                        const followedIds = followedDocs.docs.map(
+                            (doc) => doc.id
+                        );
+                        for (const id of followedIds) {
+                            const notification: Notification = {
+                                id: postForm.creatorId,
+                                creatorDisplayName:
+                                    postForm.creatorDisplayName!,
+                                imageUrl: postForm.creatorImageUrl,
+                                content:
+                                    "đã đăng 1 bài viết mới trên trang cá nhân",
+                                isSeen: false,
+                                isRead: false,
+                                type: "FOLLOWED_POST",
+                                createdAt: serverTimestamp() as Timestamp,
+                            };
+                            await NotificationService.updateOrCreate({
+                                notification,
+                                userId: id,
+                            });
+                        }
+                    }
+                }
+            });
         } catch (error) {
             console.log(error);
         }
@@ -104,18 +144,14 @@ class PostService {
                     community.id!
                 );
                 if (isAccept) {
-                    const latestPost: LatestPost = {
-                        id: postDocRef.id,
-                        communityId: community.id!,
-                        communityName: community.name,
-                        creatorId: post.creatorId,
-                        creatorDisplayName: post.creatorDisplayName,
-                        imageUrl: community.imageUrl,
-                        createdAt: serverTimestamp() as Timestamp,
-                    };
                     batch.update(communityDocRef, {
                         numberOfPosts: increment(1),
-                        latestPost,
+                    });
+                    // Community noti
+                    await CommunityService.updateNotification({
+                        community,
+                        creatorDisplayName: post.creatorDisplayName!,
+                        type: "POST",
                     });
                 }
             } else {
@@ -134,6 +170,42 @@ class PostService {
             } else {
                 batch.delete(postDocRef);
             }
+            await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    static toggleLockState = async ({
+        post,
+        community,
+    }: {
+        post: Post;
+        community?: Community;
+    }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            let postDocRef;
+            if (community) {
+                postDocRef = doc(
+                    collection(
+                        fireStore,
+                        firebaseRoute.getCommunityPostRoute(community.id!)
+                    ),
+                    post.id
+                );
+            } else {
+                postDocRef = doc(
+                    collection(
+                        fireStore,
+                        firebaseRoute.getUserPostRoute(post.creatorId)
+                    ),
+                    post.id
+                );
+            }
+            batch.update(postDocRef, {
+                isLock: !post.isLock,
+            });
             await batch.commit();
         } catch (error) {
             console.log(error);
@@ -219,6 +291,32 @@ class PostService {
                 numberOfPosts: increment(-1),
             });
             await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
+    static changePrivacy = async ({
+        postId,
+        privacy,
+        userId,
+    }: {
+        postId: string;
+        userId: string;
+        privacy: PrivacyType;
+    }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            const postDocRef = doc(
+                fireStore,
+                firebaseRoute.getUserPostRoute(userId),
+                postId
+            );
+            batch.update(postDocRef, {
+                privacyType: privacy,
+            });
+            await batch.commit();
+            return privacy;
         } catch (error) {
             console.log(error);
         }

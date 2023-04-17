@@ -10,12 +10,12 @@ import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
 import React, { useEffect } from "react";
 
-type CommunityPostApprovePageProps = {
+type CommunityApprovePageProps = {
     community: Community;
     user?: UserModel;
 };
 
-const CommunityPostApprovePage: React.FC<CommunityPostApprovePageProps> = ({
+const CommunityApprovePage: React.FC<CommunityApprovePageProps> = ({
     community,
     user,
 }) => {
@@ -76,8 +76,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             }
             return {
                 props: {
-                    community,
-                    user: us,
+                    community: community || null,
+                    user: us || null,
                 },
             };
         }
@@ -87,4 +87,4 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
 }
 
-export default CommunityPostApprovePage;
+export default CommunityApprovePage;

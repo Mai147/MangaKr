@@ -1,14 +1,6 @@
 import { routes } from "@/constants/routes";
 import { UserSnippet } from "@/models/User";
-import {
-    Avatar,
-    Box,
-    Flex,
-    FlexProps,
-    Link,
-    Text,
-    VStack,
-} from "@chakra-ui/react";
+import { Avatar, Flex, FlexProps, Link, Text, VStack } from "@chakra-ui/react";
 import React, { ReactNode } from "react";
 
 interface UserHorizontalSnippetItemProps extends FlexProps {

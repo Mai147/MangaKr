@@ -26,6 +26,7 @@ import { Button } from "@chakra-ui/react";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { triGram } from "@/utils/StringUtils";
 import { getBlob, ref } from "firebase/storage";
+import { EVERYONE_PRIVACY } from "@/constants/privacy";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -37,22 +38,22 @@ const HomePage: React.FC<HomePageProps> = () => {
         authAction.setNeedAuth(false);
     }, []);
 
-    // const testFunction = async () => {
-    //     try {
-    //         const batch = writeBatch(fireStore);
-    //         const postDocsRef = collectionGroup(fireStore, "posts");
-    //         const postDocs = await getDocs(postDocsRef);
-    //         postDocs.docs.forEach((doc) => {
-    //             batch.update(doc.ref, {
-    //                 isAccept: false,
-    //             });
-    //         });
-    //         await batch.commit();
-    //         console.log(1);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
+    const testFunction = async () => {
+        try {
+            const batch = writeBatch(fireStore);
+            const postDocsRef = collectionGroup(fireStore, "posts");
+            const postDocs = await getDocs(postDocsRef);
+            postDocs.docs.forEach((doc) => {
+                batch.update(doc.ref, {
+                    isLock: false,
+                });
+            });
+            await batch.commit();
+            console.log(1);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     // const testFunction = async () => {
     //     const postDocsRef = collection(
@@ -174,28 +175,28 @@ const HomePage: React.FC<HomePageProps> = () => {
     //     }
     // };
 
-    const testFunction = async () => {
-        try {
-            const batch = writeBatch(fireStore);
-            const docsRef = collectionGroup(fireStore, "users");
-            const docs = await getDocs(docsRef);
-            for (const doc of docs.docs) {
-                const { displayName } = doc.data();
-                const trigramName = triGram(displayName);
-                batch.update(doc.ref, { trigramName: deleteField() });
-                batch.update(doc.ref, { trigramName: trigramName.obj });
-                // batch.update(doc.ref, {
-                //     // id: doc.ref.id,
-                //     numberOfFollows: 0,
-                //     numberOfFolloweds: 0,
-                // });
-            }
-            await batch.commit();
-            console.log(1);
-        } catch (error) {
-            console.log(error);
-        }
-    };
+    // const testFunction = async () => {
+    //     try {
+    //         const batch = writeBatch(fireStore);
+    //         const docsRef = collectionGroup(fireStore, "users");
+    //         const docs = await getDocs(docsRef);
+    //         for (const doc of docs.docs) {
+    //             const { displayName } = doc.data();
+    //             const trigramName = triGram(displayName);
+    //             batch.update(doc.ref, { trigramName: deleteField() });
+    //             batch.update(doc.ref, { trigramName: trigramName.obj });
+    //             // batch.update(doc.ref, {
+    //             //     // id: doc.ref.id,
+    //             //     numberOfFollows: 0,
+    //             //     numberOfFolloweds: 0,
+    //             // });
+    //         }
+    //         await batch.commit();
+    //         console.log(1);
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
 
     return (
         <>
@@ -212,7 +213,7 @@ const HomePage: React.FC<HomePageProps> = () => {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main>
-                <Button onClick={testFunction}>Test</Button>
+                {/* <Button onClick={testFunction}>Test</Button> */}
                 <HomeProvider>
                     <Home />
                 </HomeProvider>

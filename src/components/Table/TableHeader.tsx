@@ -13,12 +13,20 @@ type TableHeaderProps = {
 
 const TableHeader: React.FC<TableHeaderProps> = ({ list }) => {
     return (
-        <HStack spacing={4} flexGrow={1} w="100%" p={4} fontWeight={500}>
+        <HStack
+            spacing={4}
+            flexGrow={1}
+            // w={"calc(100% - 160px)"}
+            w={"100%"}
+            p={4}
+            fontWeight={500}
+        >
             {list.map((item) =>
                 item.isCenter ? (
                     <Flex
                         key={item.title}
                         w={item.width}
+                        flexGrow={item.width ? undefined : 1}
                         flexShrink={0}
                         align="center"
                         justify="center"
@@ -26,7 +34,12 @@ const TableHeader: React.FC<TableHeaderProps> = ({ list }) => {
                         <Text>{item.title}</Text>
                     </Flex>
                 ) : (
-                    <Text w={item.width} flexShrink={0} key={item.title}>
+                    <Text
+                        w={item.width}
+                        flexShrink={0}
+                        key={item.title}
+                        flexGrow={item.width ? undefined : 1}
+                    >
                         {item.title}
                     </Text>
                 )

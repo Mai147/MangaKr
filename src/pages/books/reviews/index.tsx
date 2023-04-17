@@ -110,16 +110,10 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { bookId } = context.query;
-
-    if (bookId) {
-        return {
-            props: {
-                bookId,
-            },
-        };
-    }
     return {
-        props: {},
+        props: {
+            bookId: bookId || null,
+        },
     };
 }
 

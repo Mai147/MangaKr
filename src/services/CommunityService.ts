@@ -8,6 +8,7 @@ import {
 } from "@/constants/roles";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Community, CommunityType } from "@/models/Community";
+import { Notification } from "@/models/Notification";
 import {
     CommunityUserSnippet,
     UserCommunitySnippet,
@@ -35,6 +36,7 @@ import {
     writeBatch,
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
+import NotificationService from "./NotificationService";
 
 type AuthorizeInfo = {
     communityType: CommunityType;
@@ -481,11 +483,11 @@ class CommunityService {
 
     static approveUser = async ({
         userId,
-        communityId,
+        community,
         isAccept,
     }: {
         userId: string;
-        communityId: string;
+        community: Community;
         isAccept: boolean;
     }) => {
         try {
@@ -493,21 +495,35 @@ class CommunityService {
             const communityUserDocRef = doc(
                 collection(
                     fireStore,
-                    firebaseRoute.getCommunityUserRoute(communityId)
+                    firebaseRoute.getCommunityUserRoute(community.id!)
                 ),
                 userId
             );
             const userCommunityDocRef = doc(
                 fireStore,
                 firebaseRoute.getUserCommunitySnippetRoute(userId),
-                communityId
+                community.id!
             );
             const communityDocRef = doc(
                 fireStore,
                 firebaseRoute.getAllCommunityRoute(),
-                communityId
+                community.id!
             );
             if (isAccept) {
+                const notification: Notification = {
+                    id: community.id!,
+                    creatorDisplayName: community.name,
+                    imageUrl: community.imageUrl,
+                    content: "đã chấp nhận yêu cầu gia nhập của bạn",
+                    isSeen: false,
+                    isRead: true,
+                    type: "COMMUNITY_APPROVE",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+                await NotificationService.updateOrCreate({
+                    notification,
+                    userId,
+                });
                 batch.update(communityDocRef, {
                     numberOfMembers: increment(1),
                     userIds: arrayUnion(userId),
@@ -796,28 +812,68 @@ class CommunityService {
         });
     };
 
-    static updateUserLatestPost = async (
-        userId: string,
-        community: Community
-    ) => {
-        try {
-            const userCommunityDocRef = doc(
-                fireStore,
-                firebaseRoute.getUserCommunitySnippetRoute(userId),
-                community.id!
-            );
-            const res = await getDoc(userCommunityDocRef);
-            if (res.exists()) {
-                await updateDoc(
-                    userCommunityDocRef,
-                    "latestPost",
-                    community.latestPost
-                );
-            }
-        } catch (error) {
-            console.log(error);
+    static updateNotification = async ({
+        community,
+        creatorDisplayName,
+        type,
+    }: {
+        community: Community;
+        creatorDisplayName: string;
+        type: "POST" | "TOPIC" | "VOTING";
+    }) => {
+        const communityUserDocsRef = collection(
+            fireStore,
+            firebaseRoute.getCommunityUserRoute(community.id!)
+        );
+        const communityUserDocs = await getDocs(communityUserDocsRef);
+        const communityUserIds = communityUserDocs.docs.map((doc) => doc.id);
+        for (const id of communityUserIds) {
+            const notification: Notification = {
+                id: community.id,
+                creatorDisplayName,
+                imageUrl: community.imageUrl,
+                content: `đã đăng 1 ${
+                    type === "POST"
+                        ? "bài viết"
+                        : type === "TOPIC"
+                        ? "chủ đề"
+                        : "cuộc bình chọn"
+                } mới trong`,
+                targetName: community.name,
+                isSeen: false,
+                isRead: false,
+                type: "COMMUNITY_POST",
+                createdAt: serverTimestamp() as Timestamp,
+            };
+            await NotificationService.updateOrCreate({
+                notification,
+                userId: id,
+            });
         }
     };
+
+    // static updateUserLatestPost = async (
+    //     userId: string,
+    //     community: Community
+    // ) => {
+    //     try {
+    //         const userCommunityDocRef = doc(
+    //             fireStore,
+    //             firebaseRoute.getUserCommunitySnippetRoute(userId),
+    //             community.id!
+    //         );
+    //         const res = await getDoc(userCommunityDocRef);
+    //         if (res.exists()) {
+    //             await updateDoc(
+    //                 userCommunityDocRef,
+    //                 "latestPost",
+    //                 community.latestPost
+    //             );
+    //         }
+    //     } catch (error) {
+    //         console.log(error);
+    //     }
+    // };
 }
 
 export default CommunityService;

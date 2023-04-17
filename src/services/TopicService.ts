@@ -14,6 +14,7 @@ import {
     increment,
     getDoc,
 } from "firebase/firestore";
+import CommunityService from "./CommunityService";
 
 class TopicService {
     static get = async ({
@@ -55,7 +56,10 @@ class TopicService {
                 community.id!
             );
             const res = await FileUtils.uploadFile({
-                imageRoute: firebaseRoute.getTopicImageRoute(topicDocRef.id),
+                imageRoute: firebaseRoute.getTopicImageRoute(
+                    community.id!,
+                    topicDocRef.id
+                ),
                 imageUrl: topicForm.imageUrl,
             });
             const trigramTitle = triGram(topicForm.title);
@@ -105,11 +109,15 @@ class TopicService {
                 community.id!
             );
             if (isAccept) {
+                // Community noti
+                await CommunityService.updateNotification({
+                    community,
+                    creatorDisplayName: topic.creatorDisplayName!,
+                    type: "TOPIC",
+                });
                 batch.update(communityDocRef, {
                     numberOfTopics: increment(1),
                 });
-            }
-            if (isAccept) {
                 batch.update(topicDocRef, {
                     isAccept,
                 });

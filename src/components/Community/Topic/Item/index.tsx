@@ -1,5 +1,4 @@
 import { REPLY_TOPIC_PAGE_COUNT } from "@/constants/pagination";
-import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import usePagination, {
     defaultPaginationInput,
@@ -9,23 +8,11 @@ import usePagination, {
 } from "@/hooks/usePagination";
 import { Topic } from "@/models/Topic";
 import TopicService from "@/services/TopicService";
-import {
-    AspectRatio,
-    Avatar,
-    Box,
-    Button,
-    Divider,
-    Flex,
-    HStack,
-    Image,
-    Link,
-    Text,
-} from "@chakra-ui/react";
-import moment from "moment";
-import { useRouter } from "next/router";
+import { AspectRatio, Box, Divider, Flex, Image, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import TopicReplyList from "./Reply/ReplyList";
 import TopicReplyInput from "./Reply/TopicReplyInput";
+import TopicItemHeader from "./TopicHeader";
 
 type TopicItemProps = {
     topic: Topic;
@@ -50,8 +37,6 @@ const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
     const [topicReplyPaginationOutput, setTopicReplyPaginationOutput] =
         useState<PaginationOutput>(defaultPaginationOutput);
     const [getTopicReplyLoading, setGetTopicReplyLoading] = useState(false);
-    const [changeStatusLoading, setChangeStatusLoading] = useState(false);
-    const router = useRouter();
 
     const getListTopicReply = async () => {
         setGetTopicReplyLoading(true);
@@ -72,62 +57,7 @@ const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
 
     return (
         <Box p={6} borderRadius={4} boxShadow="lg" bg="white" flexGrow={1}>
-            <Flex align="center" justify="space-between">
-                <Flex align="center">
-                    <Text
-                        as="span"
-                        fontSize={14}
-                        color="gray.400"
-                        display="inline"
-                    >
-                        Tạo bởi{" "}
-                        <Text
-                            display="inline"
-                            color="gray.600"
-                            fontWeight={500}
-                        >
-                            {topic.creatorDisplayName}
-                        </Text>
-                    </Text>
-                    <Avatar
-                        src={topic.creatorImageUrl || "/images/noImage.jpg"}
-                        size="sm"
-                        ml={2}
-                    />
-                    {topic.createdAt && (
-                        <Text color="gray.400" fontSize={14} ml={4}>
-                            {moment(new Date(topic.createdAt.seconds * 1000))
-                                .locale("vi")
-                                .fromNow()}
-                        </Text>
-                    )}
-                </Flex>
-                <HStack spacing={4}>
-                    {user && user.uid === topic.creatorId && (
-                        <Button
-                            variant="outline"
-                            isLoading={changeStatusLoading}
-                            onClick={async () => {
-                                setChangeStatusLoading(true);
-                                await TopicService.changeStatus({
-                                    isClose: !topic.isClose,
-                                    topic,
-                                });
-                                setChangeStatusLoading(false);
-                                router.reload();
-                            }}
-                        >
-                            {topic.isClose ? "Mở chủ đề" : "Đóng chủ đề"}
-                        </Button>
-                    )}
-                    <Link
-                        href={routes.getCommunityDetailPage(topic.communityId)}
-                        _hover={{ textDecoration: "none" }}
-                    >
-                        <Button>Quay lại cộng đồng</Button>
-                    </Link>
-                </HStack>
-            </Flex>
+            <TopicItemHeader topic={topic} />
             <Divider my={4} />
             <Text fontWeight={600} fontSize={20}>
                 {topic.title}

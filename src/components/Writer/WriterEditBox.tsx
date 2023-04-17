@@ -260,7 +260,8 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
     }, [
         writerBoxState.field,
         writerBoxState[writerBoxState.field].input.page,
-        writerBoxState.searchValue,
+        // writerBoxState.searchValue,
+        debouncedSearch,
     ]);
 
     useEffect(() => {

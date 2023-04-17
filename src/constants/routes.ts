@@ -10,9 +10,7 @@ const COMMUNITY_ROUTE = "communities";
 const POST_ROUTE = "posts";
 const USER_ROUTE = "users";
 const TOPIC_ROUTE = "topics";
-export const getCommunityPostApprovePage = (communityId: string) => {
-    return `/communities/${communityId}/posts/approve`;
-};
+const VOTING_ROUTE = "votings";
 const SEARCH_ROUTE = "search";
 const WRITER_ROUTE = "writer";
 const MESSAGE_ROUTE = "messages";
@@ -96,8 +94,17 @@ export const routes = {
     getCommunityTopicCreatePage: (communityId: string) => {
         return `/${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/create`;
     },
+    getCommunityVotingCreatePage: (communityId: string) => {
+        return `/${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/create`;
+    },
     getCommunityTopicDetailPage: (communityId: string, topicId: string) => {
         return `/${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}`;
+    },
+    getCommunityVotingDetailPage: (communityId: string, votingId: string) => {
+        return `/${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/${votingId}`;
+    },
+    getCommunityApprovePage: (communityId: string) => {
+        return `/${COMMUNITY_ROUTE}/${communityId}/approve`;
     },
     getCommunityUserApprovePage: (communityId: string) => {
         return `/${COMMUNITY_ROUTE}/${communityId}/${USER_ROUTE}/approve`;

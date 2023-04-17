@@ -1,3 +1,4 @@
+import { PrivacyType } from "@/constants/privacy";
 import { Timestamp } from "firebase/firestore";
 
 export interface Post {
@@ -17,6 +18,8 @@ export interface Post {
     numberOfAngrys: number;
     numberOfComments: number;
     isAccept: boolean;
+    isLock: boolean;
+    privacyType: PrivacyType;
 }
 
 export interface CommunityPost extends Post {
@@ -33,10 +36,6 @@ export interface LatestPost {
     createdAt: Timestamp;
 }
 
-export interface PostNotification extends LatestPost {
-    isReading: boolean;
-}
-
 export const defaultPostForm: Post = {
     caption: "",
     description: "",
@@ -51,4 +50,6 @@ export const defaultPostForm: Post = {
     numberOfLaughs: 0,
     numberOfLikes: 0,
     isAccept: false,
+    isLock: false,
+    privacyType: "EVERYONE_PRIVACY",
 };

@@ -1,12 +1,13 @@
 import NotAvailable from "@/components/Error/NotAvailable";
-import PostForm from "@/components/Post/Form";
+import PostForm from "@/components/Form/Post";
+// import PostForm from "@/components/Post/Form";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
 import { UserModel } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
-import { Box } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
 import React, { useEffect } from "react";
@@ -17,7 +18,6 @@ type PostCreatePageProps = {
 
 const PostCreatePage: React.FC<PostCreatePageProps> = ({ user }) => {
     const { authAction } = useAuth();
-    const { communityAction } = useCommunity();
 
     useEffect(() => {
         authAction.setNeedAuth(true);
@@ -25,9 +25,16 @@ const PostCreatePage: React.FC<PostCreatePageProps> = ({ user }) => {
     }, []);
 
     return (
-        <Box p={6} boxShadow="lg" bg="white" borderRadius={4} flexGrow={1}>
+        <Flex
+            p={6}
+            boxShadow="lg"
+            bg="white"
+            borderRadius={4}
+            flexGrow={1}
+            direction="column"
+        >
             <PostForm user={user} />
-        </Box>
+        </Flex>
     );
 };
 

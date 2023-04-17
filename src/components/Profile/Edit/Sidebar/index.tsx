@@ -1,8 +1,9 @@
-import { Box, Flex } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 import React from "react";
 import { IconType } from "react-icons";
-import { FiEye, FiUser } from "react-icons/fi";
+import { FiUser } from "react-icons/fi";
 import { RiLockPasswordLine } from "react-icons/ri";
+import { TbSettings } from "react-icons/tb";
 import HProfileSidebar from "./HProfileSidebar";
 import VProfileSidebar from "./VProfileSidebar";
 
@@ -27,6 +28,11 @@ const profileSideBar: ProfileSidebarItemProps[] = [
         id: 1,
         title: "Mật khẩu",
         icon: RiLockPasswordLine,
+    },
+    {
+        id: 2,
+        title: "Cài đặt",
+        icon: TbSettings,
     },
 ];
 

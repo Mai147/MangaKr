@@ -25,6 +25,7 @@ import {
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 import { Notification } from "@/models/Notification";
+import NotificationService from "./NotificationService";
 
 class UserService {
     static getAll = async () => {
@@ -261,11 +262,6 @@ class UserService {
                     firebaseRoute.getUserFollowRoute(user.uid),
                     follower.uid
                 );
-                const followerNoticationDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getUserNotificationRoute(follower.uid),
-                    user.uid
-                );
                 const followerFollow: Follow = {
                     id: user.uid,
                     displayName: user.displayName!,
@@ -290,16 +286,13 @@ class UserService {
                     type: "FOLLOW_REQUEST",
                     createdAt: serverTimestamp() as Timestamp,
                 };
-                const noti = await transaction.get(followerNoticationDocRef);
+                await NotificationService.updateOrCreate({
+                    notification,
+                    userId: follower.uid,
+                    transaction,
+                });
                 transaction.set(followerFollowedDocRef, followerFollow);
                 transaction.set(userFollowDocRef, userFollow);
-                if (!noti.exists()) {
-                    transaction.set(followerNoticationDocRef, notification);
-                } else {
-                    transaction.update(followerNoticationDocRef, {
-                        ...notification,
-                    });
-                }
                 return userFollow;
             });
         } catch (error) {
@@ -383,16 +376,6 @@ class UserService {
                     firebaseRoute.getAllUserRoute(),
                     follower.id
                 );
-                const followerNoticationDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getUserNotificationRoute(follower.id),
-                    userId
-                );
-                const userNotificationDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getUserNotificationRoute(userId),
-                    follower.id
-                );
                 const userNotification: Notification = {
                     id: follower.id!,
                     creatorDisplayName: follower.displayName!,
@@ -403,9 +386,11 @@ class UserService {
                     type: "FOLLOW_ACCEPT",
                     createdAt: serverTimestamp() as Timestamp,
                 };
-                const userNotificationDoc = await transaction.get(
-                    userNotificationDocRef
-                );
+                await NotificationService.updateOrCreate({
+                    notification: userNotification,
+                    userId,
+                    transaction,
+                });
                 transaction.update(followerFollowedDocRef, {
                     isAccept: true,
                 });
@@ -418,14 +403,11 @@ class UserService {
                 transaction.update(followerDocRef, {
                     numberOfFolloweds: increment(1),
                 });
-                if (!userNotificationDoc.exists()) {
-                    transaction.set(userNotificationDocRef, userNotification);
-                } else {
-                    transaction.update(userNotificationDocRef, {
-                        ...userNotification,
-                    });
-                }
-                transaction.delete(followerNoticationDocRef);
+                await NotificationService.delete({
+                    notificationId: userId,
+                    userId: follower.id,
+                    transaction,
+                });
             });
         } catch (error) {
             console.log(error);
@@ -453,14 +435,13 @@ class UserService {
                     firebaseRoute.getUserFollowRoute(userId),
                     followerId
                 );
-                const followerNoticationDocRef = doc(
-                    fireStore,
-                    firebaseRoute.getUserNotificationRoute(followerId),
-                    userId
-                );
                 transaction.delete(followerFollowedDocRef);
                 transaction.delete(userFollowDocRef);
-                transaction.delete(followerNoticationDocRef);
+                await NotificationService.delete({
+                    notificationId: userId,
+                    userId: followerId,
+                    transaction,
+                });
             });
         } catch (error) {
             console.log(error);

@@ -7,7 +7,8 @@ type ModalView =
     | "createGenre"
     | "confirmModal"
     | "addToLibrary"
-    | "createCommunity";
+    | "createCommunity"
+    | "editPostPrivacy";
 
 type ModalState = {
     isOpen: boolean;

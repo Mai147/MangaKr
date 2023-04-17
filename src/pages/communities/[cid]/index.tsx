@@ -2,11 +2,15 @@ import CommunityHeader from "@/components/Community/Header";
 import CommunityLeftSideBar from "@/components/Community/LeftSideBar";
 import CommunityPostTab from "@/components/Community/PostTab";
 import CommunityTopicTab from "@/components/Community/TopicTab";
+import CommunityVotingTab from "@/components/Community/VotingTab";
 import NotAvailable from "@/components/Error/NotAvailable";
 import TabItem from "@/components/Tab/TabItem";
 import { PostProvider } from "@/context/PostContext";
+import { TopicProvider } from "@/context/TopicContext";
+import { VotingProvider } from "@/context/VotingContext";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
+import useNotification from "@/hooks/useNotification";
 import { Community } from "@/models/Community";
 import CommunityService from "@/services/CommunityService";
 import { Box, Flex, Icon, Spinner, Text } from "@chakra-ui/react";
@@ -14,6 +18,7 @@ import { GetServerSidePropsContext } from "next";
 import React, { useEffect, useState } from "react";
 import { BsFillFileEarmarkPostFill } from "react-icons/bs";
 import { IoBanOutline } from "react-icons/io5";
+import { MdOutlineHowToVote } from "react-icons/md";
 import { VscPreview } from "react-icons/vsc";
 
 type CommunityDetailPageProps = {
@@ -29,6 +34,25 @@ const communityTab = [
         title: "Bài viết",
         icon: BsFillFileEarmarkPostFill,
     },
+    {
+        title: "Cuộc bình chọn",
+        icon: MdOutlineHowToVote,
+    },
+];
+
+const defaultScrollHeight = [
+    {
+        title: communityTab[0].title,
+        height: 0,
+    },
+    {
+        title: communityTab[1].title,
+        height: 0,
+    },
+    {
+        title: communityTab[2].title,
+        height: 0,
+    },
 ];
 
 const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
@@ -36,8 +60,9 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
 }) => {
     const { authAction, user } = useAuth();
     const { communityAction, communityState } = useCommunity();
+    const { notificationAction } = useNotification();
     const [selectedTab, setSelectedTab] = useState(communityTab[0].title);
-    const [scrollHeight, setScrollHeight] = useState<number[]>([0, 0]);
+    const [scrollHeight, setScrollHeight] = useState(defaultScrollHeight);
 
     useEffect(() => {
         communityAction.setSelectedCommunity(community);
@@ -47,6 +72,12 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
         authAction.setNeedAuth(false);
     }, []);
 
+    useEffect(() => {
+        if (user && community) {
+            notificationAction.seen(user.uid, community.id!);
+        }
+    }, [user, community]);
+
     if (!community) {
         return (
             <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
@@ -54,19 +85,22 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
     }
 
     const onChangeTab = (value: string) => {
-        const firstTab = value === communityTab[0].title;
-        firstTab
-            ? setScrollHeight((prev) => [
-                  prev[0],
-                  document.documentElement.scrollTop,
-              ])
-            : setScrollHeight((prev) => [
-                  document.documentElement.scrollTop,
-                  prev[1],
-              ]);
+        setScrollHeight((prev) =>
+            prev.map((item) =>
+                item.title !== selectedTab
+                    ? item
+                    : {
+                          ...item,
+                          height: document.documentElement.scrollTop,
+                      }
+            )
+        );
         setSelectedTab(value);
         setTimeout(() => {
-            window.scrollTo(0, firstTab ? scrollHeight[0] : scrollHeight[1]);
+            window.scrollTo(
+                0,
+                scrollHeight.find((item) => item.title === value)?.height || 0
+            );
         }, 0);
     };
 
@@ -131,7 +165,9 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                                     align="center"
                                     w="100%"
                                 >
-                                    <CommunityTopicTab />
+                                    <TopicProvider community={community}>
+                                        <CommunityTopicTab />
+                                    </TopicProvider>
                                 </Flex>
                                 <Flex
                                     display={
@@ -143,11 +179,23 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                                     align="center"
                                     w="100%"
                                 >
-                                    <PostProvider>
-                                        <CommunityPostTab
-                                            community={community}
-                                        />
+                                    <PostProvider selectedCommunity={community}>
+                                        <CommunityPostTab />
                                     </PostProvider>
+                                </Flex>
+                                <Flex
+                                    display={
+                                        selectedTab === communityTab[2].title
+                                            ? "flex"
+                                            : "none"
+                                    }
+                                    direction="column"
+                                    align="center"
+                                    w="100%"
+                                >
+                                    <VotingProvider community={community}>
+                                        <CommunityVotingTab />
+                                    </VotingProvider>
                                 </Flex>
                             </Flex>
                         </>
