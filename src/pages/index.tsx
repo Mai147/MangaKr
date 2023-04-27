@@ -29,8 +29,6 @@ import { getBlob, ref } from "firebase/storage";
 import { EVERYONE_PRIVACY } from "@/constants/privacy";
 import { Post } from "@/models/Post";
 import { UserModel } from "@/models/User";
-import Wrapper from "@/components/Test/Wrapper";
-import ButtonTest from "@/components/Test/ButtonTest";
 
 const inter = Inter({ subsets: ["latin"] });
 
