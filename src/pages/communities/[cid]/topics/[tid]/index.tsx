@@ -68,6 +68,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         const topic = await TopicService.get({
             communityId: cid as string,
             topicId: tid as string,
+            isAccept: true,
+            isLock: false,
         });
         if (topic) {
             return {

@@ -92,6 +92,7 @@ export interface Voting {
     numberOfVotes: number;
     isClose: boolean;
     isAccept: boolean;
+    isLock: boolean;
     timeLast: Timestamp;
     votingVoteSnippets: UserSnippet[];
     createdAt?: Timestamp;
@@ -107,6 +108,7 @@ export const defaultVotingForm: Voting = {
     numberOfVotes: 0,
     isAccept: false,
     isClose: false,
+    isLock: false,
     votingVoteSnippets: [],
     timeLast: Timestamp.fromDate(new Date()),
 };

@@ -109,6 +109,8 @@ export const VotingProvider = ({
         const input: VotingPaginationInput = {
             ...votingState.input,
             communityId,
+            isAccept: true,
+            isLock: false,
             setDocValue: (docValue) => {
                 setVotingState((prev) => ({
                     ...prev,

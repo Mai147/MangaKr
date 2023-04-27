@@ -14,9 +14,17 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 
 type PostItemProps = {
     postData: PostItemState;
+    action?: boolean;
+    boxShadow?: boolean;
+    reaction?: boolean;
 };
 
-const PostItem: React.FC<PostItemProps> = ({ postData }) => {
+const PostItem: React.FC<PostItemProps> = ({
+    postData,
+    action = true,
+    boxShadow = true,
+    reaction = true,
+}) => {
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [showCommentList, setShowCommentList] = useState(false);
     const { postState, postAction } = usePost();
@@ -25,22 +33,35 @@ const PostItem: React.FC<PostItemProps> = ({ postData }) => {
             border="1px solid"
             borderColor="gray.300"
             borderRadius={8}
-            boxShadow="rgba(0, 0, 0, 0.24) 0px 3px 8px"
+            boxShadow={
+                boxShadow ? "rgba(0, 0, 0, 0.24) 0px 3px 8px" : undefined
+            }
             overflow="hidden"
-            mb={10}
+            // mb={10}
             w="100%"
             bg="white"
         >
             <VStack align="flex-start" w="100%">
-                <PostItemHeader post={postData.post} />
+                <PostItemHeader post={postData.post} action={action} />
                 <PostItemContent post={postData.post} />
                 <Box w="100%">
                     <PostItemImages imageList={postData.post.imageUrls} />
                 </Box>
+                {postData.post.videoUrl && (
+                    <Box w="100%" mt={2}>
+                        <video
+                            src={postData.post.videoUrl}
+                            controls
+                            width="100%"
+                        />
+                    </Box>
+                )}
                 <PostReactionBar
                     post={postData.post}
                     setShowCommentInput={setShowCommentInput}
                     setShowCommentList={setShowCommentList}
+                    isShared={postData.isShared}
+                    reaction={reaction}
                 />
                 <CommentProvider
                     commentRoute={

@@ -1,6 +1,6 @@
 import { ProfileFormState } from "@/components/Profile/Edit/Detail";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
-import { USER_ROLE } from "@/constants/roles";
+import { Role, USER_ROLE } from "@/constants/roles";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Follow, UserModel, UserSnippet } from "@/models/User";
 import FileUtils from "@/utils/FileUtils";
@@ -11,9 +11,12 @@ import {
     collection,
     collectionGroup,
     doc,
+    getCountFromServer,
     getDoc,
     getDocs,
     increment,
+    limit,
+    orderBy,
     query,
     runTransaction,
     serverTimestamp,
@@ -28,12 +31,33 @@ import { Notification } from "@/models/Notification";
 import NotificationService from "./NotificationService";
 
 class UserService {
-    static getAll = async () => {
+    static getAll = async ({
+        userOrders,
+        userLimit,
+    }: {
+        userOrders?: {
+            userOrderBy: string;
+            userOrderDirection: "desc" | "asc";
+        }[];
+        userLimit?: number;
+    }) => {
         const userDocsRef = collection(
             fireStore,
             firebaseRoute.getAllUserRoute()
         );
-        const userDocs = await getDocs(userDocsRef);
+        const userConstraints = [];
+        if (userLimit) {
+            userConstraints.push(limit(userLimit));
+        }
+        if (userOrders) {
+            userOrders.forEach((userOrder) => {
+                userConstraints.push(
+                    orderBy(userOrder.userOrderBy, userOrder.userOrderDirection)
+                );
+            });
+        }
+        const userQuery = query(userDocsRef, ...userConstraints);
+        const userDocs = await getDocs(userQuery);
         const users: UserModel[] = userDocs.docs.map((userDoc) => ({
             ...(userDoc.data() as UserModel),
         }));
@@ -64,10 +88,12 @@ class UserService {
                 ...JSON.parse(JSON.stringify(user)),
                 role: USER_ROLE,
                 displayName,
+                imageUrl: user.photoURL,
                 trigramName: trigramName.obj,
                 numberOfPosts: 0,
                 numberOfFollows: 0,
                 numberOfFolloweds: 0,
+                createdAt: serverTimestamp() as Timestamp,
             }
         );
     };
@@ -112,6 +138,7 @@ class UserService {
             batch.update(userDocRef, {
                 displayName: profileForm.displayName,
                 photoURL: downloadUrl,
+                imageUrl: downloadUrl,
                 bio: profileForm.bio,
                 imageRef: downloadRef,
                 trigramName: trigramName.obj,
@@ -443,6 +470,48 @@ class UserService {
                     transaction,
                 });
             });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static count = async ({ isToday }: { isToday: boolean }) => {
+        const userDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllUserRoute()
+        );
+        let queryConstraints = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tommorow = new Date(today);
+        tommorow.setDate(tommorow.getDate() + 1);
+        if (isToday) {
+            queryConstraints.push(
+                where("createdAt", ">=", Timestamp.fromDate(today)),
+                where("createdAt", "<=", Timestamp.fromDate(tommorow))
+            );
+        }
+        const snapShot = await getCountFromServer(
+            query(userDocsRef, ...queryConstraints)
+        );
+        return snapShot.data().count;
+    };
+    static changeUserRole = async ({
+        newRole,
+        userId,
+    }: {
+        userId: string;
+        newRole: Role;
+    }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            const userDocRef = doc(
+                collection(fireStore, firebaseRoute.getAllUserRoute()),
+                userId
+            );
+            batch.update(userDocRef, {
+                role: newRole,
+            });
+            await batch.commit();
         } catch (error) {
             console.log(error);
         }

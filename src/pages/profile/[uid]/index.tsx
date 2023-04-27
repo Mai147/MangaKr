@@ -23,20 +23,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ user }) => {
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-    // const { token } = cookies(context) || null;
-    // if (token) {
-    //     return {
-    //         props: {},
-    //     };
-    // } else {
-    //     context.res.writeHead(302, { Location: routes.getHomePage() });
-    //     context.res.end();
-    // }
     const { uid } = context.query;
     const user = await UserService.get({ userId: uid as string });
     return {
         props: {
-            user: user || null,
+            user: user ? JSON.parse(JSON.stringify(user)) : null,
         },
     };
 }

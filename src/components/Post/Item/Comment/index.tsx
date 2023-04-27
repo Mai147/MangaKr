@@ -1,6 +1,6 @@
 import { useComment } from "@/hooks/useComment";
 import { Post } from "@/models/Post";
-import { Box, Link, Text } from "@chakra-ui/react";
+import { Box, Flex, Link, Spinner, Text } from "@chakra-ui/react";
 import React from "react";
 import PostCommentItem from "./PostCommentItem";
 import PostCommentSkeleton from "./PostCommentSkeleton";
@@ -47,6 +47,10 @@ const PostComments: React.FC<PostCommentsProps> = ({ post }) => {
                       </Link>
                   )}
         </Box>
+    ) : commentState.loading.getComment ? (
+        <Flex w="100%" align="center" justify="center" p={4}>
+            <Spinner />
+        </Flex>
     ) : (
         <></>
     );

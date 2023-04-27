@@ -2,7 +2,6 @@ import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { PrivacyType } from "@/constants/privacy";
 import { fireStore } from "@/firebase/clientApp";
 import { FilterValue } from "@/models/Book";
-import { Voting } from "@/models/Vote";
 import VotingService from "@/services/VotingService";
 import { triGram } from "@/utils/StringUtils";
 import {
@@ -19,6 +18,8 @@ import {
     limitToLast,
     where,
     CollectionReference,
+    collectionGroup,
+    Query,
 } from "firebase/firestore";
 
 export interface PaginationInput {
@@ -79,9 +80,17 @@ export interface PostPaginationInput extends PaginationInput {
     privacyTypes?: PrivacyType[];
 }
 
+export interface SharingPostPaginationInput extends PaginationInput {
+    userId: string;
+    isAccept?: boolean;
+    isLock?: boolean;
+    privacyTypes?: PrivacyType[];
+}
+
 export interface TopicPaginationInput extends PaginationInput {
     communityId: string;
     isAccept?: boolean;
+    isLock?: boolean;
 }
 
 export interface TopicReplyPaginationInput extends PaginationInput {
@@ -92,6 +101,7 @@ export interface TopicReplyPaginationInput extends PaginationInput {
 export interface VotingPaginationInput extends PaginationInput {
     communityId: string;
     isAccept?: boolean;
+    isLock?: boolean;
 }
 
 export interface VotingOptionPaginationInput extends PaginationInput {
@@ -129,7 +139,7 @@ export type DocPosition = {
 };
 
 type PaginationFuncInput = {
-    docsRef: CollectionReference<DocumentData>;
+    docsRef: CollectionReference<DocumentData> | Query<DocumentData>;
     queryConstraints: any[];
     // field: PaginationField;
     paginationInput: PaginationInput;
@@ -386,11 +396,39 @@ const usePagination = () => {
         if (privacyTypes !== undefined && privacyTypes.length > 0) {
             queryConstraints.push(where("privacyType", "in", privacyTypes));
         }
+        const postDocsRef =
+            communityId || userId
+                ? collection(
+                      fireStore,
+                      communityId
+                          ? firebaseRoute.getCommunityPostRoute(communityId)
+                          : firebaseRoute.getUserPostRoute(userId!)
+                  )
+                : collectionGroup(fireStore, "posts");
+        const res = await pagination({
+            docsRef: postDocsRef,
+            queryConstraints,
+            paginationInput: input,
+        });
+        return res;
+    };
+
+    const getSharingPosts = async (input: SharingPostPaginationInput) => {
+        const { userId, isAccept, isLock, privacyTypes } = input;
+        const queryConstraints = [];
+        queryConstraints.push(orderBy("createdAt", "desc"));
+        if (isAccept !== undefined) {
+            queryConstraints.push(where("isAccept", "==", isAccept));
+        }
+        if (isLock !== undefined) {
+            queryConstraints.push(where("isLock", "==", isLock));
+        }
+        if (privacyTypes !== undefined && privacyTypes.length > 0) {
+            queryConstraints.push(where("privacyType", "in", privacyTypes));
+        }
         const postDocsRef = collection(
             fireStore,
-            communityId
-                ? firebaseRoute.getCommunityPostRoute(communityId)
-                : firebaseRoute.getUserPostRoute(userId!)
+            firebaseRoute.getUserSharingPostRoute(userId)
         );
         const res = await pagination({
             docsRef: postDocsRef,
@@ -401,7 +439,7 @@ const usePagination = () => {
     };
 
     const getTopics = async (input: TopicPaginationInput) => {
-        const { searchValue, isAccept, communityId } = input;
+        const { searchValue, isAccept, communityId, isLock } = input;
         const queryConstraints = [];
         if (!searchValue) {
             queryConstraints.push(orderBy("createdAt", "desc"));
@@ -414,6 +452,9 @@ const usePagination = () => {
         }
         if (isAccept != undefined) {
             queryConstraints.push(where("isAccept", "==", isAccept));
+        }
+        if (isLock !== undefined) {
+            queryConstraints.push(where("isLock", "==", isLock));
         }
         const topicDocsRef = collection(
             fireStore,
@@ -525,7 +566,7 @@ const usePagination = () => {
     };
 
     const getVotings = async (input: VotingPaginationInput) => {
-        const { searchValue, isAccept, communityId } = input;
+        const { searchValue, isAccept, communityId, isLock } = input;
         const queryConstraints = [];
         if (!searchValue) {
             queryConstraints.push(orderBy("createdAt", "desc"));
@@ -538,6 +579,9 @@ const usePagination = () => {
         }
         if (isAccept != undefined) {
             queryConstraints.push(where("isAccept", "==", isAccept));
+        }
+        if (isLock !== undefined) {
+            queryConstraints.push(where("isLock", "==", isLock));
         }
         const votingDocsRef = collection(
             fireStore,
@@ -587,6 +631,7 @@ const usePagination = () => {
         getReadingBookSnippets,
         getWritingBookSnippets,
         getPosts,
+        getSharingPosts,
         getUsers,
         getTopics,
         getTopicReplies,

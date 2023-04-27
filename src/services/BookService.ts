@@ -20,6 +20,7 @@ import {
     limit,
     orderBy,
     collectionGroup,
+    getCountFromServer,
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import CharacterService from "./CharacterService";
@@ -780,6 +781,28 @@ class BookService {
         } catch (error) {
             console.log(error);
         }
+    };
+
+    static count = async ({ isToday }: { isToday: boolean }) => {
+        const bookDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllBookRoute()
+        );
+        let queryConstraints = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tommorow = new Date(today);
+        tommorow.setDate(tommorow.getDate() + 1);
+        if (isToday) {
+            queryConstraints.push(
+                where("createdAt", ">=", Timestamp.fromDate(today)),
+                where("createdAt", "<=", Timestamp.fromDate(tommorow))
+            );
+        }
+        const snapShot = await getCountFromServer(
+            query(bookDocsRef, ...queryConstraints)
+        );
+        return snapShot.data().count;
     };
 }
 

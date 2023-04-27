@@ -4,7 +4,9 @@ import {
     ONLYME_PRIVACY,
     PrivacyType,
 } from "@/constants/privacy";
+import { Post } from "@/models/Post";
 import UserService from "@/services/UserService";
+import { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 
 const PostUtils = {
     checkPrivacyType: async ({
@@ -33,6 +35,13 @@ const PostUtils = {
         } catch (error) {
             console.log(error);
         }
+    },
+    fromDoc: (doc: QueryDocumentSnapshot<DocumentData>) => {
+        const post = JSON.parse(JSON.stringify(doc.data())) as Post;
+        return {
+            id: doc.id,
+            ...post,
+        };
     },
 };
 

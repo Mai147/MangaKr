@@ -1,4 +1,4 @@
-import { Flex, HStack, IconButton, Divider, Box } from "@chakra-ui/react";
+import { Flex, HStack, IconButton, Divider, Box, Text } from "@chakra-ui/react";
 import React, { ReactNode, useState } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 import { CgLock, CgLockUnlock } from "react-icons/cg";

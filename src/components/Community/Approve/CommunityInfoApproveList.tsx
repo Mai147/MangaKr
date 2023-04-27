@@ -7,7 +7,7 @@ type CommunityInfoApproveListProps = {
     renderChild: (item: any) => ReactNode;
     handleApprove?: (item: any, isAccept: boolean) => Promise<void>;
     handleLock?: (item: any) => Promise<void>;
-    type: "POST" | "TOPIC" | "VOTING";
+    type: "posts" | "topics" | "votings";
     isAccept: boolean;
 };
 
@@ -40,9 +40,9 @@ const CommunityInfoApproveList: React.FC<CommunityInfoApproveListProps> = ({
         <Flex align="center" justify="center" w="100%" py={10}>
             <Text>
                 Không có{" "}
-                {type === "POST"
+                {type === "posts"
                     ? "bài viết"
-                    : type === "TOPIC"
+                    : type === "topics"
                     ? "chủ đề"
                     : "cuộc bình chọn"}{" "}
                 cần phê duyệt

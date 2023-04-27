@@ -16,9 +16,10 @@ const COMMENT_VOTE_ROUTE = `commentVotes`;
 const REVIEW_ROUTE = `reviews`;
 const REVIEW_VOTE_ROUTE = `reviewVotes`;
 const IMAGE_ROUTE = `image`;
+const VIDEO_ROUTE = `video`;
 const COMMUNITY_ROUTE = `communities`;
-const COMMUNITY_MODERATOR_SNIPPET = `moderatorSnippets`;
 const POST_ROUTE = `posts`;
+const SHARING_POST_ROUTE = `sharingPosts`;
 const POST_VOTE_ROUTE = `postVotes`;
 const TOPIC_ROUTE = `topics`;
 const TOPIC_REPLY_ROUTE = `replies`;
@@ -61,6 +62,9 @@ export const firebaseRoute = {
     },
     getUserPostRoute(userId: string) {
         return `${USER_ROUTE}/${userId}/${POST_ROUTE}`;
+    },
+    getUserSharingPostRoute(userId: string) {
+        return `${USER_ROUTE}/${userId}/${SHARING_POST_ROUTE}`;
     },
     getUserPostCommentRoute(userId: string, postId: string) {
         return `${USER_ROUTE}/${userId}/${POST_ROUTE}/${postId}/${COMMENT_ROUTE}`;
@@ -131,9 +135,6 @@ export const firebaseRoute = {
     getAllCommunityRoute() {
         return `${COMMUNITY_ROUTE}`;
     },
-    getCommunityModeratorSnippetRoute(communityId: string) {
-        return `${COMMUNITY_ROUTE}/${communityId}/${COMMUNITY_MODERATOR_SNIPPET}`;
-    },
     getCommunityUserRoute(communityId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${USER_SNIPPET_ROUTE}`;
     },
@@ -174,6 +175,9 @@ export const firebaseRoute = {
     },
     getPostImageRoute(postId: string) {
         return `${POST_ROUTE}/${postId}/${IMAGE_ROUTE}`;
+    },
+    getPostVideoRoute(postId: string) {
+        return `${POST_ROUTE}/${postId}/${VIDEO_ROUTE}`;
     },
     getTopicImageRoute(communityId: string, topicId: string) {
         return `${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}/${IMAGE_ROUTE}`;

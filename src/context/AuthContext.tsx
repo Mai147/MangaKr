@@ -9,7 +9,7 @@ import { createContext, useEffect, useState } from "react";
 
 type AuthAction = {
     updateUser: (user: ProfileFormState) => void;
-    login: (user: User) => Promise<void>;
+    login: (user: User) => Promise<UserModel | undefined>;
     logout: () => Promise<void>;
     setNeedAuth: (value: boolean) => void;
     setDefaultPath: (value: string) => void;
@@ -24,7 +24,9 @@ const defaultAuthState: AuthStateState = {
     user: null,
     authAction: {
         updateUser: () => null,
-        login: async () => {},
+        login: async () => {
+            return undefined;
+        },
         logout: async () => {},
         setNeedAuth: () => null,
         setDefaultPath: () => null,
@@ -82,6 +84,7 @@ export const AuthProvider = ({ children }: any) => {
             Cookies.set("token", token);
             Cookies.set("user_id", us.uid);
             Cookies.set("user", JSON.stringify(user));
+            return user;
         }
     };
 

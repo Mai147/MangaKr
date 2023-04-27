@@ -4,9 +4,13 @@ import React, { useEffect, useRef, useState } from "react";
 
 type PostItemContentProps = {
     post: Post;
+    size?: "md" | "lg";
 };
 
-const PostItemContent: React.FC<PostItemContentProps> = ({ post }) => {
+const PostItemContent: React.FC<PostItemContentProps> = ({
+    post,
+    size = "md",
+}) => {
     const [contentLine, setContentLine] = useState<number | undefined>(3);
     const [showMore, setShowMore] = React.useState(false);
 
@@ -35,7 +39,7 @@ const PostItemContent: React.FC<PostItemContentProps> = ({ post }) => {
     }, [contentRef.current]);
 
     return (
-        <Box px={4}>
+        <Box px={size === "md" ? 4 : 8} pb={size === "md" ? 0 : 4}>
             <Text>{post.caption}</Text>
             <div
                 dangerouslySetInnerHTML={{

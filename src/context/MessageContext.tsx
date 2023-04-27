@@ -381,6 +381,12 @@ export const MessageProvider = ({ children }: any) => {
 
     const handleSendMessage = async () => {
         try {
+            if (
+                !messageState.messageInput.content &&
+                messageState.messageInput.imageUrls.length <= 0
+            ) {
+                return;
+            }
             setMessageState((prev) => ({
                 ...prev,
                 loading: {

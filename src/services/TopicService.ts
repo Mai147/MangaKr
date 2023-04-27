@@ -20,9 +20,13 @@ class TopicService {
     static get = async ({
         topicId,
         communityId,
+        isAccept,
+        isLock,
     }: {
         topicId: string;
         communityId: string;
+        isAccept?: boolean;
+        isLock?: boolean;
     }) => {
         const topicDocRef = doc(
             fireStore,
@@ -32,6 +36,8 @@ class TopicService {
         const topicDoc = await getDoc(topicDocRef);
         if (topicDoc.exists()) {
             const topic = TopicUtils.fromDoc(topicDoc);
+            if (isAccept !== undefined && topic.isAccept !== isAccept) return;
+            if (isLock !== undefined && topic.isLock !== isLock) return;
             return topic;
         }
     };
@@ -81,6 +87,24 @@ class TopicService {
             }
             batch.update(communityDocRef, {
                 numberOfTopics: increment(1),
+            });
+            await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static toggleLockState = async ({ topic }: { topic: Topic }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            const topicDocRef = doc(
+                collection(
+                    fireStore,
+                    firebaseRoute.getCommunityTopicRoute(topic.communityId)
+                ),
+                topic.id!
+            );
+            batch.update(topicDocRef, {
+                isLock: !topic.isLock,
             });
             await batch.commit();
         } catch (error) {

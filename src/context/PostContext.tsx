@@ -22,6 +22,7 @@ import { PrivacyType } from "@/constants/privacy";
 export type PostItemState = {
     post: Post;
     voteValue?: PostVote;
+    isShared?: boolean;
 };
 
 type PostState = {
@@ -52,6 +53,7 @@ type PostAction = {
         userId: string,
         privacy: PrivacyType
     ) => Promise<void>;
+    share: (post: Post, user: UserModel) => Promise<void>;
 };
 
 type PostContextState = {
@@ -80,6 +82,7 @@ const defaultPostAction: PostAction = {
     loadMore: () => {},
     setNumberOfCommentsIncrement: () => {},
     handleSubmitPrivacy: async () => {},
+    share: async () => {},
 };
 
 const defaultPostContextState: PostContextState = {
@@ -109,15 +112,21 @@ export const PostProvider = ({
 
     const getPostData = async (post: Post) => {
         let postVote;
+        let isShared;
         if (user) {
             postVote = await VoteService.get({
                 voteRoute: firebaseRoute.getUserPostVoteRoute(user.uid),
                 voteId: post.id!,
             });
+            isShared = await PostService.isShared({
+                postId: post.id!,
+                userId: user.uid,
+            });
         }
         const postItem: PostItemState = {
             post,
             voteValue: postVote,
+            isShared,
         };
         return postItem;
     };
@@ -144,7 +153,7 @@ export const PostProvider = ({
             communityId: selectedCommunity?.id,
             userId: selectedUser?.uid,
             isAccept: selectedCommunity ? true : undefined,
-            isLock: selectedCommunity ? true : undefined,
+            isLock: selectedCommunity ? false : undefined,
             privacyTypes: selectedUser?.uid
                 ? await PostUtils.checkPrivacyType({
                       postCreatorId: selectedUser.uid,
@@ -364,6 +373,22 @@ export const PostProvider = ({
         }
     };
 
+    const handleShare = async (post: Post, user: UserModel) => {
+        try {
+            await PostService.share({
+                post,
+                user,
+            });
+            toast({
+                ...toastOption,
+                title: "Chia sẻ thành công",
+                status: "success",
+            });
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     useEffect(() => {
         setPostState((prev) => ({
             ...prev,
@@ -444,6 +469,7 @@ export const PostProvider = ({
                         }));
                     },
                     handleSubmitPrivacy,
+                    share: handleShare,
                 },
             }}
         >

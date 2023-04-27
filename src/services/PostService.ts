@@ -1,10 +1,13 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { PrivacyType } from "@/constants/privacy";
+import { routes } from "@/constants/routes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Community } from "@/models/Community";
 import { Notification } from "@/models/Notification";
-import { LatestPost, Post } from "@/models/Post";
+import { LatestPost, Post, SharingPost } from "@/models/Post";
+import { UserModel } from "@/models/User";
 import FileUtils from "@/utils/FileUtils";
+import PostUtils from "@/utils/PostUtils";
 import {
     writeBatch,
     doc,
@@ -18,12 +21,81 @@ import {
     where,
     getDoc,
     runTransaction,
+    limit,
+    orderBy,
+    getCountFromServer,
 } from "firebase/firestore";
 import { deleteObject, ref } from "firebase/storage";
 import CommunityService from "./CommunityService";
 import NotificationService from "./NotificationService";
 
 class PostService {
+    static getAll = async ({
+        postOrders,
+        postLimit,
+    }: {
+        postOrders?: {
+            postOrderBy: string;
+            postOrderDirection: "desc" | "asc";
+        }[];
+        postLimit?: number;
+    }) => {
+        const postDocsRef = collectionGroup(fireStore, "posts");
+        const postConstraints = [];
+        if (postLimit) {
+            postConstraints.push(limit(postLimit));
+        }
+        if (postOrders) {
+            postOrders.forEach((postOrder) => {
+                postConstraints.push(
+                    orderBy(postOrder.postOrderBy, postOrder.postOrderDirection)
+                );
+            });
+        }
+        const postQuery = query(postDocsRef, ...postConstraints);
+        const postDocs = await getDocs(postQuery);
+        const posts: Post[] = postDocs.docs.map((postDoc) => ({
+            ...(postDoc.data() as Post),
+        }));
+        return posts;
+    };
+    static get = async ({
+        postId,
+        communityId,
+        userId,
+        isAccept,
+        isLock,
+    }: {
+        postId: string;
+        communityId?: string;
+        userId?: string;
+        isAccept?: boolean;
+        isLock?: boolean;
+    }) => {
+        let postDocRef;
+        if (communityId) {
+            postDocRef = doc(
+                fireStore,
+                firebaseRoute.getCommunityPostRoute(communityId),
+                postId
+            );
+        } else if (userId) {
+            postDocRef = doc(
+                fireStore,
+                firebaseRoute.getUserPostRoute(userId),
+                postId
+            );
+        } else {
+            return;
+        }
+        const postDoc = await getDoc(postDocRef);
+        if (postDoc.exists()) {
+            const post = PostUtils.fromDoc(postDoc);
+            if (isAccept !== undefined && post.isAccept !== isAccept) return;
+            if (isLock !== undefined && post.isLock !== isLock) return;
+            return post;
+        }
+    };
     static create = async ({
         postForm,
         community,
@@ -65,8 +137,16 @@ class PostService {
                     imagesRoute: firebaseRoute.getPostImageRoute(postDocRef.id),
                     imageUrls: postForm.imageUrls,
                 });
+                const videoRes = await FileUtils.uploadVideo({
+                    videoRoute: firebaseRoute.getPostVideoRoute(postDocRef.id),
+                    videoUrl: postForm.videoUrl,
+                });
                 transaction.set(postDocRef, {
                     ...postForm,
+                    imageUrls: [],
+                    imageRefs: [],
+                    videoUrl: undefined,
+                    videoRef: undefined,
                     communityId: community?.id,
                     createdAt: serverTimestamp() as Timestamp,
                 });
@@ -77,6 +157,12 @@ class PostService {
                     transaction.update(postDocRef, {
                         imageUrls: res.downloadUrls,
                         imageRefs: res.downloadRefs,
+                    });
+                }
+                if (videoRes) {
+                    transaction.update(postDocRef, {
+                        videoUrl: videoRes.downloadUrl,
+                        videoRef: videoRes.downloadRef,
                     });
                 }
                 // Notification
@@ -117,7 +203,6 @@ class PostService {
             console.log(error);
         }
     };
-
     static approve = async ({
         post,
         community,
@@ -175,22 +260,21 @@ class PostService {
             console.log(error);
         }
     };
-
     static toggleLockState = async ({
         post,
-        community,
+        communityId,
     }: {
         post: Post;
-        community?: Community;
+        communityId?: string;
     }) => {
         try {
             const batch = writeBatch(fireStore);
             let postDocRef;
-            if (community) {
+            if (communityId) {
                 postDocRef = doc(
                     collection(
                         fireStore,
-                        firebaseRoute.getCommunityPostRoute(community.id!)
+                        firebaseRoute.getCommunityPostRoute(communityId)
                     ),
                     post.id
                 );
@@ -211,7 +295,6 @@ class PostService {
             console.log(error);
         }
     };
-
     static delete = async ({
         post,
         community,
@@ -225,6 +308,9 @@ class PostService {
                 for (const imageRef of post.imageRefs) {
                     await deleteObject(ref(storage, imageRef));
                 }
+            }
+            if (post.videoRef) {
+                await deleteObject(ref(storage, post.videoRef));
             }
             let postDocRef;
             let postCommentDocsRef;
@@ -295,7 +381,6 @@ class PostService {
             console.log(error);
         }
     };
-
     static changePrivacy = async ({
         postId,
         privacy,
@@ -320,6 +405,71 @@ class PostService {
         } catch (error) {
             console.log(error);
         }
+    };
+    static share = async ({
+        post,
+        user,
+        communityId,
+    }: {
+        user: UserModel;
+        post: Post;
+        communityId?: string;
+    }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            const sharingDocRef = doc(
+                fireStore,
+                firebaseRoute.getUserSharingPostRoute(user.uid),
+                post.id!
+            );
+            const sharingPost: SharingPost = {
+                ...post,
+                sharingUserId: user.uid,
+                sharingUserDisplayName: user.displayName!,
+                sharingUserImageUrl: user.photoURL,
+                sharingCreatedAt: serverTimestamp() as Timestamp,
+                url: communityId
+                    ? routes.getCommunityPostDetailPage(communityId, post.id!)
+                    : routes.getPostDetailPage(post.id!),
+            };
+            batch.set(sharingDocRef, sharingPost);
+            await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static isShared = async ({
+        postId,
+        userId,
+    }: {
+        postId: string;
+        userId: string;
+    }) => {
+        const sharingDocRef = doc(
+            fireStore,
+            firebaseRoute.getUserSharingPostRoute(userId),
+            postId
+        );
+        const sharingPost = await getDoc(sharingDocRef);
+        return sharingPost.exists() ? true : false;
+    };
+    static count = async ({ isToday }: { isToday: boolean }) => {
+        const postDocsRef = collectionGroup(fireStore, "posts");
+        let queryConstraints = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tommorow = new Date(today);
+        tommorow.setDate(tommorow.getDate() + 1);
+        if (isToday) {
+            queryConstraints.push(
+                where("createdAt", ">=", Timestamp.fromDate(today)),
+                where("createdAt", "<=", Timestamp.fromDate(tommorow))
+            );
+        }
+        const snapShot = await getCountFromServer(
+            query(postDocsRef, ...queryConstraints)
+        );
+        return snapShot.data().count;
     };
 }
 

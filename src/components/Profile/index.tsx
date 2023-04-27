@@ -6,12 +6,14 @@ import usePost from "@/hooks/usePost";
 import { UserModel } from "@/models/User";
 import { Box, Divider, Flex, Spinner, Text } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { AiOutlineShareAlt } from "react-icons/ai";
 import { BsFilePostFill } from "react-icons/bs";
 import { RiUserReceivedLine, RiUserShared2Line } from "react-icons/ri";
 import TabItem from "../Tab/TabItem";
 import ProfileFollowedTab from "./FollowedTab";
 import ProfileFollowTab from "./FollowTab";
 import ProfileHeader from "./Header";
+import ProfileSharingPostTab from "./SharingPostTab";
 
 type ProfileShowProps = {
     user: UserModel;
@@ -21,6 +23,10 @@ const profileTab = [
     {
         title: "Bài viết",
         icon: BsFilePostFill,
+    },
+    {
+        title: "Bài viết đã chia sẻ",
+        icon: AiOutlineShareAlt,
     },
     {
         title: "Người theo dõi",
@@ -137,10 +143,16 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                                     >
                                         {postState.output.list.map(
                                             (postData) => (
-                                                <PostItem
-                                                    postData={postData}
+                                                <Box
+                                                    w="100%"
+                                                    mb={10}
                                                     key={postData.post.id}
-                                                />
+                                                >
+                                                    <PostItem
+                                                        key={postData.post.id}
+                                                        postData={postData}
+                                                    />
+                                                </Box>
                                             )
                                         )}
                                     </InfiniteScroll>
@@ -159,11 +171,23 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                         align="center"
                         w="100%"
                     >
-                        <ProfileFollowedTab user={user} />
+                        <ProfileSharingPostTab user={user} />
                     </Flex>
                     <Flex
                         display={
                             selectedTab === profileTab[2].title
+                                ? "flex"
+                                : "none"
+                        }
+                        direction="column"
+                        align="center"
+                        w="100%"
+                    >
+                        <ProfileFollowedTab user={user} />
+                    </Flex>
+                    <Flex
+                        display={
+                            selectedTab === profileTab[3].title
                                 ? "flex"
                                 : "none"
                         }

@@ -1,4 +1,3 @@
-import useCommunity from "@/hooks/useCommunity";
 import { useMessage } from "@/hooks/useMessage";
 import { Message } from "@/models/Message";
 import { compareDate } from "@/utils/StringUtils";
@@ -116,14 +115,41 @@ const MessageList: React.FC<MessageListProps> = () => {
                             ].createdAt!
                         )
                     ) {
-                        <Box key={message.id}>
-                            <Box>
-                                {moment(
-                                    new Date(message.createdAt!.seconds * 1000)
-                                ).format("DD/MM/YYYY")}
+                        return (
+                            <Box key={message.id}>
+                                <Flex
+                                    align="center"
+                                    justify="center"
+                                    mb={2}
+                                    position="relative"
+                                >
+                                    <Box
+                                        bg="white"
+                                        py={2}
+                                        px={6}
+                                        rounded="full"
+                                        zIndex={2}
+                                    >
+                                        <Text>
+                                            {moment(
+                                                new Date(
+                                                    message.createdAt!.seconds *
+                                                        1000
+                                                )
+                                            ).format("DD/MM/YYYY")}
+                                        </Text>
+                                    </Box>
+                                    <Divider
+                                        position="absolute"
+                                        top="50%"
+                                        left={0}
+                                        right={0}
+                                        borderColor="gray.300"
+                                    />
+                                </Flex>
+                                <MessageItem message={message} />
                             </Box>
-                            <MessageItem message={message} />
-                        </Box>;
+                        );
                     } else {
                         return (
                             <MessageItem message={message} key={message.id} />

@@ -14,6 +14,7 @@ const VOTING_ROUTE = "votings";
 const SEARCH_ROUTE = "search";
 const WRITER_ROUTE = "writer";
 const MESSAGE_ROUTE = "messages";
+const ADMIN_ROUTE = "admin";
 
 export const routes = {
     getHomePage: () => {
@@ -27,6 +28,9 @@ export const routes = {
     },
     getProfileLibraryPage: () => {
         return `/${PROFILE_ROUTE}/${LIBRARY_ROUTE}`;
+    },
+    getUserPostDetailPage: (userId: string, postId: string) => {
+        return `/${USER_ROUTE}/${userId}/${POST_ROUTE}/${postId}`;
     },
     getBookHomePage: () => {
         return `/${BOOK_ROUTE}`;
@@ -97,6 +101,9 @@ export const routes = {
     getCommunityVotingCreatePage: (communityId: string) => {
         return `/${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/create`;
     },
+    getCommunityPostDetailPage: (communityId: string, postId: string) => {
+        return `/${COMMUNITY_ROUTE}/${communityId}/${POST_ROUTE}/${postId}`;
+    },
     getCommunityTopicDetailPage: (communityId: string, topicId: string) => {
         return `/${COMMUNITY_ROUTE}/${communityId}/${TOPIC_ROUTE}/${topicId}`;
     },
@@ -126,5 +133,26 @@ export const routes = {
     },
     getPostCreatePage: () => {
         return `/${POST_ROUTE}/create`;
+    },
+    getPostDetailPage: (postId: string) => {
+        return `/${POST_ROUTE}/${postId}`;
+    },
+    getAdminPage: () => {
+        return `/${ADMIN_ROUTE}`;
+    },
+    getAdminBookPage: () => {
+        return `/${ADMIN_ROUTE}/${BOOK_ROUTE}`;
+    },
+    getAdminReviewPage: () => {
+        return `/${ADMIN_ROUTE}/${REVIEW_ROUTE}`;
+    },
+    getAdminUserPage: () => {
+        return `/${ADMIN_ROUTE}/${USER_ROUTE}`;
+    },
+    getAdminPostPage: () => {
+        return `/${ADMIN_ROUTE}/${POST_ROUTE}`;
+    },
+    getAdminLoginPage: () => {
+        return `/${ADMIN_ROUTE}/login`;
     },
 };

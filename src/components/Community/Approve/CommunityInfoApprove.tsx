@@ -13,14 +13,10 @@ import usePagination, {
     VotingPaginationInput,
 } from "@/hooks/usePagination";
 import { Community } from "@/models/Community";
-import { Post } from "@/models/Post";
-import { Topic } from "@/models/Topic";
-import { Voting } from "@/models/Vote";
 import PostService from "@/services/PostService";
 import TopicService from "@/services/TopicService";
 import VotingService from "@/services/VotingService";
 import {
-    Box,
     Button,
     Divider,
     Flex,
@@ -201,63 +197,73 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
         }));
     };
 
-    const handleApprovePost = async (
-        post: Post,
+    const handleApprove = async (
+        item: any,
         community: Community,
         isAccept: boolean
     ) => {
-        await PostService.approve({ post, community, isAccept });
+        switch (communityApproveState.field) {
+            case "posts":
+                await PostService.approve({ post: item, community, isAccept });
+                break;
+            case "topics":
+                await TopicService.approve({
+                    topic: item,
+                    community,
+                    isAccept,
+                });
+                break;
+            case "votings":
+                await VotingService.approve({
+                    voting: item,
+                    community,
+                    isAccept,
+                });
+                break;
+        }
         setCommunityApproveState((prev) => ({
             ...prev,
             reload: true,
-            posts: {
-                ...prev.posts,
+            [prev.field]: {
+                ...prev[prev.field],
                 output: {
-                    ...prev.posts.output,
-                    list: prev.posts.output.list.filter(
-                        (item: Post) => item.id !== post.id
+                    ...prev[prev.field].output,
+                    list: prev[prev.field].output.list.filter(
+                        (listItem: any) => item.id !== listItem.id
                     ),
                 },
             },
         }));
     };
 
-    const handleApproveTopic = async (
-        topic: Topic,
-        community: Community,
-        isAccept: boolean
-    ) => {
-        await TopicService.approve({ topic, community, isAccept });
+    const handleLock = async (item: any) => {
+        switch (communityApproveState.field) {
+            case "posts":
+                await PostService.toggleLockState({
+                    post: item,
+                    communityId: community.id,
+                });
+                break;
+            case "topics":
+                await TopicService.toggleLockState({ topic: item });
+                break;
+            case "votings":
+                await VotingService.toggleLockState({ voting: item });
+                break;
+        }
         setCommunityApproveState((prev) => ({
             ...prev,
-            reload: true,
-            topics: {
-                ...prev.topics,
+            [prev.field]: {
+                ...prev[prev.field],
                 output: {
-                    ...prev.topics.output,
-                    list: prev.topics.output.list.filter(
-                        (item: Topic) => item.id !== topic.id
-                    ),
-                },
-            },
-        }));
-    };
-
-    const handleApproveVoting = async (
-        voting: Voting,
-        community: Community,
-        isAccept: boolean
-    ) => {
-        await VotingService.approve({ voting, community, isAccept });
-        setCommunityApproveState((prev) => ({
-            ...prev,
-            reload: true,
-            votings: {
-                ...prev.votings,
-                output: {
-                    ...prev.votings.output,
-                    list: prev.votings.output.list.filter(
-                        (item: Voting) => item.id !== voting.id
+                    ...prev[prev.field].output,
+                    list: prev[prev.field].output.list.map((listItem: any) =>
+                        listItem.id !== item.id
+                            ? listItem
+                            : {
+                                  ...listItem,
+                                  isLock: !listItem.isLock,
+                              }
                     ),
                 },
             },
@@ -354,106 +360,27 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                     <Flex align="center" justify="center" w="100%" p={10}>
                         <Spinner />
                     </Flex>
-                ) : communityApproveState.field === "posts" ? (
-                    <CommunityInfoApproveList
-                        list={communityApproveState.posts.output.list}
-                        type="POST"
-                        isAccept={communityApproveState.isAccept}
-                        handleApprove={async (item, isAccept) => {
-                            await handleApprovePost(item, community, isAccept);
-                        }}
-                        handleLock={async (item) => {
-                            await PostService.toggleLockState({
-                                post: item,
-                                community,
-                            });
-                            setCommunityApproveState((prev) => ({
-                                ...prev,
-                                posts: {
-                                    ...prev.posts,
-                                    output: {
-                                        ...prev.posts.output,
-                                        list: prev.posts.output.list.map(
-                                            (postItem: Post) =>
-                                                postItem.id !== item.id
-                                                    ? postItem
-                                                    : {
-                                                          ...postItem,
-                                                          isLock: !postItem.isLock,
-                                                      }
-                                        ),
-                                    },
-                                },
-                            }));
-                        }}
-                        renderChild={(post) => (
-                            <PostHorizontalSnippetItem post={post} />
-                        )}
-                    />
-                ) : communityApproveState.field === "topics" ? (
-                    communityApproveState.topics.output.list &&
-                    communityApproveState.topics.output.list.length > 0 ? (
-                        communityApproveState.topics.output.list.map(
-                            (topic: Topic) => (
-                                <Box key={topic.id} w="100%">
-                                    <TopicHorizontalSnippetItem
-                                        topic={topic}
-                                        handleApprove={async (isAccept) => {
-                                            await handleApproveTopic(
-                                                topic,
-                                                community,
-                                                isAccept
-                                            );
-                                        }}
-                                    />
-                                    <Divider borderColor="gray.300" />
-                                </Box>
-                            )
-                        )
-                    ) : (
-                        <Flex align="center" justify="center" w="100%" py={10}>
-                            <Text>Không có chủ đề cần phê duyệt</Text>
-                        </Flex>
-                    )
                 ) : (
                     <CommunityInfoApproveList
-                        list={communityApproveState.votings.output.list}
-                        type="VOTING"
+                        list={
+                            communityApproveState[communityApproveState.field]
+                                .output.list
+                        }
+                        type={communityApproveState.field}
                         isAccept={communityApproveState.isAccept}
                         handleApprove={async (item, isAccept) => {
-                            await handleApproveVoting(
-                                item,
-                                community,
-                                isAccept
-                            );
+                            await handleApprove(item, community, isAccept);
                         }}
-                        handleLock={async (item) => {
-                            // await PostService.toggleLockState({
-                            //     post: item,
-                            //     community,
-                            // });
-                            // setCommunityApproveState((prev) => ({
-                            //     ...prev,
-                            //     posts: {
-                            //         ...prev.posts,
-                            //         output: {
-                            //             ...prev.posts.output,
-                            //             list: prev.posts.output.list.map(
-                            //                 (postItem: Post) =>
-                            //                     postItem.id !== item.id
-                            //                         ? postItem
-                            //                         : {
-                            //                               ...postItem,
-                            //                               isLock: !postItem.isLock,
-                            //                           }
-                            //             ),
-                            //         },
-                            //     },
-                            // }));
-                        }}
-                        renderChild={(voting) => (
-                            <VotingHorizontalSnippetItem voting={voting} />
-                        )}
+                        handleLock={handleLock}
+                        renderChild={(item) =>
+                            communityApproveState.field === "posts" ? (
+                                <PostHorizontalSnippetItem post={item} />
+                            ) : communityApproveState.field === "topics" ? (
+                                <TopicHorizontalSnippetItem topic={item} />
+                            ) : (
+                                <VotingHorizontalSnippetItem voting={item} />
+                            )
+                        }
                     />
                 )}
             </VStack>

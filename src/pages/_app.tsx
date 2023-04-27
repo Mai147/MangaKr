@@ -10,13 +10,19 @@ import type { AppProps } from "next/app";
 import { CommunityProvider } from "@/context/CommunityContext";
 import React from "react";
 import { NotificationProvider } from "@/context/NotificationContext";
+import LayoutAdmin from "@/components/Layout/Admin";
 
 export default function App({ Component, pageProps, ...appProps }: AppProps) {
-    const isLayoutNeeded = ![`/messages`, `/messages/[uid]`].includes(
-        appProps.router.pathname
-    );
+    const firstPath = appProps.router.pathname.split("/")[1];
 
-    const LayoutComponent = isLayoutNeeded ? Layout : React.Fragment;
+    const LayoutComponent =
+        firstPath === "messages"
+            ? React.Fragment
+            : firstPath === "admin"
+            ? ["/admin/login"].includes(appProps.router.pathname)
+                ? React.Fragment
+                : LayoutAdmin
+            : Layout;
 
     return (
         <ChakraProvider theme={theme}>

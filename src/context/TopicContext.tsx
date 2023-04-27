@@ -83,6 +83,8 @@ export const TopicProvider = ({
         const input: TopicPaginationInput = {
             ...topicState.input,
             communityId,
+            isAccept: true,
+            isLock: false,
             setDocValue: (docValue) => {
                 setTopicState((prev) => ({
                     ...prev,

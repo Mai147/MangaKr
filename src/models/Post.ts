@@ -5,6 +5,8 @@ export interface Post {
     id?: string;
     imageUrls: string[];
     imageRefs: string[];
+    videoUrl?: string;
+    videoRef?: string;
     caption: string;
     description?: string;
     creatorId: string;
@@ -16,6 +18,7 @@ export interface Post {
     numberOfFavorites: number;
     numberOfLaughs: number;
     numberOfAngrys: number;
+    numberOfReactions: number;
     numberOfComments: number;
     isAccept: boolean;
     isLock: boolean;
@@ -24,6 +27,14 @@ export interface Post {
 
 export interface CommunityPost extends Post {
     communityId: string;
+}
+
+export interface SharingPost extends Post {
+    sharingUserId: string;
+    sharingUserDisplayName: string;
+    sharingUserImageUrl?: string | null;
+    sharingCreatedAt?: Timestamp;
+    url: string;
 }
 
 export interface LatestPost {
@@ -49,6 +60,7 @@ export const defaultPostForm: Post = {
     numberOfFavorites: 0,
     numberOfLaughs: 0,
     numberOfLikes: 0,
+    numberOfReactions: 0,
     isAccept: false,
     isLock: false,
     privacyType: "EVERYONE_PRIVACY",

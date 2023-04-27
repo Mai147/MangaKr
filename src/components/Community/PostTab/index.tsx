@@ -1,7 +1,7 @@
 import InfiniteScroll from "@/components/InfiniteScroll";
 import PostItem from "@/components/Post/Item";
 import usePost from "@/hooks/usePost";
-import { Spinner, Text } from "@chakra-ui/react";
+import { Box, Spinner, Text } from "@chakra-ui/react";
 import React from "react";
 
 type CommunityPostTabProps = {};
@@ -19,7 +19,12 @@ const CommunityPostTab: React.FC<CommunityPostTabProps> = () => {
                     isLoading={postState.loading.getAll}
                 >
                     {postState.output.list.map((postData) => (
-                        <PostItem key={postData.post.id} postData={postData} />
+                        <Box w="100%" mb={10}>
+                            <PostItem
+                                key={postData.post.id}
+                                postData={postData}
+                            />
+                        </Box>
                     ))}
                 </InfiniteScroll>
             ) : (

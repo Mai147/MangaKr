@@ -45,7 +45,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (token) {
         return {
             props: {
-                user,
+                user: user ? JSON.parse(JSON.stringify(user)) : null,
             },
         };
     } else {

@@ -40,6 +40,7 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                         icon={<IoIosArrowBack />}
                         size="lg"
                         onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             setSelectedIndex(
                                 (prev) =>
@@ -54,7 +55,10 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                         src={imageList[selectedIndex]}
                         maxH="90vh"
                         cursor="default"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
                     />
                 </Flex>
                 {imageList.length > 1 && (
@@ -64,6 +68,7 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                         size="lg"
                         icon={<IoIosArrowForward />}
                         onClick={(e) => {
+                            e.preventDefault();
                             e.stopPropagation();
                             setSelectedIndex(
                                 (prev) => (prev + 1) % imageList.length

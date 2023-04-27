@@ -23,6 +23,7 @@ import {
     collection,
     collectionGroup,
     doc,
+    getCountFromServer,
     getDoc,
     getDocs,
     increment,
@@ -31,7 +32,6 @@ import {
     query,
     serverTimestamp,
     Timestamp,
-    updateDoc,
     where,
     writeBatch,
 } from "firebase/firestore";
@@ -92,19 +92,7 @@ class CommunityService {
         );
         const communityDoc = await getDoc(communityDocRef);
         if (communityDoc.exists()) {
-            const moderatorSnippetDocsRef = collection(
-                fireStore,
-                firebaseRoute.getCommunityModeratorSnippetRoute(communityDoc.id)
-            );
-            const moderatorSnippetDocs = await getDocs(moderatorSnippetDocsRef);
-            const moderatorSnippets = moderatorSnippetDocs.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
-            const community = {
-                ...CommunityUtlis.fromDoc(communityDoc),
-                moderators: moderatorSnippets,
-            } as Community;
+            const community = CommunityUtlis.fromDoc(communityDoc) as Community;
             return community;
         }
     };
@@ -252,13 +240,6 @@ class CommunityService {
                 firebaseRoute.getUserCommunitySnippetRoute(user.uid),
                 communityDocRef.id
             );
-            const moderatorSnippetDocRef = doc(
-                fireStore,
-                firebaseRoute.getCommunityModeratorSnippetRoute(
-                    communityDocRef.id
-                ),
-                user.uid
-            );
             const communityUserDocsRef = doc(
                 fireStore,
                 firebaseRoute.getCommunityUserRoute(communityDocRef.id),
@@ -286,12 +267,6 @@ class CommunityService {
             });
             batch.set(userCommunitySnippetDocRef, userCommunitySnippet);
             batch.set(communityUserDocsRef, communityUserSnippet);
-            batch.set(moderatorSnippetDocRef, {
-                id: user.uid,
-                displayName: user.displayName,
-                imageUrl: user.photoURL,
-                role: COMMUNITY_SUPER_ADMIN_ROLE,
-            });
             await batch.commit();
         } catch (err: any) {
             console.log("Create community Error", err);
@@ -850,6 +825,28 @@ class CommunityService {
                 userId: id,
             });
         }
+    };
+
+    static count = async ({ isToday }: { isToday: boolean }) => {
+        const communityDocsRef = collection(
+            fireStore,
+            firebaseRoute.getAllCommunityRoute()
+        );
+        let queryConstraints = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tommorow = new Date(today);
+        tommorow.setDate(tommorow.getDate() + 1);
+        if (isToday) {
+            queryConstraints.push(
+                where("createdAt", ">=", Timestamp.fromDate(today)),
+                where("createdAt", "<=", Timestamp.fromDate(tommorow))
+            );
+        }
+        const snapShot = await getCountFromServer(
+            query(communityDocsRef, ...queryConstraints)
+        );
+        return snapShot.data().count;
     };
 
     // static updateUserLatestPost = async (

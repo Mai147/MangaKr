@@ -1,4 +1,4 @@
-import { CommunityRole } from "@/constants/roles";
+import { CommunityRole, Role } from "@/constants/roles";
 import { User } from "firebase/auth";
 import { Timestamp } from "firebase/firestore";
 import { Book, BookSnippet } from "./Book";
@@ -47,6 +47,15 @@ export interface CommunityUserSnippet {
     imageUrl?: string | null;
     role: CommunityRole;
     isAccept: boolean;
+    createdAt?: Timestamp;
+}
+
+export interface UserRoleSnippet {
+    id: string;
+    displayName: string;
+    imageUrl?: string | null;
+    email: string;
+    role: Role;
     createdAt?: Timestamp;
 }
 

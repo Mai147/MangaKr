@@ -28,9 +28,13 @@ class VotingService {
     static get = async ({
         votingId,
         communityId,
+        isAccept,
+        isLock,
     }: {
         votingId: string;
         communityId: string;
+        isAccept?: boolean;
+        isLock?: boolean;
     }) => {
         const votingDocRef = doc(
             fireStore,
@@ -39,7 +43,10 @@ class VotingService {
         );
         const votingDoc = await getDoc(votingDocRef);
         if (votingDoc.exists()) {
-            return VotingUtils.fromDoc(votingDoc);
+            const voting = VotingUtils.fromDoc(votingDoc);
+            if (isAccept !== undefined && voting.isAccept !== isAccept) return;
+            if (isLock !== undefined && voting.isLock !== isLock) return;
+            return voting;
         }
     };
     static create = async ({
@@ -109,6 +116,24 @@ class VotingService {
             }
             batch.update(communityDocRef, {
                 numberOfVotings: increment(1),
+            });
+            await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
+    };
+    static toggleLockState = async ({ voting }: { voting: Voting }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            const votingDocRef = doc(
+                collection(
+                    fireStore,
+                    firebaseRoute.getCommunityVotingRoute(voting.communityId!)
+                ),
+                voting.id!
+            );
+            batch.update(votingDocRef, {
+                isLock: !voting.isLock,
             });
             await batch.commit();
         } catch (error) {

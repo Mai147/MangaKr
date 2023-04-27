@@ -1,6 +1,5 @@
 import { Timestamp } from "firebase/firestore";
 import { LatestPost } from "./Post";
-import { UserSnippet } from "./User";
 
 export type CommunityType = "public" | "restricted" | "private";
 
@@ -32,7 +31,6 @@ export interface Community {
     createdAt?: Timestamp;
     imageUrl?: string;
     imageRef?: string;
-    moderators?: UserSnippet[];
     numberOfPosts: number;
     numberOfTopics: number;
     numberOfVotings: number;

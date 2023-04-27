@@ -40,12 +40,8 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
-    const {
-        onSelectMultipleFile,
-        selectedListFile,
-        setSelectedListFile,
-        onUploadMultipleFile,
-    } = useSelectFile();
+    const { onSelectMultipleFile, selectedListFile, setSelectedListFile } =
+        useSelectFile();
     const toast = useToast();
 
     useEffect(() => {

@@ -6,6 +6,7 @@ import {
     doc,
     getDoc,
     getDocs,
+    orderBy,
     query,
     runTransaction,
     Transaction,
@@ -19,7 +20,11 @@ class NotificationService {
             fireStore,
             firebaseRoute.getUserNotificationRoute(userId)
         );
-        const notificationDocs = await getDocs(notificationDocsRef);
+        const notificationQuery = query(
+            notificationDocsRef,
+            orderBy("createdAt", "desc")
+        );
+        const notificationDocs = await getDocs(notificationQuery);
         const notifications = notificationDocs.docs.map(
             (doc) =>
                 ({

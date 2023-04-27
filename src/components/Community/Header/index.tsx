@@ -68,61 +68,6 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                                 ?.numberOfMembers || 0}{" "}
                             thành viên
                         </Text>
-                        <Flex align="flex-end">
-                            <Text color="white" mr="2">
-                                Quản trị viên:
-                            </Text>
-                            <Box position="relative" h="8" w="28">
-                                {community.moderators?.map((mod, idx) => {
-                                    if (idx < 3) {
-                                        return (
-                                            <Avatar
-                                                key={mod.id}
-                                                size="sm"
-                                                src={
-                                                    mod.imageUrl ||
-                                                    "/images.noImage.jpg"
-                                                }
-                                                position="absolute"
-                                                top={0}
-                                                left={`calc(24px * ${idx})`}
-                                                border={`1px solid ${
-                                                    community.privacyType ===
-                                                    "public"
-                                                        ? "#63b3ed"
-                                                        : community.privacyType ===
-                                                          "restricted"
-                                                        ? "#e74c3c"
-                                                        : "white"
-                                                }`}
-                                                zIndex={idx}
-                                            />
-                                        );
-                                    }
-                                    return <div key={idx}></div>;
-                                })}
-                                {(community.moderators?.length || []) > 3 && (
-                                    <Flex
-                                        w="8"
-                                        h="8"
-                                        borderRadius="full"
-                                        position="absolute"
-                                        align="center"
-                                        justify="center"
-                                        bg="gray.100"
-                                        fontSize={10}
-                                        fontWeight={500}
-                                        top={0}
-                                        left={`calc(24px * 3 - 6px)`}
-                                        zIndex={4}
-                                    >
-                                        +
-                                        {(community.moderators?.length || 0) -
-                                            3}
-                                    </Flex>
-                                )}
-                            </Box>
-                        </Flex>
                     </VStack>
                 </Flex>
             </Flex>

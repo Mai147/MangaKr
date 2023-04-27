@@ -44,6 +44,7 @@ class VoteService {
             });
             batch.update(rootDocRef, {
                 [vote.field]: increment(1),
+                numberOfReactions: increment(1),
             });
             await batch.commit();
         } catch (error) {
@@ -78,12 +79,11 @@ class VoteService {
                     value,
                 });
             }
-            batch.update(rootDocRef, {
-                [vote.field]: increment(1),
-            });
             const changing = value === userVote.value ? -2 : -1;
             batch.update(rootDocRef, {
+                [vote.field]: increment(1),
                 [userVote.field]: increment(changing),
+                numberOfReactions: increment(changing + 1),
             });
             await batch.commit();
         } catch (error) {

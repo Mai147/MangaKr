@@ -1,5 +1,10 @@
 import { storage } from "@/firebase/clientApp";
-import { getDownloadURL, ref, uploadString } from "firebase/storage";
+import {
+    getDownloadURL,
+    ref,
+    uploadBytes,
+    uploadString,
+} from "firebase/storage";
 import { v4 } from "uuid";
 import { getFileExtensionFromBase64 } from "./StringUtils";
 
@@ -54,7 +59,29 @@ const uploadMultipleFile = async ({
     }
 };
 
+const uploadVideo = async ({
+    videoRoute,
+    videoUrl,
+}: {
+    videoRoute: string;
+    videoUrl?: string | null;
+}) => {
+    if (!videoUrl) {
+        return;
+    }
+    let blob = await fetch(videoUrl).then((r) => r.blob());
+    const path = `${videoRoute}${v4()}.mp4`;
+    const videoRef = ref(storage, path);
+    await uploadBytes(videoRef, blob);
+    const downloadUrl = await getDownloadURL(videoRef);
+    return {
+        downloadUrl,
+        downloadRef: path,
+    };
+};
+
 export default FileUtils = {
     uploadFile,
     uploadMultipleFile,
+    uploadVideo,
 };

@@ -1,18 +1,21 @@
 import ImageMultipleUpload from "@/components/ImageUpload/ImageMultipleUpload";
+import VideoUpload from "@/components/ImageUpload/VideoUpload";
 import PostFormContent from "@/components/Post/Form/Content";
 import TabItem from "@/components/Tab/TabItem";
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
 import useSelectFile from "@/hooks/useSelectFile";
+import useSelectVideo from "@/hooks/useSelectVideo";
 import { Community } from "@/models/Community";
 import { defaultPostForm, Post } from "@/models/Post";
 import { UserModel } from "@/models/User";
 import PostService from "@/services/PostService";
 import { validateCreatePost } from "@/validation/postValidation";
-import { Flex, Button, Divider, Text, useToast, Link } from "@chakra-ui/react";
+import { Flex, Divider, useToast } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { AiOutlineEye } from "react-icons/ai";
+import { BsCameraVideo } from "react-icons/bs";
 import { IoImageOutline, IoDocument } from "react-icons/io5";
 import FormFooter from "../Footer";
 import FormHeader from "../Header";
@@ -33,6 +36,10 @@ const formTab = [
         icon: IoImageOutline,
     },
     {
+        title: "Video",
+        icon: BsCameraVideo,
+    },
+    {
         title: "Hiển thị",
         icon: AiOutlineEye,
     },
@@ -50,6 +57,8 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
     const { onSelectMultipleFile, selectedListFile, setSelectedListFile } =
         useSelectFile();
+    const { onSelectVideo, selectedVideo, setSelectedVideo, onUploadVideo } =
+        useSelectVideo();
     const toast = useToast();
 
     useEffect(() => {
@@ -58,6 +67,13 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
             imageUrls: selectedListFile,
         }));
     }, [selectedListFile]);
+
+    useEffect(() => {
+        setPostForm((prev) => ({
+            ...prev,
+            videoUrl: selectedVideo,
+        }));
+    }, [selectedVideo]);
 
     const onSubmit = async () => {
         try {
@@ -156,6 +172,16 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
                         />
                     )}
                     {selectedTab === formTab[2].title && (
+                        <VideoUpload
+                            onSelectVideo={onSelectVideo}
+                            setSelectedFile={setSelectedVideo}
+                            selectedFile={selectedVideo}
+                            onUpload={async () => {
+                                onUploadVideo("video");
+                            }}
+                        />
+                    )}
+                    {selectedTab === formTab[3].title && (
                         <PostPrivacyTab
                             privacy={postForm.privacyType}
                             setPrivacy={(value) => {

@@ -19,6 +19,7 @@ const OAuthButtons: React.FC = () => {
                 variant="oauth"
                 mb={2}
                 isLoading={loading}
+                h={10}
                 onClick={async () => {
                     const res = await loginWithGoogle();
                     if (res) {

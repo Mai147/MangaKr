@@ -47,7 +47,10 @@ const PostItemImages: React.FC<PostItemImagesProps> = ({
                 w="100%"
                 gridGap={size === "sm" ? "2px" : 1}
                 cursor="pointer"
-                onClick={() => setShowImageList(true)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setShowImageList(true);
+                }}
             >
                 {imageList.map((url, idx) => {
                     if (idx < 5)

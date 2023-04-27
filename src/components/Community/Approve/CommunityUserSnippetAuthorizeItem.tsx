@@ -2,7 +2,7 @@ import {
     CommunityRole,
     COMMUNITY_ADMIN_ROLE,
     COMMUNITY_SUPER_ADMIN_ROLE,
-    listRole,
+    listCommunityRole,
 } from "@/constants/roles";
 import { toastOption } from "@/constants/toast";
 import useCommunity from "@/hooks/useCommunity";
@@ -75,7 +75,7 @@ const CommunityUserSnippetAuthorizeItem: React.FC<
                 </Flex>
             </HStack>
             <HStack flexGrow={1} align="center" justify="center" spacing={8}>
-                {listRole.map(
+                {listCommunityRole.map(
                     (role) =>
                         (role.value !== COMMUNITY_SUPER_ADMIN_ROLE ||
                             communityState.userCommunityRole?.role ===

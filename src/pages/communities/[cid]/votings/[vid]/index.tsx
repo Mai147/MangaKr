@@ -73,6 +73,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         const voting = await VotingService.get({
             communityId: cid as string,
             votingId: vid as string,
+            isAccept: true,
+            isLock: false,
         });
         return {
             props: {

@@ -14,6 +14,7 @@ export interface Topic {
     createdAt?: Timestamp;
     isAccept: boolean;
     isClose: boolean;
+    isLock?: boolean;
 }
 
 export interface TopicReply {
@@ -37,6 +38,7 @@ export const defaultTopicForm: Topic = {
     numberOfReplies: 0,
     isAccept: false,
     isClose: false,
+    isLock: false,
 };
 
 export const defaultTopicReplyForm: TopicReply = {

@@ -10,7 +10,8 @@ export type CommunityRole =
     | "COMMUNITY_MODERATOR"
     | "COMMUNITY_USER"
     | "COMMUNITY_SUPER_ADMIN";
-export const listRole = [
+export type Role = "ADMIN" | "USER" | "WRITER";
+export const listCommunityRole = [
     {
         value: "COMMUNITY_USER",
         label: "Thành viên",
@@ -26,6 +27,20 @@ export const listRole = [
     {
         value: "COMMUNITY_SUPER_ADMIN",
         label: "SuperAdmin",
+    },
+];
+export const listRole = [
+    {
+        value: "USER",
+        label: "Thành viên",
+    },
+    {
+        value: "WRITER",
+        label: "Người viết bài",
+    },
+    {
+        value: "ADMIN",
+        label: "Admin",
     },
 ];
 export type CommunityRequestedRole = {
