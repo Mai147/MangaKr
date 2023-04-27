@@ -40,7 +40,7 @@ const CharacterSnippetItem: React.FC<CharacterSnippetItemProps> = ({
                         borderRadius={4}
                     />
                 </AspectRatio>
-                <Flex direction="column" align="center">
+                <Flex direction="column" align="center" wordBreak="break-word">
                     <Text fontWeight={600} noOfLines={1} lineHeight={1}>
                         {character.name}
                     </Text>

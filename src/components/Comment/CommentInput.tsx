@@ -24,6 +24,7 @@ const CommentInputs: React.FC<CommentInputProps> = ({
             onSubmit={(e) => {
                 e.preventDefault();
                 onCreateComment(commentText);
+                setCommentText("");
             }}
             ref={formRef}
         >
@@ -62,7 +63,6 @@ const CommentInputs: React.FC<CommentInputProps> = ({
                             pb={10}
                             _placeholder={{ color: "gray.500" }}
                             _focus={{
-                                outline: "none",
                                 bg: "white",
                             }}
                             resize="none"

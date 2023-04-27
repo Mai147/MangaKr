@@ -148,6 +148,7 @@ class PostService {
                     videoUrl: undefined,
                     videoRef: undefined,
                     communityId: community?.id,
+                    isAccept: community?.id ? false : true,
                     createdAt: serverTimestamp() as Timestamp,
                 });
                 transaction.update(rootDocRef, {

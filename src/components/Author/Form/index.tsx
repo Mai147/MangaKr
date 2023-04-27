@@ -63,7 +63,7 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
             setLoading(false);
             return;
         }
-        const res = await validateCreateAuthor(authorForm);
+        const res = await validateCreateAuthor(authorForm, author?.name);
         if (!res.result) {
             setErrors(res.errors);
             toast({

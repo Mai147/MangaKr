@@ -379,6 +379,20 @@ export const PostProvider = ({
                 post,
                 user,
             });
+            setPostState((prev) => ({
+                ...prev,
+                output: {
+                    ...prev.output,
+                    list: prev.output.list.map((item) =>
+                        item.post.id !== post.id
+                            ? item
+                            : {
+                                  ...item,
+                                  isShared: true,
+                              }
+                    ),
+                },
+            }));
             toast({
                 ...toastOption,
                 title: "Chia sẻ thành công",

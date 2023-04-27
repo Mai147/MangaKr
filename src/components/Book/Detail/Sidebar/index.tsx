@@ -17,7 +17,7 @@ type BookDetailSidebarProps = {
 
 const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
     return (
-        <VStack spacing={4} align="flex-start" mr={5}>
+        <VStack spacing={4} align="flex-start" mr={5} maxW="260px">
             <BookImage imageUrl={book.imageUrl} />
             <Divider my={4} />
             <Text fontSize={20} color="gray.600" fontWeight={600}>
@@ -59,6 +59,7 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                                     genre.id
                                 }`}
                                 mr={2}
+                                mb={2}
                             />
                         ))}
                     </Flex>
@@ -91,7 +92,7 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({ book }) => {
                     <RatingBar
                         rate={book.rating}
                         size={16}
-                        maxRate={10}
+                        maxRate={5}
                         readonly
                     />
                 </>

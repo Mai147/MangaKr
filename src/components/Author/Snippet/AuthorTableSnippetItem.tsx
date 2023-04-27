@@ -42,13 +42,18 @@ const AuthorTableSnippetItem: React.FC<AuthorTableSnippetItemProps> = ({
                 <Text w={authorHeaderList[2].width} flexShrink={0}>
                     {author.name}
                 </Text>
-                <Text
-                    w={authorHeaderList[3].width}
-                    whiteSpace="pre-line"
-                    noOfLines={3}
-                >
-                    {author.bio || "-----"}
-                </Text>
+                <div
+                    dangerouslySetInnerHTML={{
+                        __html: author.bio || "",
+                    }}
+                    className="ck ck-content"
+                    style={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                    }}
+                ></div>
             </HStack>
             <HStack ml={10} spacing={4}>
                 <Link href={routes.getAuthorEditPage(author.id!)}>

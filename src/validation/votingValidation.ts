@@ -19,8 +19,7 @@ export const validateCreateVoting = (voting: Voting) => {
     }
 
     const timeMin = moment(new Date()).add(5, "m").toDate();
-    // if (isDateEnd(voting.timeLast, Timestamp.fromDate(timeMin)))
-    if (isDateEnd(Timestamp.fromDate(timeMin), voting.timeLast)) {
+    if (isDateEnd(voting.timeLast, Timestamp.fromDate(timeMin))) {
         const error: ValidationError = {
             field: "timeLast",
             message: "Vui lòng nhập thời gian lớn hơn hiện tại 5 phút",

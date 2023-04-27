@@ -29,6 +29,8 @@ import { getBlob, ref } from "firebase/storage";
 import { EVERYONE_PRIVACY } from "@/constants/privacy";
 import { Post } from "@/models/Post";
 import { UserModel } from "@/models/User";
+import Wrapper from "@/components/Test/Wrapper";
+import ButtonTest from "@/components/Test/ButtonTest";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -43,7 +45,7 @@ const HomePage: React.FC<HomePageProps> = () => {
     const testFunction = async () => {
         try {
             const batch = writeBatch(fireStore);
-            const postDocsRef = collectionGroup(fireStore, "users");
+            const postDocsRef = collectionGroup(fireStore, "posts");
             const postDocs = await getDocs(postDocsRef);
             postDocs.docs.forEach((doc) => {
                 const post = {
@@ -51,7 +53,8 @@ const HomePage: React.FC<HomePageProps> = () => {
                 } as UserModel;
                 batch.update(doc.ref, {
                     // isLock: false,
-                    imageUrl: post.photoURL,
+                    // imageUrl: post.photoURL,
+                    isAccept: true,
                 });
             });
             await batch.commit();

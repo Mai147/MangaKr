@@ -50,7 +50,7 @@ const GenreForm: React.FC<GenreFormProps> = ({ genre }) => {
                 setLoading(false);
                 return;
             }
-            const res = await validateCreateGenre(genreForm);
+            const res = await validateCreateGenre(genreForm, genre?.name);
             if (!res.result) {
                 setErrors(res.errors);
                 toast({

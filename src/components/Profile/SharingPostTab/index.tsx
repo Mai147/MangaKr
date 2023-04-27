@@ -9,7 +9,7 @@ import usePagination, {
 } from "@/hooks/usePagination";
 import { SharingPost } from "@/models/Post";
 import { UserModel } from "@/models/User";
-import { Spinner, Box, Text } from "@chakra-ui/react";
+import { Spinner, Box, Text, Flex } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 
 type ProfileSharingPostTabProps = {
@@ -62,7 +62,9 @@ const ProfileSharingPostTab: React.FC<ProfileSharingPostTabProps> = ({
     return (
         <Box w="100%">
             {!loading && sharingPostPaginationOutput.list.length <= 0 ? (
-                <Text>{user.displayName} chưa chia sẻ bài viết nào</Text>
+                <Flex w="100%" align="center" justify="center">
+                    <Text>{user.displayName} chưa chia sẻ bài viết nào</Text>
+                </Flex>
             ) : (
                 <>
                     <Box w="100%" mt={8}>
