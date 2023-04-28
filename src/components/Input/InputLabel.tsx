@@ -18,7 +18,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
         <>
             {isFull && (
                 <Flex
-                    width={{ base: "100px", md: "145px", xl: "195px" }}
+                    width={{ base: "100px", md: "130px", xl: "170px" }}
                     flexShrink={0}
                 >
                     <Text>{label}</Text>

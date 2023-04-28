@@ -4,6 +4,7 @@ import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type AdminPageProps = {};
@@ -16,7 +17,16 @@ const AdminPage: React.FC<AdminPageProps> = () => {
         authAction.setDefaultPath(routes.getAdminLoginPage());
     }, []);
 
-    return <AdminDashboard />;
+    return (
+        <>
+            <Head>
+                <title>MangaKr - Admin - Dashboard</title>
+            </Head>
+            <>
+                <AdminDashboard />;
+            </>
+        </>
+    );
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {

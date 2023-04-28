@@ -9,6 +9,7 @@ import MessageList from "@/components/Message/MessageList";
 import { MessageProvider } from "@/context/MessageContext";
 import MessageInput from "@/components/Message/Input";
 import useAuth from "@/hooks/useAuth";
+import Head from "next/head";
 
 type MessagePageProps = {};
 
@@ -21,16 +22,23 @@ const MessagePage: React.FC<MessagePageProps> = () => {
     }, []);
 
     return (
-        <MessageProvider>
-            <Flex bg="white" flexGrow={1} h="100vh">
-                <MessageLeftSideBar />
-                <VStack spacing={0} flexGrow={1} align="flex-start">
-                    <MessageHeader />
-                    <MessageList />
-                    <MessageInput />
-                </VStack>
-            </Flex>
-        </MessageProvider>
+        <>
+            <Head>
+                <title>MangaKr Messenger</title>
+            </Head>
+            <>
+                <MessageProvider>
+                    <Flex bg="white" flexGrow={1} h="100vh">
+                        <MessageLeftSideBar />
+                        <VStack spacing={0} flexGrow={1} align="flex-start">
+                            <MessageHeader />
+                            <MessageList />
+                            <MessageInput />
+                        </VStack>
+                    </Flex>
+                </MessageProvider>
+            </>
+        </>
     );
 };
 

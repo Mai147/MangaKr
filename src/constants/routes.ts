@@ -134,8 +134,8 @@ export const routes = {
     getPostCreatePage: () => {
         return `/${POST_ROUTE}/create`;
     },
-    getPostDetailPage: (postId: string) => {
-        return `/${POST_ROUTE}/${postId}`;
+    getPostDetailPage: (userId: string, postId: string) => {
+        return `/${USER_ROUTE}/${userId}/${POST_ROUTE}/${postId}`;
     },
     getAdminPage: () => {
         return `/${ADMIN_ROUTE}`;

@@ -1,5 +1,6 @@
 import ImageUpload from "@/components/ImageUpload";
 import TabItem from "@/components/Tab/TabItem";
+import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
 import useSelectFile from "@/hooks/useSelectFile";
@@ -7,10 +8,12 @@ import { defaultReviewForm, Review } from "@/models/Review";
 import { UserModel } from "@/models/User";
 import ReviewService from "@/services/ReviewService";
 import { validateCreateReview } from "@/validation/reviewValidation";
-import { Flex, Button, Divider, Text, useToast } from "@chakra-ui/react";
+import { Flex, Divider, useToast } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { IoImageOutline, IoDocument } from "react-icons/io5";
 import { MdOutlineRateReview } from "react-icons/md";
+import FormFooter from "../Footer";
+import FormHeader from "../Header";
 import ReviewFormContent from "./Content";
 import ReviewFormRate from "./Rate";
 
@@ -22,13 +25,14 @@ type ReviewFormProps = {
 
 const formTab = [
     {
-        title: "Hình ảnh",
-        icon: IoImageOutline,
-    },
-    {
         title: "Nội dung",
         icon: IoDocument,
     },
+    {
+        title: "Hình ảnh",
+        icon: IoImageOutline,
+    },
+
     {
         title: "Đánh giá",
         icon: MdOutlineRateReview,
@@ -45,7 +49,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
         creatorId: user.uid,
         creatorDisplayName: user.displayName!,
     });
-    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const toast = useToast();
 
@@ -73,7 +76,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
     };
 
     const onSubmit = async () => {
-        setLoading(true);
         if (errors) setErrors([]);
         const res = validateCreateReview(reviewForm);
         if (!res.result) {
@@ -83,7 +85,6 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
                 title: "Nhập thiếu thông tin, vui lòng thử lại",
                 status: "error",
             });
-            setLoading(false);
             return;
         }
         if (!review) {
@@ -107,25 +108,22 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
                 status: "success",
             });
         }
-        setLoading(false);
     };
 
     return (
-        <Flex direction="column" bg="white" borderRadius={4} mt={2}>
-            <Flex direction="column">
-                <Flex>
-                    <Text fontSize={24} fontWeight={600}>
-                        Viết review
-                    </Text>
-                    <Button
-                        w={28}
-                        ml={8}
-                        isLoading={loading}
-                        onClick={onSubmit}
-                    >
-                        Lưu
-                    </Button>
-                </Flex>
+        <Flex
+            direction="column"
+            bg="white"
+            borderRadius={4}
+            mt={2}
+            flexGrow={1}
+        >
+            <Flex direction="column" flexGrow={1}>
+                <FormHeader
+                    title={!review ? "Viết bài đánh giá" : "Sửa bài đánh giá"}
+                    backTitle={"Quay về trang chủ"}
+                    backHref={routes.getHomePage()}
+                />
                 <Divider my={4} />
                 <Flex width="100%">
                     {formTab.map((item) => (
@@ -137,41 +135,43 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ bookId, user, review }) => {
                         />
                     ))}
                 </Flex>
-            </Flex>
-            <Flex p={4}>
-                {selectedTab === formTab[0].title && (
-                    <ImageUpload
-                        selectedFile={selectedFile}
-                        onSelectImage={onSelectFile}
-                        setSelectedFile={setSelectedFile}
-                    />
-                )}
-                {selectedTab === formTab[1].title && (
-                    <ReviewFormContent
-                        title={reviewForm.title}
-                        content={reviewForm.content}
-                        setTitle={(value) => {
-                            handleChange("title", value);
-                        }}
-                        setContent={(value) => {
-                            handleChange("content", value);
-                        }}
-                        errors={errors}
-                    />
-                )}
-                {selectedTab === formTab[2].title && (
-                    <ReviewFormRate
-                        rating={reviewForm.rating}
-                        setRating={(value) => {
-                            handleChange("rating", value);
-                        }}
-                        tagReview={reviewForm.tagReview}
-                        setTagReview={(value) => {
-                            handleChange("tagReview", value);
-                        }}
-                        errors={errors}
-                    />
-                )}
+                <Flex p={4} flexGrow={1} direction="column">
+                    {selectedTab === formTab[0].title && (
+                        <ReviewFormContent
+                            title={reviewForm.title}
+                            content={reviewForm.content}
+                            setTitle={(value) => {
+                                handleChange("title", value);
+                            }}
+                            setContent={(value) => {
+                                handleChange("content", value);
+                            }}
+                            errors={errors}
+                        />
+                    )}
+                    {selectedTab === formTab[1].title && (
+                        <ImageUpload
+                            selectedFile={selectedFile}
+                            onSelectImage={onSelectFile}
+                            setSelectedFile={setSelectedFile}
+                        />
+                    )}
+
+                    {selectedTab === formTab[2].title && (
+                        <ReviewFormRate
+                            rating={reviewForm.rating}
+                            setRating={(value) => {
+                                handleChange("rating", value);
+                            }}
+                            tagReview={reviewForm.tagReview}
+                            setTagReview={(value) => {
+                                handleChange("tagReview", value);
+                            }}
+                            errors={errors}
+                        />
+                    )}
+                </Flex>
+                <FormFooter onSubmit={onSubmit} />
             </Flex>
         </Flex>
     );

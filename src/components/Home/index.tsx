@@ -1,6 +1,6 @@
 import { routes } from "@/constants/routes";
 import useHome from "@/hooks/useHome";
-import { Box, Divider, Flex, Grid, GridItem, VStack } from "@chakra-ui/react";
+import { Box, Flex, Grid, GridItem, VStack } from "@chakra-ui/react";
 import React from "react";
 import AuthorSnippetItem from "../Author/Snippet/AuthorSnippetItem";
 import BannerItem from "../Banner/BannerItem";
@@ -67,7 +67,6 @@ const Home: React.FC<HomeProps> = () => {
                             />
                         ))}
                     </BookCarousel>
-                    <Divider pb={2} borderColor="gray.300" />
                     <SectionHeading
                         title="Manga nổi bật nhất"
                         href={routes.getBookTopPage()}
@@ -88,7 +87,6 @@ const Home: React.FC<HomeProps> = () => {
                             />
                         ))}
                     </BookCarousel>
-                    <Divider pb={2} borderColor="gray.300" />
                     <SectionHeading
                         title="Đánh giá mới nhất"
                         href={routes.getReviewHomePage()}
@@ -119,7 +117,6 @@ const Home: React.FC<HomeProps> = () => {
                             />
                         ))}
                     </BookCarousel>
-                    <Divider pb={2} borderColor="gray.300" />
                     <SectionHeading title="Tác giả nổi bật nhất" />
                     {mostFavoriteAuthors.loading && (
                         <Flex>
@@ -128,7 +125,7 @@ const Home: React.FC<HomeProps> = () => {
                             ))}
                         </Flex>
                     )}
-                    <Box py={2}>
+                    <Box pt={2} pb={4}>
                         <Grid
                             gridTemplateColumns="repeat(5, minmax(0, 1fr))"
                             gap={4}
@@ -146,7 +143,6 @@ const Home: React.FC<HomeProps> = () => {
                             ))}
                         </Grid>
                     </Box>
-                    <Divider py={2} borderColor="gray.300" />
                     <SectionHeading title="Cộng đồng yêu thích" />
                     {mostPopularCommunities.loading && (
                         <VStack w="100%">

@@ -25,7 +25,13 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
     const [showImageList, setShowImageList] = useState(false);
 
     return (
-        <Flex justify="center" align="center" width="100%">
+        <Flex
+            justify="center"
+            align="center"
+            width="100%"
+            flexGrow={1}
+            direction="column"
+        >
             {showImageList &&
                 selectedListFile &&
                 selectedListFile.length > 0 && (
@@ -86,7 +92,8 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
                     <Flex justify="center">
                         <Stack direction="row" mt={4}>
                             <Button
-                                height="28px"
+                                height={10}
+                                w={28}
                                 variant="outline"
                                 onClick={() => setSelectedListFile([])}
                             >
@@ -99,7 +106,8 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
                 <Flex
                     justify="center"
                     align="center"
-                    p={20}
+                    // p={20}
+                    flexGrow={1}
                     border="1px dashed"
                     borderColor="gray.400"
                     borderRadius={4}
@@ -107,7 +115,8 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
                 >
                     <Button
                         variant="outline"
-                        height="28px"
+                        height={10}
+                        w={28}
                         onClick={() => {
                             selectedFileRef.current?.click();
                         }}

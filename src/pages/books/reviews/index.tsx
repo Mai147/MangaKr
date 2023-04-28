@@ -14,6 +14,7 @@ import usePagination, {
 import { Review } from "@/models/Review";
 import { Box, Divider, Text, VStack } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
+import Head from "next/head";
 import React, { useEffect, useState } from "react";
 
 type ReviewPageProps = {
@@ -56,55 +57,64 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
     }, [reviewPaginationInput.page]);
 
     return (
-        <PageContent>
-            <Box flexGrow={1}>
-                <Text fontSize={24} fontWeight={600}>
-                    Bài đánh giá
-                </Text>
-                <Divider my={4} borderColor="gray.400" />
-                {loading ? (
-                    [1, 2, 3, 4].map((e, idx) => (
-                        <HorizontalSkeleton key={idx} />
-                    ))
-                ) : reviewPaginationOutput.list.length <= 0 ? (
-                    <Text align="center" mt={10}>
-                        Không có bài đánh giá nào!
-                    </Text>
-                ) : (
-                    <VStack spacing={4} mb={4} align="flex-start">
-                        {reviewPaginationOutput.list.map((review: Review) => (
-                            <ReviewSnippetItem
-                                key={review.id}
-                                review={review}
-                                href={routes.getReviewDetailPage(
-                                    review.bookId,
-                                    review.id!
+        <>
+            <Head>
+                <title>MangaKr - Review</title>
+            </Head>
+            <>
+                <PageContent>
+                    <Box flexGrow={1}>
+                        <Text fontSize={24} fontWeight={600}>
+                            Bài đánh giá
+                        </Text>
+                        <Divider my={4} borderColor="gray.400" />
+                        {loading ? (
+                            [1, 2, 3, 4].map((e, idx) => (
+                                <HorizontalSkeleton key={idx} />
+                            ))
+                        ) : reviewPaginationOutput.list.length <= 0 ? (
+                            <Text align="center" mt={10}>
+                                Không có bài đánh giá nào!
+                            </Text>
+                        ) : (
+                            <VStack spacing={4} mb={4} align="flex-start">
+                                {reviewPaginationOutput.list.map(
+                                    (review: Review) => (
+                                        <ReviewSnippetItem
+                                            key={review.id}
+                                            review={review}
+                                            href={routes.getReviewDetailPage(
+                                                review.bookId,
+                                                review.id!
+                                            )}
+                                        />
+                                    )
                                 )}
-                            />
-                        ))}
-                    </VStack>
-                )}
-                <Pagination
-                    page={reviewPaginationOutput.page}
-                    totalPage={reviewPaginationOutput.totalPage}
-                    onNext={() => {
-                        setReviewPaginationInput((prev) => ({
-                            ...prev,
-                            page: prev.page + 1,
-                            isNext: true,
-                        }));
-                    }}
-                    onPrev={() => {
-                        setReviewPaginationInput((prev) => ({
-                            ...prev,
-                            page: prev.page - 1,
-                            isNext: false,
-                        }));
-                    }}
-                />
-            </Box>
-            <RightSidebar />
-        </PageContent>
+                            </VStack>
+                        )}
+                        <Pagination
+                            page={reviewPaginationOutput.page}
+                            totalPage={reviewPaginationOutput.totalPage}
+                            onNext={() => {
+                                setReviewPaginationInput((prev) => ({
+                                    ...prev,
+                                    page: prev.page + 1,
+                                    isNext: true,
+                                }));
+                            }}
+                            onPrev={() => {
+                                setReviewPaginationInput((prev) => ({
+                                    ...prev,
+                                    page: prev.page - 1,
+                                    isNext: false,
+                                }));
+                            }}
+                        />
+                    </Box>
+                    <RightSidebar />
+                </PageContent>
+            </>
+        </>
     );
 };
 

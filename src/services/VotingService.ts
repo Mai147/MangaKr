@@ -1,6 +1,8 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { CommunityRole } from "@/constants/roles";
 import { fireStore } from "@/firebase/clientApp";
 import { Community } from "@/models/Community";
+import { Notification } from "@/models/Notification";
 import { UserModel, UserSnippet } from "@/models/User";
 import { Voting, VotingOption } from "@/models/Vote";
 import FileUtils from "@/utils/FileUtils";
@@ -23,6 +25,7 @@ import {
     writeBatch,
 } from "firebase/firestore";
 import CommunityService from "./CommunityService";
+import NotificationService from "./NotificationService";
 
 class VotingService {
     static get = async ({
@@ -52,9 +55,11 @@ class VotingService {
     static create = async ({
         votingForm,
         community,
+        userRole,
     }: {
         votingForm: Voting;
         community: Community;
+        userRole?: CommunityRole;
     }) => {
         try {
             const batch = writeBatch(fireStore);
@@ -117,6 +122,15 @@ class VotingService {
             batch.update(communityDocRef, {
                 numberOfVotings: increment(1),
             });
+            if (
+                userRole === "COMMUNITY_ADMIN" ||
+                userRole === "COMMUNITY_MODERATOR" ||
+                userRole === "COMMUNITY_SUPER_ADMIN"
+            ) {
+                batch.update(votingDocRef, {
+                    isAccept: true,
+                });
+            }
             await batch.commit();
         } catch (error) {
             console.log(error);
@@ -134,6 +148,32 @@ class VotingService {
             );
             batch.update(votingDocRef, {
                 isLock: !voting.isLock,
+            });
+            // Notification
+            let notification: Notification;
+            if (!voting.isLock) {
+                notification = {
+                    id: voting.communityId,
+                    content:
+                        "Cuộc bình chọn của bạn đã bị khóa do vi phạm tiêu chuẩn cộng đồng",
+                    isSeen: false,
+                    isRead: true,
+                    type: "POST_LOCK",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+            } else {
+                notification = {
+                    id: voting.communityId,
+                    content: "Cuộc bình chọn của bạn đã được mở khóa",
+                    isSeen: false,
+                    isRead: true,
+                    type: "POST_LOCK",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+            }
+            await NotificationService.updateOrCreate({
+                notification,
+                userId: voting.creatorId,
             });
             await batch.commit();
         } catch (error) {

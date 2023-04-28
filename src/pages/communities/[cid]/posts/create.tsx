@@ -1,24 +1,28 @@
 import NotAvailable from "@/components/Error/NotAvailable";
-import PostForm from "@/components/Post/Form";
+import PostForm from "@/components/Form/Post";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
 import { UserModel } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
-import { Box } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type CommunityCreatePostPageProps = {
     community: Community;
     user?: UserModel;
+    userRole?: CommunityRole;
 };
 
 const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
     community,
     user,
+    userRole,
 }) => {
     const { authAction } = useAuth();
     const { communityAction } = useCommunity();
@@ -32,18 +36,32 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
         communityAction.setSelectedCommunity(community);
     }, [community]);
 
-    if (!community) {
-        return (
-            <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
-    if (!user) {
-        return <></>;
-    }
     return (
-        <Box p={6} boxShadow="lg" bg="white" borderRadius={4} flexGrow={1}>
-            <PostForm user={user} community={community} />
-        </Box>
+        <>
+            <Head>
+                <title>{`MangaKr - Cộng đồng ${
+                    community?.name || ""
+                } - Tạo bài viết`}</title>
+            </Head>
+            <>
+                {!community ? (
+                    <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
+                ) : !user ? (
+                    <></>
+                ) : (
+                    <Flex
+                        direction="column"
+                        p={6}
+                        boxShadow="lg"
+                        bg="white"
+                        borderRadius={4}
+                        flexGrow={1}
+                    >
+                        <PostForm user={user} community={community} />
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 
@@ -76,6 +94,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 props: {
                     community,
                     user: us,
+                    userRole: userRole
+                        ? JSON.parse(JSON.stringify(userRole?.role))
+                        : null,
                 },
             };
         }

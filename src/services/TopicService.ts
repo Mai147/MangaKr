@@ -1,6 +1,8 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
+import { CommunityRole } from "@/constants/roles";
 import { fireStore } from "@/firebase/clientApp";
 import { Community } from "@/models/Community";
+import { Notification } from "@/models/Notification";
 import { Topic, TopicReply } from "@/models/Topic";
 import FileUtils from "@/utils/FileUtils";
 import { triGram } from "@/utils/StringUtils";
@@ -15,6 +17,7 @@ import {
     getDoc,
 } from "firebase/firestore";
 import CommunityService from "./CommunityService";
+import NotificationService from "./NotificationService";
 
 class TopicService {
     static get = async ({
@@ -44,9 +47,11 @@ class TopicService {
     static create = async ({
         topicForm,
         community,
+        userRole,
     }: {
         topicForm: Topic;
         community: Community;
+        userRole?: CommunityRole;
     }) => {
         try {
             const batch = writeBatch(fireStore);
@@ -88,6 +93,15 @@ class TopicService {
             batch.update(communityDocRef, {
                 numberOfTopics: increment(1),
             });
+            if (
+                userRole === "COMMUNITY_ADMIN" ||
+                userRole === "COMMUNITY_MODERATOR" ||
+                userRole === "COMMUNITY_SUPER_ADMIN"
+            ) {
+                batch.update(topicDocRef, {
+                    isAccept: true,
+                });
+            }
             await batch.commit();
         } catch (error) {
             console.log(error);
@@ -105,6 +119,32 @@ class TopicService {
             );
             batch.update(topicDocRef, {
                 isLock: !topic.isLock,
+            });
+            // Notification
+            let notification: Notification;
+            if (!topic.isLock) {
+                notification = {
+                    id: topic.communityId,
+                    content:
+                        "Chủ đề của bạn đã bị khóa do vi phạm tiêu chuẩn cộng đồng",
+                    isSeen: false,
+                    isRead: true,
+                    type: "POST_LOCK",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+            } else {
+                notification = {
+                    id: topic.communityId,
+                    content: "Chủ đề của bạn đã được mở khóa",
+                    isSeen: false,
+                    isRead: true,
+                    type: "POST_LOCK",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+            }
+            await NotificationService.updateOrCreate({
+                notification,
+                userId: topic.creatorId,
             });
             await batch.commit();
         } catch (error) {

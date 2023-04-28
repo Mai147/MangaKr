@@ -1,24 +1,28 @@
-import TopicForm from "@/components/Community/Topic/TopicForm";
 import NotAvailable from "@/components/Error/NotAvailable";
+import TopicForm from "@/components/Form/Topic";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
 import { Community } from "@/models/Community";
 import { UserModel } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
-import { Box, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type CommunityCreateTopicPageProps = {
     community: Community;
     user?: UserModel;
+    userRole?: CommunityRole;
 };
 
 const CommunityCreateTopicPage: React.FC<CommunityCreateTopicPageProps> = ({
     community,
     user,
+    userRole,
 }) => {
     const { authAction } = useAuth();
     const { communityAction } = useCommunity();
@@ -32,25 +36,36 @@ const CommunityCreateTopicPage: React.FC<CommunityCreateTopicPageProps> = ({
         communityAction.setSelectedCommunity(community);
     }, [community]);
 
-    if (!community) {
-        return (
-            <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
-    if (!user) {
-        return <></>;
-    }
     return (
-        <Flex
-            direction="column"
-            flexGrow={1}
-            p={6}
-            boxShadow="lg"
-            bg="white"
-            borderRadius={4}
-        >
-            <TopicForm user={user} community={community} />
-        </Flex>
+        <>
+            <Head>
+                <title>{`MangaKr - Cộng đồng ${
+                    community?.name || ""
+                } - Tạo chủ đề`}</title>
+            </Head>
+            <>
+                {!community ? (
+                    <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
+                ) : !user ? (
+                    <></>
+                ) : (
+                    <Flex
+                        direction="column"
+                        flexGrow={1}
+                        p={6}
+                        boxShadow="lg"
+                        bg="white"
+                        borderRadius={4}
+                    >
+                        <TopicForm
+                            user={user}
+                            community={community}
+                            userRole={userRole}
+                        />
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 
@@ -87,6 +102,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 props: {
                     community,
                     user: us,
+                    userRole: userRole
+                        ? JSON.parse(JSON.stringify(userRole?.role))
+                        : null,
                 },
             };
         }

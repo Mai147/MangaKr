@@ -52,9 +52,19 @@ const AuthorSnippetItem: React.FC<AuthorSnippetItemProps> = ({
                     <Text noOfLines={1} fontWeight={600}>
                         {author.name}
                     </Text>
-                    <Text noOfLines={2} fontSize={14} color="gray.400">
-                        {author.bio}
-                    </Text>
+                    <Text>---</Text>
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: author.bio || "",
+                        }}
+                        style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                        }}
+                        className="ck ck-content"
+                    ></div>
                 </Box>
 
                 <Flex

@@ -26,7 +26,7 @@ export default function AdminSidebar({ children }: { children: ReactNode }) {
     return (
         <Flex
             minH="100vh"
-            bg={useColorModeValue("gray.100", "gray.900")}
+            bg={useColorModeValue("#FAFAFA", "gray.900")}
             flexDirection="column"
         >
             <AdminSidebarContent

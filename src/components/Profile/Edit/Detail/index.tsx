@@ -47,7 +47,6 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
     const [profileForm, setProfileForm] = useState<ProfileFormState>(
         defaultProfileFormState
     );
-    const [avatarChange, setAvatarChange] = useState(false);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState<boolean | null>(null);
 
@@ -68,7 +67,6 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
             ...prev,
             photoUrl: selectedFile,
         }));
-        setAvatarChange(true);
     }, [selectedFile]);
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -81,7 +79,7 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                 const res = await UserService.update({
                     user: auth.currentUser,
                     profileForm,
-                    avatarChange,
+                    avatarChange: selectedFile !== auth.currentUser.photoURL,
                 });
                 if (res) {
                     authAction.updateUser({
@@ -92,7 +90,6 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                 } else {
                     setSuccess(false);
                 }
-                setAvatarChange(false);
             }
         } catch (error) {
             setSuccess(false);

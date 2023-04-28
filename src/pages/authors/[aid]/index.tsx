@@ -2,25 +2,39 @@ import AuthorDetail from "@/components/Author/Detail";
 import NotAvailable from "@/components/Error/NotAvailable";
 import PageContent from "@/components/Layout/PageContent";
 import RightSidebar from "@/components/Layout/Sidebar/RightSidebar";
+import useAuth from "@/hooks/useAuth";
 import { Author } from "@/models/Author";
 import AuthorService from "@/services/AuthorService";
 import { GetServerSidePropsContext } from "next";
-import React from "react";
+import Head from "next/head";
+import React, { useEffect } from "react";
 
 type AuthorDetailPageProps = {
     author?: Author;
 };
 
 const AuthorDetailPage: React.FC<AuthorDetailPageProps> = ({ author }) => {
-    if (!author) {
-        return <NotAvailable title="Tác giả không tồn tại hoặc đã bị khóa!" />;
-    }
+    const { authAction } = useAuth();
+    useEffect(() => {
+        authAction.setNeedAuth(false);
+    }, []);
 
     return (
-        <PageContent>
-            <AuthorDetail author={author} />
-            <RightSidebar />
-        </PageContent>
+        <>
+            <Head>
+                <title>{`MangaKr - Tác giả ${author?.name || ""}`}</title>
+            </Head>
+            <>
+                {!author ? (
+                    <NotAvailable title="Tác giả không tồn tại hoặc đã bị khóa!" />
+                ) : (
+                    <PageContent>
+                        <AuthorDetail author={author} />
+                        <RightSidebar />
+                    </PageContent>
+                )}
+            </>
+        </>
     );
 };
 

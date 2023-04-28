@@ -1,5 +1,6 @@
 import ImageUpload from "@/components/ImageUpload";
 import TabItem from "@/components/Tab/TabItem";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
@@ -12,25 +13,28 @@ import { validateCreateTopic } from "@/validation/topicValidation";
 import { Button, Divider, Flex, Link, Text, useToast } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { IoDocument, IoImageOutline } from "react-icons/io5";
-import TopicFormContent from "./TopicFormContent";
+import FormFooter from "../Footer";
+import FormHeader from "../Header";
+import TopicFormContent from "./Content";
 
 type TopicFormProps = {
     community: Community;
     user: UserModel;
+    userRole?: CommunityRole;
 };
 
 const formTab = [
     {
-        title: "Hình ảnh",
-        icon: IoImageOutline,
-    },
-    {
         title: "Nội dung",
         icon: IoDocument,
     },
+    {
+        title: "Hình ảnh",
+        icon: IoImageOutline,
+    },
 ];
 
-const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
+const TopicForm: React.FC<TopicFormProps> = ({ community, user, userRole }) => {
     const [topicForm, setTopicForm] = useState<Topic>({
         ...defaultTopicForm,
         creatorId: user.uid,
@@ -38,7 +42,6 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
         creatorImageUrl: user.photoURL || undefined,
         communityId: community.id!,
     });
-    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
     const { onSelectFile, selectedFile, setSelectedFile } = useSelectFile();
@@ -46,7 +49,6 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
 
     const onSubmit = async () => {
         try {
-            setLoading(true);
             if (errors) setErrors([]);
             const res = validateCreateTopic(topicForm);
             if (!res.result) {
@@ -56,10 +58,9 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
                     title: "Nhập thiếu thông tin, vui lòng thử lại",
                     status: "error",
                 });
-                setLoading(false);
                 return;
             }
-            await TopicService.create({ topicForm, community });
+            await TopicService.create({ topicForm, community, userRole });
             setTopicForm({
                 ...defaultTopicForm,
                 creatorId: user.uid,
@@ -76,7 +77,6 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
         } catch (error) {
             console.log(error);
         }
-        setLoading(false);
     };
 
     const handleChange = (field: string, value: any) => {
@@ -101,29 +101,14 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
             mt={2}
             flexGrow={1}
         >
-            <Flex direction="column">
-                <Flex align="center">
-                    <Text fontSize={24} fontWeight={600}>
-                        Tạo chủ đề
-                    </Text>
-                    <Button
-                        w={28}
-                        ml={8}
-                        isLoading={loading}
-                        onClick={onSubmit}
-                    >
-                        Lưu
-                    </Button>
-                    <Link
-                        ml={4}
-                        href={routes.getCommunityDetailPage(community.id!)}
-                        _hover={{ textDecoration: "none" }}
-                    >
-                        <Button variant="outline">Quay lại cộng đồng</Button>
-                    </Link>
-                </Flex>
-
+            <Flex direction="column" flexGrow={1}>
+                <FormHeader
+                    title={"Tạo chủ đề"}
+                    backTitle={"Quay lại cộng đồng"}
+                    backHref={routes.getCommunityDetailPage(community.id!)}
+                />
                 <Divider my={4} />
+
                 <Flex width="100%">
                     {formTab.map((item) => (
                         <TabItem
@@ -134,28 +119,29 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user }) => {
                         />
                     ))}
                 </Flex>
-            </Flex>
-            <Flex p={4} flexGrow={1}>
-                {selectedTab === formTab[0].title && (
-                    <ImageUpload
-                        onSelectImage={onSelectFile}
-                        setSelectedFile={setSelectedFile}
-                        selectedFile={selectedFile}
-                    />
-                )}
-                {selectedTab === formTab[1].title && (
-                    <TopicFormContent
-                        title={topicForm.title}
-                        description={topicForm.description || ""}
-                        setTitle={(value) => {
-                            handleChange("title", value);
-                        }}
-                        setDescription={(value) => {
-                            handleChange("description", value);
-                        }}
-                        errors={errors}
-                    />
-                )}
+                <Flex p={4} flexGrow={1}>
+                    {selectedTab === formTab[0].title && (
+                        <TopicFormContent
+                            title={topicForm.title}
+                            description={topicForm.description || ""}
+                            setTitle={(value) => {
+                                handleChange("title", value);
+                            }}
+                            setDescription={(value) => {
+                                handleChange("description", value);
+                            }}
+                            errors={errors}
+                        />
+                    )}
+                    {selectedTab === formTab[1].title && (
+                        <ImageUpload
+                            onSelectImage={onSelectFile}
+                            setSelectedFile={setSelectedFile}
+                            selectedFile={selectedFile}
+                        />
+                    )}
+                </Flex>
+                <FormFooter onSubmit={onSubmit} />
             </Flex>
         </Flex>
     );

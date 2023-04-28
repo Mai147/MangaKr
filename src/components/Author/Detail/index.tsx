@@ -105,9 +105,12 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                         <Text fontSize={20} fontWeight={500}>
                             {author.name}
                         </Text>
-                        <Text fontSize={14} color="gray.400">
-                            {author.bio || "-----"}
-                        </Text>
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: author.bio || "-----",
+                            }}
+                            className="ck ck-content"
+                        ></div>
                         <Flex
                             align="center"
                             alignSelf="flex-start"

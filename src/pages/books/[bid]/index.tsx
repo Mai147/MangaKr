@@ -6,6 +6,7 @@ import { UserModel } from "@/models/User";
 import BookService from "@/services/BookService";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type BookDetailPageProps = {
@@ -19,10 +20,16 @@ const BookDetailPage: React.FC<BookDetailPageProps> = ({ book, user }) => {
         authAction.setNeedAuth(false);
     }, []);
 
-    if (!book) {
-        return <BookError />;
-    }
-    return <BookDetail book={book} user={user} />;
+    return (
+        <>
+            <Head>
+                <title>{`MangaKr - Manga ${book?.name || ""}`}</title>
+            </Head>
+            <>
+                {!book ? <BookError /> : <BookDetail book={book} user={user} />}
+            </>
+        </>
+    );
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {

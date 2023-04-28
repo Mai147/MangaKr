@@ -97,6 +97,30 @@ class CommunityService {
         }
     };
 
+    static getModerators = async ({ communityId }: { communityId: string }) => {
+        const communityUserSnippetDocsRef = collection(
+            fireStore,
+            firebaseRoute.getCommunityUserRoute(communityId)
+        );
+        const communityUserQuery = query(
+            communityUserSnippetDocsRef,
+            where("role", "in", [
+                COMMUNITY_ADMIN_ROLE,
+                COMMUNITY_MODERATOR_ROLE,
+                COMMUNITY_SUPER_ADMIN_ROLE,
+            ])
+        );
+        const communityUserDocs = await getDocs(communityUserQuery);
+        const communityUser = communityUserDocs.docs.map((doc) => {
+            const communityUserData = JSON.parse(JSON.stringify(doc.data()));
+            return {
+                id: doc.id,
+                ...communityUserData,
+            } as CommunityUserSnippet;
+        });
+        return communityUser;
+    };
+
     static getRelated = async ({
         community,
         communityLimit = 3,

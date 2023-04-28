@@ -55,7 +55,7 @@ const AuthorLeftSidebar: React.FC<AuthorLeftSidebarProps> = ({ authorId }) => {
                         vote,
                     });
                 }
-                setUserVote(vote);
+                setUserVote(userVote?.value !== vote.value ? vote : undefined);
             } catch (error) {
                 console.log(error);
             }
@@ -65,6 +65,8 @@ const AuthorLeftSidebar: React.FC<AuthorLeftSidebarProps> = ({ authorId }) => {
     useEffect(() => {
         if (user) {
             getUserVote(user.uid);
+        } else {
+            setUserVote(undefined);
         }
     }, [user]);
 

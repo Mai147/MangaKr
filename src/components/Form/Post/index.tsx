@@ -1,7 +1,7 @@
 import ImageMultipleUpload from "@/components/ImageUpload/ImageMultipleUpload";
 import VideoUpload from "@/components/ImageUpload/VideoUpload";
-import PostFormContent from "@/components/Post/Form/Content";
 import TabItem from "@/components/Tab/TabItem";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
@@ -19,11 +19,13 @@ import { BsCameraVideo } from "react-icons/bs";
 import { IoImageOutline, IoDocument } from "react-icons/io5";
 import FormFooter from "../Footer";
 import FormHeader from "../Header";
+import PostFormContent from "./Content";
 import PostPrivacyTab from "./PostPrivacyTab";
 
 type PostFormProps = {
     community?: Community;
     user: UserModel;
+    userRole?: CommunityRole;
 };
 
 const formTab = [
@@ -39,26 +41,27 @@ const formTab = [
         title: "Video",
         icon: BsCameraVideo,
     },
+];
+
+const userFormTab = [
     {
         title: "Hiển thị",
         icon: AiOutlineEye,
     },
 ];
 
-const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
+const PostForm: React.FC<PostFormProps> = ({ community, user, userRole }) => {
     const [postForm, setPostForm] = useState<Post>({
         ...defaultPostForm,
         creatorId: user.uid,
         creatorDisplayName: user.displayName!,
         creatorImageUrl: user.photoURL,
     });
-    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
     const { onSelectMultipleFile, selectedListFile, setSelectedListFile } =
         useSelectFile();
-    const { onSelectVideo, selectedVideo, setSelectedVideo, onUploadVideo } =
-        useSelectVideo();
+    const { onSelectVideo, selectedVideo, setSelectedVideo } = useSelectVideo();
     const toast = useToast();
 
     useEffect(() => {
@@ -77,7 +80,6 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
 
     const onSubmit = async () => {
         try {
-            setLoading(true);
             if (errors) setErrors([]);
             const res = validateCreatePost(postForm);
             if (!res.result) {
@@ -87,10 +89,9 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
                     title: "Nhập thiếu thông tin, vui lòng thử lại",
                     status: "error",
                 });
-                setLoading(false);
                 return;
             }
-            await PostService.create({ postForm, community });
+            await PostService.create({ postForm, community, userRole });
             setPostForm({
                 ...defaultPostForm,
                 creatorId: user.uid,
@@ -106,7 +107,6 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
         } catch (error) {
             console.log(error);
         }
-        setLoading(false);
     };
 
     const handleChange = (field: string, value: any) => {
@@ -148,9 +148,18 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
                                 setSelectedTab={setSelectedTab}
                             />
                         ))}
+                        {!community &&
+                            userFormTab.map((item) => (
+                                <TabItem
+                                    key={item.title}
+                                    item={item}
+                                    selected={item.title === selectedTab}
+                                    setSelectedTab={setSelectedTab}
+                                />
+                            ))}
                     </Flex>
                 </Flex>
-                <Flex p={4}>
+                <Flex p={4} flexGrow={1}>
                     {selectedTab === formTab[0].title && (
                         <PostFormContent
                             caption={postForm.caption}
@@ -176,12 +185,9 @@ const PostForm: React.FC<PostFormProps> = ({ community, user }) => {
                             onSelectVideo={onSelectVideo}
                             setSelectedFile={setSelectedVideo}
                             selectedFile={selectedVideo}
-                            onUpload={async () => {
-                                onUploadVideo("video");
-                            }}
                         />
                     )}
-                    {selectedTab === formTab[3].title && (
+                    {selectedTab === userFormTab[0].title && (
                         <PostPrivacyTab
                             privacy={postForm.privacyType}
                             setPrivacy={(value) => {

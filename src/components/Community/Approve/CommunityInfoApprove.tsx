@@ -80,7 +80,7 @@ const defaultCommunityApproveState: CommunityInfoApproveState = {
 export const postHeaderList: TableInfoHeader[] = [
     {
         title: "Người viết",
-        width: "100px",
+        width: "150px",
     },
     {
         title: "Ảnh",
@@ -88,7 +88,7 @@ export const postHeaderList: TableInfoHeader[] = [
     },
     {
         title: "Tiêu đề",
-        width: "200px",
+        width: "250px",
     },
     {
         title: "Nội dung",

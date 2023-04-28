@@ -98,7 +98,10 @@ const CommunityLeftSideBarAction: React.FC<
         ]
     );
 
-    return canApprovePost || canApproveUser || canAuthorizeUser ? (
+    return canApprovePost ||
+        canApproveUser ||
+        canAuthorizeUser ||
+        canCreatePost ? (
         <Box position="relative" role="group" alignSelf="flex-end">
             <Icon
                 as={FiMoreVertical}

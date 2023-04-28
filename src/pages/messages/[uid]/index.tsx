@@ -11,6 +11,7 @@ import MessageInput from "@/components/Message/Input";
 import useAuth from "@/hooks/useAuth";
 import UserService from "@/services/UserService";
 import { UserModel } from "@/models/User";
+import Head from "next/head";
 
 type MessagePageProps = {
     user: UserModel | null;
@@ -25,16 +26,23 @@ const MessagePage: React.FC<MessagePageProps> = ({ user }) => {
     }, []);
 
     return (
-        <MessageProvider>
-            <Flex bg="white" flexGrow={1} h="100vh">
-                <MessageLeftSideBar />
-                <VStack spacing={0} flexGrow={1} align="flex-start">
-                    <MessageHeader />
-                    <MessageList />
-                    <MessageInput />
-                </VStack>
-            </Flex>
-        </MessageProvider>
+        <>
+            <Head>
+                <title>MangaKr Messenger</title>
+            </Head>
+            <>
+                <MessageProvider>
+                    <Flex bg="white" flexGrow={1} h="100vh">
+                        <MessageLeftSideBar />
+                        <VStack spacing={0} flexGrow={1} align="flex-start">
+                            <MessageHeader />
+                            <MessageList />
+                            <MessageInput />
+                        </VStack>
+                    </Flex>
+                </MessageProvider>
+            </>
+        </>
     );
 };
 

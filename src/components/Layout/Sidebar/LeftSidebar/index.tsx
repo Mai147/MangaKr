@@ -19,13 +19,13 @@ const LeftSidebar: React.FC<LeftSidebarProps> = ({
         Vote | undefined
     >();
     return (
-        <VStack position="sticky" top={24} mr={4} spacing={4}>
+        <VStack position="sticky" top={24} mr={4} spacing={6}>
             {voteList.map((e) => (
                 <ReactionItem
                     key={e.value}
                     icon={e.icon}
                     color={e.color}
-                    iconSize={24}
+                    iconSize={30}
                     isActive={userVote?.value === e.value}
                     isLoading={loading && e === selectedReaction}
                     isDisabled={loading}

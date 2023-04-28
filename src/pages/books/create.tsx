@@ -4,9 +4,10 @@ import useAuth from "@/hooks/useAuth";
 import cookies from "next-cookies";
 import React, { useEffect } from "react";
 import { GetServerSidePropsContext } from "next";
-import BookForm from "@/components/Book/Form";
-import { Box } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { BookCreateProvider } from "@/context/BookCreateContext";
+import BookForm from "@/components/Form/Book";
+import Head from "next/head";
 
 type BookCreatePageProps = {};
 
@@ -19,11 +20,25 @@ const BookCreatePage: React.FC<BookCreatePageProps> = () => {
     }, []);
 
     return (
-        <Box p="6" bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
-            <BookCreateProvider>
-                <BookForm />
-            </BookCreateProvider>
-        </Box>
+        <>
+            <Head>
+                <title>MangaKr - Tạo Manga</title>
+            </Head>
+            <>
+                <Flex
+                    direction="column"
+                    p="6"
+                    bg="white"
+                    borderRadius={4}
+                    boxShadow="lg"
+                    flexGrow={1}
+                >
+                    <BookCreateProvider>
+                        <BookForm />
+                    </BookCreateProvider>
+                </Flex>
+            </>
+        </>
     );
 };
 

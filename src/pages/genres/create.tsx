@@ -1,11 +1,11 @@
-import AuthorForm from "@/components/Author/Form";
-import GenreForm from "@/components/Genre/GenreForm";
+import GenreForm from "@/components/Form/Genre";
 import { WRITER_ROLE } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
-import { Box } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type GenreCreatePageProps = {};
@@ -19,9 +19,23 @@ const GenreCreatePage: React.FC<GenreCreatePageProps> = () => {
     }, []);
 
     return (
-        <Box p="6" bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
-            <GenreForm />
-        </Box>
+        <>
+            <Head>
+                <title>MangaKr - Tạo thể loại</title>
+            </Head>
+            <>
+                <Flex
+                    direction="column"
+                    p="6"
+                    bg="white"
+                    borderRadius={4}
+                    boxShadow="lg"
+                    flexGrow={1}
+                >
+                    <GenreForm />
+                </Flex>
+            </>
+        </>
     );
 };
 

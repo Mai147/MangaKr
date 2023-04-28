@@ -14,6 +14,10 @@ const NotificationUtils = {
                 return routes.getCommunityDetailPage(notification.id!);
             case "COMMUNITY_POST":
                 return routes.getCommunityDetailPage(notification.id!);
+            case "FOLLOWED_SHARE":
+                return routes.getProfilePage(notification.id!);
+            case "POST_LOCK":
+                return undefined;
         }
     },
 };

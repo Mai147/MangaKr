@@ -7,6 +7,7 @@ import useAuth from "@/hooks/useAuth";
 import { Box, Flex, Spinner } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect, useState } from "react";
 
 type ProfileEditPageProps = {};
@@ -20,37 +21,42 @@ const ProfileEditPage: React.FC<ProfileEditPageProps> = ({}) => {
         authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
-    if (!user) {
-        return (
-            <Flex align="center" justify="center">
-                <Spinner />
-            </Flex>
-        );
-    }
-
     return (
-        <Flex
-            align="flex-start"
-            direction={{ base: "column", md: "row" }}
-            bg="white"
-            p={6}
-            boxShadow="lg"
-            borderRadius={4}
-            flexGrow={1}
-        >
-            <ProfileSidebar tab={tab} setTab={setTab} />
-            <Box
-                borderLeft="1px solid"
-                borderColor="gray.200"
-                pl={5}
-                flexGrow={1}
-                alignSelf="stretch"
-            >
-                {tab == 0 && <ProfileDetail user={user} />}
-                {tab == 1 && <ProfilePassword user={user} />}
-                {tab == 2 && <ProfileSetting user={user} />}
-            </Box>
-        </Flex>
+        <>
+            <Head>
+                <title>MangaKr - Hồ sơ</title>
+            </Head>
+            <>
+                {!user ? (
+                    <Flex align="center" justify="center">
+                        <Spinner />
+                    </Flex>
+                ) : (
+                    <Flex
+                        align="flex-start"
+                        direction={{ base: "column", md: "row" }}
+                        bg="white"
+                        p={6}
+                        boxShadow="lg"
+                        borderRadius={4}
+                        flexGrow={1}
+                    >
+                        <ProfileSidebar tab={tab} setTab={setTab} />
+                        <Box
+                            borderLeft="1px solid"
+                            borderColor="gray.200"
+                            pl={5}
+                            flexGrow={1}
+                            alignSelf="stretch"
+                        >
+                            {tab == 0 && <ProfileDetail user={user} />}
+                            {tab == 1 && <ProfilePassword user={user} />}
+                            {tab == 2 && <ProfileSetting user={user} />}
+                        </Box>
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 

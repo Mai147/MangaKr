@@ -139,6 +139,7 @@ export const CommentProvider = ({
     >();
     const { getComments } = usePagination();
     const { toggleView } = useModal();
+    const userChange = useRef(false);
     const toast = useToast();
 
     const getReplyCommentList = async (commentId: string) => {
@@ -852,11 +853,15 @@ export const CommentProvider = ({
 
     useEffect(() => {
         setCommentState(defaultCommentState);
+        userChange.current = true;
     }, [user]);
 
     useEffect(() => {
-        getListComments();
-    }, [commentState.commentPaginationInput.page, user]);
+        if (userChange.current) {
+            getListComments();
+            userChange.current = false;
+        }
+    }, [commentState.commentPaginationInput.page, userChange]);
 
     useEffect(() => {
         if (selectedCommentId) {

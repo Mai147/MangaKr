@@ -6,6 +6,7 @@ import useAuth from "@/hooks/useAuth";
 import { Box, Divider } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect, useState } from "react";
 
 type ProfileLibaryPageProps = {};
@@ -25,29 +26,36 @@ const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
     }, []);
 
     return (
-        <Box>
-            <ConfirmModal
-                title={confirmTitle}
-                content={confirmContent}
-                subContent={confirmSubContent}
-                onSubmit={async () => {
-                    confirmSubmitFunc();
-                }}
-            />
-            <LibraryBook
-                setConfirmContent={setConfirmContent}
-                setConfirmSubContent={setConfirmSubContent}
-                setConfirmSubmitFunc={setConfirmSubmitFunc}
-                setConfirmTitle={setConfirmTitle}
-            />
-            <Divider my={4} borderColor="gray.400" />
-            <LibraryReview
-                setConfirmContent={setConfirmContent}
-                setConfirmSubContent={setConfirmSubContent}
-                setConfirmSubmitFunc={setConfirmSubmitFunc}
-                setConfirmTitle={setConfirmTitle}
-            />
-        </Box>
+        <>
+            <Head>
+                <title>MangaKr - Thư viện</title>
+            </Head>
+            <>
+                <Box>
+                    <ConfirmModal
+                        title={confirmTitle}
+                        content={confirmContent}
+                        subContent={confirmSubContent}
+                        onSubmit={async () => {
+                            confirmSubmitFunc();
+                        }}
+                    />
+                    <LibraryBook
+                        setConfirmContent={setConfirmContent}
+                        setConfirmSubContent={setConfirmSubContent}
+                        setConfirmSubmitFunc={setConfirmSubmitFunc}
+                        setConfirmTitle={setConfirmTitle}
+                    />
+                    <Divider my={4} borderColor="gray.400" />
+                    <LibraryReview
+                        setConfirmContent={setConfirmContent}
+                        setConfirmSubContent={setConfirmSubContent}
+                        setConfirmSubmitFunc={setConfirmSubmitFunc}
+                        setConfirmTitle={setConfirmTitle}
+                    />
+                </Box>
+            </>
+        </>
     );
 };
 

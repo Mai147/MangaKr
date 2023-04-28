@@ -1,5 +1,6 @@
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { PrivacyType } from "@/constants/privacy";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Community } from "@/models/Community";
@@ -99,9 +100,11 @@ class PostService {
     static create = async ({
         postForm,
         community,
+        userRole,
     }: {
         postForm: Post;
         community?: Community;
+        userRole?: CommunityRole;
     }) => {
         try {
             await runTransaction(fireStore, async (transaction) => {
@@ -164,6 +167,15 @@ class PostService {
                     transaction.update(postDocRef, {
                         videoUrl: videoRes.downloadUrl,
                         videoRef: videoRes.downloadRef,
+                    });
+                }
+                if (
+                    (community && userRole === "COMMUNITY_ADMIN") ||
+                    userRole === "COMMUNITY_MODERATOR" ||
+                    userRole === "COMMUNITY_SUPER_ADMIN"
+                ) {
+                    transaction.update(postDocRef, {
+                        isAccept: true,
                     });
                 }
                 // Notification
@@ -291,6 +303,32 @@ class PostService {
             batch.update(postDocRef, {
                 isLock: !post.isLock,
             });
+            // Notification
+            let notification: Notification;
+            if (!post.isLock) {
+                notification = {
+                    id: post.id,
+                    content:
+                        "Bài viết của bạn đã bị khóa do vi phạm tiêu chuẩn cộng đồng",
+                    isSeen: false,
+                    isRead: true,
+                    type: "POST_LOCK",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+            } else {
+                notification = {
+                    id: post.id,
+                    content: "Bài viết của bạn đã được mở khóa",
+                    isSeen: false,
+                    isRead: true,
+                    type: "POST_LOCK",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+            }
+            await NotificationService.updateOrCreate({
+                notification,
+                userId: post.creatorId,
+            });
             await batch.commit();
         } catch (error) {
             console.log(error);
@@ -373,6 +411,14 @@ class PostService {
             for (const userPostVoteDoc of userPostVoteDocs.docs) {
                 batch.delete(userPostVoteDoc.ref);
             }
+            const sharingPostDocsRef = collectionGroup(
+                fireStore,
+                "sharingPosts"
+            );
+            const sharingPostDocs = await getDocs(sharingPostDocsRef);
+            sharingPostDocs.docs.map((sharingDoc) => {
+                batch.delete(sharingDoc.ref);
+            });
             batch.delete(postDocRef);
             batch.update(rootDocRef, {
                 numberOfPosts: increment(-1),
@@ -431,9 +477,33 @@ class PostService {
                 sharingCreatedAt: serverTimestamp() as Timestamp,
                 url: communityId
                     ? routes.getCommunityPostDetailPage(communityId, post.id!)
-                    : routes.getPostDetailPage(post.id!),
+                    : routes.getPostDetailPage(post.creatorId, post.id!),
             };
             batch.set(sharingDocRef, sharingPost);
+
+            //Notification
+            const followedDocsRef = collection(
+                fireStore,
+                firebaseRoute.getUserFollowedRoute(user.uid)
+            );
+            const followedDocs = await getDocs(followedDocsRef);
+            const followedIds = followedDocs.docs.map((doc) => doc.id);
+            for (const id of followedIds) {
+                const notification: Notification = {
+                    id: sharingPost.creatorId,
+                    creatorDisplayName: sharingPost.sharingUserDisplayName!,
+                    imageUrl: sharingPost.sharingUserImageUrl,
+                    content: "đã chia sẻ 1 bài viết",
+                    isSeen: false,
+                    isRead: false,
+                    type: "FOLLOWED_SHARE",
+                    createdAt: serverTimestamp() as Timestamp,
+                };
+                await NotificationService.updateOrCreate({
+                    notification,
+                    userId: id,
+                });
+            }
             await batch.commit();
         } catch (error) {
             console.log(error);

@@ -1,5 +1,6 @@
 import InputText from "@/components/Input/InputText";
 import ErrorText from "@/components/Modal/Auth/ErrorText";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import { toastOption } from "@/constants/toast";
 import { ValidationError } from "@/constants/validation";
@@ -32,11 +33,15 @@ import VotingOptionItem from "./OptionItem";
 type VotingFormProps = {
     community: Community;
     user: UserModel;
+    userRole?: CommunityRole;
 };
 
-const VotingForm: React.FC<VotingFormProps> = ({ community, user }) => {
+const VotingForm: React.FC<VotingFormProps> = ({
+    community,
+    user,
+    userRole,
+}) => {
     const [votingForm, setVotingForm] = useState<Voting>(defaultVotingForm);
-    const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState<ValidationError[]>([]);
     const toast = useToast();
 
@@ -63,7 +68,6 @@ const VotingForm: React.FC<VotingFormProps> = ({ community, user }) => {
 
     const onSubmit = async () => {
         try {
-            setLoading(true);
             if (errors) setErrors([]);
             const res = validateCreateVoting(votingForm);
             if (!res.result) {
@@ -73,7 +77,6 @@ const VotingForm: React.FC<VotingFormProps> = ({ community, user }) => {
                     title: "Nhập thiếu thông tin, vui lòng thử lại",
                     status: "error",
                 });
-                setLoading(false);
                 return;
             }
             await VotingService.create({
@@ -85,6 +88,7 @@ const VotingForm: React.FC<VotingFormProps> = ({ community, user }) => {
                     communityId: community.id!,
                 },
                 community,
+                userRole,
             });
             setVotingForm(defaultVotingForm);
             toast({
@@ -95,7 +99,6 @@ const VotingForm: React.FC<VotingFormProps> = ({ community, user }) => {
         } catch (error) {
             console.log(error);
         }
-        setLoading(false);
     };
 
     return (

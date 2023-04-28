@@ -19,10 +19,8 @@ const TopicFormContent: React.FC<TopicFormContentProps> = ({
     setDescription,
     errors,
 }) => {
-    const [loading, setLoading] = useState(false);
     return (
         <>
-            {loading && <Spinner />}
             <VStack spacing={4} w="100%" align="flex-start" flexGrow={1}>
                 <VStack w="100%" align="flex-start" spacing={1}>
                     <InputText

@@ -1,19 +1,7 @@
-import {
-    authorHeaderList,
-    genreHeaderList,
-} from "@/components/Writer/WriterEditBox";
+import { genreHeaderList } from "@/components/Writer/WriterEditBox";
 import { routes } from "@/constants/routes";
-import { Author } from "@/models/Author";
 import { Genre } from "@/models/Genre";
-import {
-    Avatar,
-    Box,
-    Flex,
-    HStack,
-    IconButton,
-    Link,
-    Text,
-} from "@chakra-ui/react";
+import { Flex, HStack, IconButton, Link, Text } from "@chakra-ui/react";
 import React from "react";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdOutlineClear } from "react-icons/md";
@@ -43,11 +31,7 @@ const GenreTableSnippetItem: React.FC<GenreTableSnippetItemProps> = ({
                 <Text w={genreHeaderList[1].width} flexShrink={0}>
                     {genre.name}
                 </Text>
-                <Text
-                    w={authorHeaderList[2].width}
-                    whiteSpace="pre-line"
-                    noOfLines={3}
-                >
+                <Text whiteSpace="pre-line" noOfLines={3}>
                     {genre.description || "-----"}
                 </Text>
             </HStack>

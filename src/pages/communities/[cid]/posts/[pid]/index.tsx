@@ -10,6 +10,7 @@ import CommunityService from "@/services/CommunityService";
 import PostService from "@/services/PostService";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type PostPageProps = {
@@ -30,15 +31,23 @@ const PostPage: React.FC<PostPageProps> = ({ community, post }) => {
         communityAction.setSelectedCommunity(community);
     }, [community]);
 
-    if (!community || !post) {
-        return (
-            <NotAvailable title="Bài viết này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
     return (
-        <PostProvider selectedCommunity={community}>
-            <PostItemDetail post={post} />
-        </PostProvider>
+        <>
+            <Head>
+                <title>{`MangaKr - Cuộc bình chọn - ${
+                    post?.caption || ""
+                }`}</title>
+            </Head>
+            <>
+                {!community || !post ? (
+                    <NotAvailable title="Cuộc bình chọn này không tồn tại hoặc đã bị xóa!" />
+                ) : (
+                    <PostProvider selectedCommunity={community}>
+                        <PostItemDetail post={post} />
+                    </PostProvider>
+                )}
+            </>
+        </>
     );
 };
 

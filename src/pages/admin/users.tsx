@@ -2,10 +2,10 @@ import AdminUserAuthorize from "@/components/Admin/User/UserAuthorize";
 import { ADMIN_ROLE } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
-import { UserModel } from "@/models/User";
-import { Flex, Text } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type AdminUserPageProps = {};
@@ -19,16 +19,23 @@ const AdminUserPage: React.FC<AdminUserPageProps> = () => {
     }, []);
 
     return (
-        <Flex
-            direction="column"
-            p={0}
-            boxShadow="lg"
-            bg="white"
-            borderRadius={8}
-            flexGrow={1}
-        >
-            <AdminUserAuthorize />
-        </Flex>
+        <>
+            <Head>
+                <title>MangaKr - Admin - Tài khoản</title>
+            </Head>
+            <>
+                <Flex
+                    direction="column"
+                    p={0}
+                    boxShadow="lg"
+                    bg="white"
+                    borderRadius={8}
+                    flexGrow={1}
+                >
+                    <AdminUserAuthorize />
+                </Flex>
+            </>
+        </>
     );
 };
 

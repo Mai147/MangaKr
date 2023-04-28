@@ -2,7 +2,7 @@ import useBookCreate from "@/hooks/useBookCreate";
 import useSelectFile from "@/hooks/useSelectFile";
 import { Book } from "@/models/Book";
 import { Character } from "@/models/Character";
-import { Flex, Button, Divider, Text } from "@chakra-ui/react";
+import { Flex, Divider } from "@chakra-ui/react";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { AiOutlineBook } from "react-icons/ai";
@@ -14,6 +14,9 @@ import BookFormDescriptionTab from "./DescriptionTab";
 import BookFormImageTab from "./ImageTab";
 import BookFormSubInfoTab from "./SubInfoTab";
 import TabItem from "@/components/Tab/TabItem";
+import FormHeader from "../Header";
+import { routes } from "@/constants/routes";
+import FormFooter from "../Footer";
 
 type BookFormProps = {
     book?: Book;
@@ -21,16 +24,16 @@ type BookFormProps = {
 
 const formTab = [
     {
-        title: "Hình ảnh",
-        icon: IoImageOutline,
-    },
-    {
         title: "Mô tả",
         icon: AiOutlineBook,
     },
     {
         title: "Nội dung",
         icon: IoDocumentTextOutline,
+    },
+    {
+        title: "Hình ảnh",
+        icon: IoImageOutline,
     },
     {
         title: "Nhân vật",
@@ -43,7 +46,6 @@ const formTab = [
 ];
 
 const BookForm: React.FC<BookFormProps> = ({ book }) => {
-    const [loading, setLoading] = useState(false);
     const [selectedTab, setSelectedTab] = useState(formTab[0].title);
     const { bookForm, setBookForm, setCharacters, handleSubmit, errors } =
         useBookCreate();
@@ -96,65 +98,64 @@ const BookForm: React.FC<BookFormProps> = ({ book }) => {
     };
 
     return (
-        <Flex direction="column">
-            <Flex>
-                <Text fontSize={24} fontWeight={600}>
-                    Viết Manga
-                </Text>
-                <Button
-                    w={28}
-                    ml={8}
-                    isLoading={loading}
-                    onClick={async () => {
-                        setLoading(true);
-                        await handleSubmit(book);
-                        setLoading(false);
-                    }}
-                >
-                    Lưu
-                </Button>
-            </Flex>
-            <Divider my={4} />
-            <Flex width="100%" mb={4}>
-                {formTab.map((item) => (
-                    <TabItem
-                        key={item.title}
-                        item={item}
-                        selected={item.title === selectedTab}
-                        setSelectedTab={setSelectedTab}
-                    />
-                ))}
-            </Flex>
-            <Flex p={4}>
-                {selectedTab === formTab[0].title && (
-                    <BookFormImageTab
-                        onSelectFile={onSelectFile}
-                        setSelectedFile={setSelectedFile}
-                        selectedFile={selectedFile}
-                    />
-                )}
-                {selectedTab === formTab[1].title && (
-                    <BookFormDescriptionTab
-                        bookName={bookForm.name}
-                        description={bookForm.description!}
-                        errors={errors}
-                        onChange={handleChange}
-                    />
-                )}
-                {selectedTab === formTab[2].title && (
-                    <BookFormContentTab
-                        plot={bookForm.plot || ""}
-                        characterContent={bookForm.characters || ""}
-                        onChange={handleChangeCkeditor}
-                    />
-                )}
-                {selectedTab === formTab[3].title && <BookFormCharacterTab />}
-                {selectedTab === formTab[4].title && (
-                    <BookFormSubInfoTab
-                        book={bookForm}
-                        onInputTextChange={handleChange}
-                    />
-                )}
+        <Flex
+            direction="column"
+            bg="white"
+            borderRadius={4}
+            mt={2}
+            flexGrow={1}
+        >
+            <Flex direction="column" flexGrow={1}>
+                <FormHeader
+                    title={!book ? "Viết Manga" : "Sửa Manga"}
+                    backTitle={"Quay về trang chủ"}
+                    backHref={routes.getHomePage()}
+                />
+                <Divider my={4} />
+                <Flex width="100%" mb={4}>
+                    {formTab.map((item) => (
+                        <TabItem
+                            key={item.title}
+                            item={item}
+                            selected={item.title === selectedTab}
+                            setSelectedTab={setSelectedTab}
+                        />
+                    ))}
+                </Flex>
+                <Flex p={4} flexGrow={1} direction="column">
+                    {selectedTab === formTab[0].title && (
+                        <BookFormDescriptionTab
+                            bookName={bookForm.name}
+                            description={bookForm.description!}
+                            errors={errors}
+                            onChange={handleChange}
+                        />
+                    )}
+                    {selectedTab === formTab[1].title && (
+                        <BookFormContentTab
+                            plot={bookForm.plot || ""}
+                            characterContent={bookForm.characters || ""}
+                            onChange={handleChangeCkeditor}
+                        />
+                    )}
+                    {selectedTab === formTab[2].title && (
+                        <BookFormImageTab
+                            onSelectFile={onSelectFile}
+                            setSelectedFile={setSelectedFile}
+                            selectedFile={selectedFile}
+                        />
+                    )}
+                    {selectedTab === formTab[3].title && (
+                        <BookFormCharacterTab />
+                    )}
+                    {selectedTab === formTab[4].title && (
+                        <BookFormSubInfoTab
+                            book={bookForm}
+                            onInputTextChange={handleChange}
+                        />
+                    )}
+                </Flex>
+                <FormFooter onSubmit={async () => handleSubmit(book)} />
             </Flex>
         </Flex>
     );

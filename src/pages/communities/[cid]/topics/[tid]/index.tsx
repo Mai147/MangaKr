@@ -9,6 +9,7 @@ import CommunityService from "@/services/CommunityService";
 import TopicService from "@/services/TopicService";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type TopicPageProps = {
@@ -29,12 +30,22 @@ const TopicPage: React.FC<TopicPageProps> = ({ community, topic }) => {
         communityAction.setSelectedCommunity(community);
     }, [community]);
 
-    if (!community || !topic) {
-        return (
-            <NotAvailable title="Chủ đề này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
-    return <TopicItem topic={topic} />;
+    return (
+        <>
+            <Head>
+                <title>{`MangaKr - Cuộc bình chọn - ${
+                    topic?.title || ""
+                }`}</title>
+            </Head>
+            <>
+                {!community || !topic ? (
+                    <NotAvailable title="Cuộc bình chọn này không tồn tại hoặc đã bị xóa!" />
+                ) : (
+                    <TopicItem topic={topic} />
+                )}
+            </>
+        </>
+    );
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {

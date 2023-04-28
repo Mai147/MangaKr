@@ -137,12 +137,16 @@ class UserService {
             const trigramName = triGram(profileForm.displayName);
             batch.update(userDocRef, {
                 displayName: profileForm.displayName,
-                photoURL: downloadUrl,
-                imageUrl: downloadUrl,
                 bio: profileForm.bio,
-                imageRef: downloadRef,
                 trigramName: trigramName.obj,
             });
+            if (avatarChange) {
+                batch.update(userDocRef, {
+                    photoURL: downloadUrl,
+                    imageUrl: downloadUrl,
+                    imageRef: downloadRef,
+                });
+            }
             // Update username, image url in comments, reviews, etc..
             await this.updateSnippet({
                 batch,
@@ -214,6 +218,54 @@ class UserService {
                 newValue: {
                     displayName: profileForm.displayName,
                     imageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "votings",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                    creatorImageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "notifications",
+                idField: "id",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                    imageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "follows",
+                idField: "id",
+                userId: profileForm.id!,
+                newValue: {
+                    displayName: profileForm.displayName,
+                    imageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "followeds",
+                idField: "id",
+                userId: profileForm.id!,
+                newValue: {
+                    displayName: profileForm.displayName,
+                    imageUrl: downloadUrl,
+                },
+            });
+            await this.updateSnippet({
+                batch,
+                route: "sharingPosts",
+                userId: profileForm.id!,
+                newValue: {
+                    creatorDisplayName: profileForm.displayName,
+                    creatorImageUrl: downloadUrl,
                 },
             });
             await batch.commit();

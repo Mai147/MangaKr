@@ -1,13 +1,14 @@
-import BookForm from "@/components/Book/Form";
+import BookForm from "@/components/Form/Book";
 import { WRITER_ROLE } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import { BookCreateProvider } from "@/context/BookCreateContext";
 import useAuth from "@/hooks/useAuth";
 import { Book } from "@/models/Book";
 import BookService from "@/services/BookService";
-import { Box } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type BookEditProps = {
@@ -21,11 +22,25 @@ const BookEditPage: React.FC<BookEditProps> = ({ book }) => {
         authAction.setNeedAuth(true);
     }, []);
     return (
-        <Box p="6" bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
-            <BookCreateProvider>
-                <BookForm book={book} />
-            </BookCreateProvider>
-        </Box>
+        <>
+            <Head>
+                <title>MangaKr - Sửa Manga</title>
+            </Head>
+            <>
+                <Flex
+                    direction="column"
+                    p="6"
+                    bg="white"
+                    borderRadius={4}
+                    boxShadow="lg"
+                    flexGrow={1}
+                >
+                    <BookCreateProvider>
+                        <BookForm book={book} />
+                    </BookCreateProvider>
+                </Flex>
+            </>
+        </>
     );
 };
 

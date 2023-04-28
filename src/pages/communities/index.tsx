@@ -15,6 +15,7 @@ import usePagination, {
 import { Community } from "@/models/Community";
 import CommunityService from "@/services/CommunityService";
 import { Box, Divider, Flex, Text, VStack } from "@chakra-ui/react";
+import Head from "next/head";
 import React, { useEffect, useState } from "react";
 
 type CommunityPageProps = {};
@@ -122,9 +123,9 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     }, [communityPaginationInput.page, user]);
 
     useEffect(() => {
+        getTopCommunities();
         if (user) {
             getRelatedCommunities(user.uid);
-            getTopCommunities();
             setCommunityPaginationInput({
                 ...defaultPaginationInput,
                 pageCount: COMMUNITY_PAGE_COUNT,
@@ -143,88 +144,112 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
     }, []);
 
     return (
-        <PageContent>
-            <VStack spacing={2} align="flex-start">
-                <SectionHeading title="Bạn có thể thích" />
-                {loading.related ? (
-                    [1, 2, 3].map((e) => <CircleHorizontalSkeleton key={e} />)
-                ) : communities.related.length > 0 ? (
-                    <VStack w="100%" spacing={4}>
-                        {communities.related.map((community) => (
-                            <Box w="100%" key={community.id}>
-                                <CommunitySnippetHorizontalItem
-                                    community={community}
+        <>
+            <Head>
+                <title>MangaKr - Cộng đồng</title>
+            </Head>
+            <>
+                <PageContent>
+                    <VStack spacing={2} align="flex-start">
+                        <SectionHeading title="Cộng đồng của bạn" />
+                        {loading.mine ? (
+                            [1, 2, 3].map((e) => (
+                                <CircleHorizontalSkeleton key={e} />
+                            ))
+                        ) : communityPaginationOutput.list.length > 0 ? (
+                            <>
+                                <VStack w="100%" spacing={4}>
+                                    {communityPaginationOutput.list.map(
+                                        (community: Community) => (
+                                            <Box w="100%" key={community.id}>
+                                                <CommunitySnippetHorizontalItem
+                                                    community={community}
+                                                    w="100%"
+                                                />
+                                            </Box>
+                                        )
+                                    )}
+                                </VStack>
+                                <Flex
+                                    align="center"
+                                    justify="center"
+                                    py={4}
                                     w="100%"
-                                />
-                            </Box>
-                        ))}
-                    </VStack>
-                ) : (
-                    <Text>Không có cộng đồng nào</Text>
-                )}
-                <Divider py={4} borderColor="gray.400" />
-                <SectionHeading title="Cộng đồng nổi bật" />
-                {loading.top ? (
-                    [1, 2, 3].map((e) => <CircleHorizontalSkeleton key={e} />)
-                ) : communities.top.length > 0 ? (
-                    <VStack w="100%" spacing={4}>
-                        {communities.top.map((community) => (
-                            <Box w="100%" key={community.id}>
-                                <CommunitySnippetHorizontalItem
-                                    community={community}
-                                    w="100%"
-                                />
-                            </Box>
-                        ))}
-                    </VStack>
-                ) : (
-                    <Text>Không có cộng đồng nào</Text>
-                )}
-                <Divider py={4} borderColor="gray.400" />
-                <SectionHeading title="Cộng đồng của bạn" />
-                {loading.mine ? (
-                    [1, 2, 3].map((e) => <CircleHorizontalSkeleton key={e} />)
-                ) : communityPaginationOutput.list.length > 0 ? (
-                    <>
-                        <VStack w="100%" spacing={4}>
-                            {communityPaginationOutput.list.map(
-                                (community: Community) => (
+                                >
+                                    <Pagination
+                                        page={communityPaginationOutput.page}
+                                        totalPage={
+                                            communityPaginationOutput.totalPage
+                                        }
+                                        onNext={() =>
+                                            setCommunityPaginationInput(
+                                                (prev) => ({
+                                                    ...prev,
+                                                    page: prev.page + 1,
+                                                    isNext: true,
+                                                })
+                                            )
+                                        }
+                                        onPrev={() => {
+                                            setCommunityPaginationInput(
+                                                (prev) => ({
+                                                    ...prev,
+                                                    page: prev.page - 1,
+                                                    isNext: false,
+                                                })
+                                            );
+                                        }}
+                                    />
+                                </Flex>
+                            </>
+                        ) : (
+                            <Text>Bạn chưa tham gia cộng đồng nào</Text>
+                        )}
+                        <Divider py={4} borderColor="gray.400" />
+                        <SectionHeading title="Bạn có thể thích" />
+                        {loading.related ? (
+                            [1, 2, 3].map((e) => (
+                                <CircleHorizontalSkeleton key={e} />
+                            ))
+                        ) : communities.related.length > 0 ? (
+                            <VStack w="100%" spacing={4}>
+                                {communities.related.map((community) => (
                                     <Box w="100%" key={community.id}>
                                         <CommunitySnippetHorizontalItem
                                             community={community}
                                             w="100%"
                                         />
                                     </Box>
-                                )
-                            )}
-                        </VStack>
-                        <Flex align="center" justify="center" py={4} w="100%">
-                            <Pagination
-                                page={communityPaginationOutput.page}
-                                totalPage={communityPaginationOutput.totalPage}
-                                onNext={() =>
-                                    setCommunityPaginationInput((prev) => ({
-                                        ...prev,
-                                        page: prev.page + 1,
-                                        isNext: true,
-                                    }))
-                                }
-                                onPrev={() => {
-                                    setCommunityPaginationInput((prev) => ({
-                                        ...prev,
-                                        page: prev.page - 1,
-                                        isNext: false,
-                                    }));
-                                }}
-                            />
-                        </Flex>
-                    </>
-                ) : (
-                    <Text>Bạn chưa tham gia cộng đồng nào</Text>
-                )}
-            </VStack>
-            <RightSidebar />
-        </PageContent>
+                                ))}
+                            </VStack>
+                        ) : (
+                            <Text>Không có cộng đồng nào</Text>
+                        )}
+                        <Divider py={4} borderColor="gray.400" />
+                        <SectionHeading title="Cộng đồng nổi bật" />
+                        {loading.top ? (
+                            [1, 2, 3].map((e) => (
+                                <CircleHorizontalSkeleton key={e} />
+                            ))
+                        ) : communities.top.length > 0 ? (
+                            <VStack w="100%" spacing={4}>
+                                {communities.top.map((community) => (
+                                    <Box w="100%" key={community.id}>
+                                        <CommunitySnippetHorizontalItem
+                                            community={community}
+                                            w="100%"
+                                        />
+                                    </Box>
+                                ))}
+                            </VStack>
+                        ) : (
+                            <Text>Không có cộng đồng nào</Text>
+                        )}
+                    </VStack>
+                    <RightSidebar />
+                </PageContent>
+            </>
+        </>
     );
 };
 export default CommunityPage;

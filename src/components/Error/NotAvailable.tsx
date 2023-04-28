@@ -1,12 +1,5 @@
 import { routes } from "@/constants/routes";
-import {
-    Button,
-    Flex,
-    Icon,
-    Link,
-    Text,
-    textDecoration,
-} from "@chakra-ui/react";
+import { Button, Flex, Icon, Link, Text } from "@chakra-ui/react";
 import React from "react";
 import { CgUnavailable } from "react-icons/cg";
 

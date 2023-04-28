@@ -10,6 +10,7 @@ import CommunityService from "@/services/CommunityService";
 import VotingService from "@/services/VotingService";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type VotingPageProps = {
@@ -30,15 +31,23 @@ const VotingPage: React.FC<VotingPageProps> = ({ community, voting }) => {
         communityAction.setSelectedCommunity(community);
     }, [community]);
 
-    if (!community || !voting) {
-        return (
-            <NotAvailable title="Cuộc bình chọn này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
     return (
-        <VotingProvider community={community} voting={voting}>
-            <VotingItem voting={voting} />
-        </VotingProvider>
+        <>
+            <Head>
+                <title>{`MangaKr - Cuộc bình chọn - ${
+                    voting?.content || ""
+                }`}</title>
+            </Head>
+            <>
+                {!community || !voting ? (
+                    <NotAvailable title="Cuộc bình chọn này không tồn tại hoặc đã bị xóa!" />
+                ) : (
+                    <VotingProvider community={community} voting={voting}>
+                        <VotingItem voting={voting} />
+                    </VotingProvider>
+                )}
+            </>
+        </>
     );
 };
 

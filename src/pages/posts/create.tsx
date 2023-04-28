@@ -5,6 +5,7 @@ import { UserModel } from "@/models/User";
 import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type PostCreatePageProps = {
@@ -20,21 +21,28 @@ const PostCreatePage: React.FC<PostCreatePageProps> = ({ user }) => {
     }, []);
 
     return (
-        <Flex
-            p={6}
-            boxShadow="lg"
-            bg="white"
-            borderRadius={4}
-            flexGrow={1}
-            direction="column"
-        >
-            <PostForm user={user} />
-        </Flex>
+        <>
+            <Head>
+                <title>MangaKr - Tạo bài viết</title>
+            </Head>
+            <>
+                <Flex
+                    p={6}
+                    boxShadow="lg"
+                    bg="white"
+                    borderRadius={4}
+                    flexGrow={1}
+                    direction="column"
+                >
+                    <PostForm user={user} />
+                </Flex>
+            </>
+        </>
     );
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
-    const { token, user, user_id } = cookies(context) || null;
+    const { token, user } = cookies(context) || null;
     if (!token) {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();

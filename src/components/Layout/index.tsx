@@ -26,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Flex
                 direction="column"
                 minH="100vh"
-                bg={useColorModeValue("gray.100", "gray.900")}
+                bg={useColorModeValue("#FAFAFA", "gray.900")}
             >
                 <Drawer
                     autoFocus={false}
@@ -48,7 +48,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     p={4}
                     px={{ base: 4, md: 24, xl: 32 }}
                     flexGrow={1}
-                    bg="gray.100"
+                    bg="#FAFAFA"
                     pt={"100px"}
                 >
                     {children}

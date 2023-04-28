@@ -14,7 +14,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 }) => {
     const selectedFileRef = useRef<HTMLInputElement>(null);
     return (
-        <Flex justify="center" align="center" width="100%">
+        <Flex
+            justify="center"
+            align="center"
+            width="100%"
+            flexGrow={1}
+            direction="column"
+        >
             {selectedFile ? (
                 <Flex direction="column" align="center" justify="center">
                     <Image
@@ -25,7 +31,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                     <Flex justify="center">
                         <Stack direction="row" mt={4}>
                             <Button
-                                height="28px"
+                                height={10}
+                                w={28}
                                 variant="outline"
                                 onClick={() => setSelectedFile("")}
                             >
@@ -38,7 +45,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 <Flex
                     justify="center"
                     align="center"
-                    p={20}
+                    flexGrow={1}
                     border="1px dashed"
                     borderColor="gray.400"
                     borderRadius={4}
@@ -46,7 +53,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 >
                     <Button
                         variant="outline"
-                        height="28px"
+                        height={10}
+                        w={28}
                         onClick={() => {
                             selectedFileRef.current?.click();
                         }}

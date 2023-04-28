@@ -1,15 +1,15 @@
 import InputText from "@/components/Input/InputText";
 import ErrorText from "@/components/Modal/Auth/ErrorText";
 import { ValidationError } from "@/constants/validation";
-import { Box, Flex, Spinner, VStack } from "@chakra-ui/react";
+import { Box, Spinner, VStack } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 import React, { useState } from "react";
 
-type ReviewFormContentProps = {
-    title: string;
-    content: string;
-    setTitle: (value: string) => void;
-    setContent: (value: string) => void;
+type PostFormContentProps = {
+    caption: string;
+    description: string;
+    setCaption: (value: string) => void;
+    setDescription: (value: string) => void;
     errors: ValidationError[];
 };
 
@@ -17,11 +17,11 @@ const Editor = dynamic(() => import("@/components/Editor"), {
     ssr: false,
 });
 
-const ReviewFormContent: React.FC<ReviewFormContentProps> = ({
-    title,
-    content,
-    setTitle,
-    setContent,
+const PostFormContent: React.FC<PostFormContentProps> = ({
+    caption,
+    description,
+    setCaption,
+    setDescription,
     errors,
 }) => {
     const [loading, setLoading] = useState(false);
@@ -31,25 +31,28 @@ const ReviewFormContent: React.FC<ReviewFormContentProps> = ({
             <VStack spacing={4} w="100%" align="flex-start">
                 <VStack w="100%" align="flex-start" spacing={1}>
                     <InputText
-                        value={title}
-                        name="title"
-                        placeholder="Tên bài viết"
-                        onInputChange={(event) => setTitle(event.target.value)}
+                        value={caption}
+                        name="caption"
+                        placeholder="Caption"
+                        onInputChange={(event) =>
+                            setCaption(event.target.value)
+                        }
                     />
                     <ErrorText
                         error={
-                            errors.find((err) => err.field === "title")?.message
+                            errors.find((err) => err.field === "caption")
+                                ?.message
                         }
                     />
                 </VStack>
-                <VStack w="100%" align="flex-start" spacing={1}>
-                    <Box w="100%">
+                <VStack w="100%" align="flex-start" spacing={1} flexGrow={1}>
+                    <Box w="100%" flexGrow={1}>
                         <Editor
-                            value={content}
+                            value={description}
                             onChange={(data) => {
-                                setContent(data);
+                                setDescription(data);
                             }}
-                            height="500px"
+                            height="250px"
                             setLoading={(value) => {
                                 setLoading(value);
                             }}
@@ -57,7 +60,7 @@ const ReviewFormContent: React.FC<ReviewFormContentProps> = ({
                     </Box>
                     <ErrorText
                         error={
-                            errors.find((err) => err.field === "content")
+                            errors.find((err) => err.field === "description")
                                 ?.message
                         }
                     />
@@ -66,4 +69,4 @@ const ReviewFormContent: React.FC<ReviewFormContentProps> = ({
         </>
     );
 };
-export default ReviewFormContent;
+export default PostFormContent;

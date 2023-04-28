@@ -3,6 +3,7 @@ import { toastOption } from "@/constants/toast";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { Community } from "@/models/Community";
+import { CommunityUserSnippet } from "@/models/User";
 import CommunityService from "@/services/CommunityService";
 import { validateCreateCommunity } from "@/validation/communityValidation";
 import { useToast } from "@chakra-ui/react";
@@ -11,6 +12,7 @@ import { createContext, useEffect, useState } from "react";
 
 type CommunityState = {
     selectedCommunity?: Community | null;
+    selectedCommunityModerators?: CommunityUserSnippet[];
     relatedCommunities?: Community[];
     userCommunityRole?: {
         isAccept: boolean;
@@ -68,9 +70,13 @@ export const CommunityProvider = ({ children }: any) => {
 
     const getCommunity = async (communityId: string) => {
         const res = await CommunityService.get({ communityId });
+        const moderators = await CommunityService.getModerators({
+            communityId,
+        });
         setCommunityState((prev) => ({
             ...prev,
             selectedCommunity: res ? res : null,
+            selectedCommunityModerators: moderators ? moderators : undefined,
         }));
     };
 

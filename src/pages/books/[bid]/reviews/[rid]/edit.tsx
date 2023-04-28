@@ -1,15 +1,17 @@
 import NotAvailable from "@/components/Error/NotAvailable";
-import ReviewForm from "@/components/Review/Form";
+import ReviewForm from "@/components/Form/Review";
 import { firebaseRoute } from "@/constants/firebaseRoutes";
 import { routes } from "@/constants/routes";
 import { fireStore } from "@/firebase/clientApp";
+import useAuth from "@/hooks/useAuth";
 import { Review } from "@/models/Review";
 import { UserModel } from "@/models/User";
-import { Box } from "@chakra-ui/react";
+import { Box, Flex } from "@chakra-ui/react";
 import { doc, getDoc } from "firebase/firestore";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
-import React from "react";
+import Head from "next/head";
+import React, { useEffect } from "react";
 
 type editProps = {
     user: UserModel;
@@ -17,15 +19,38 @@ type editProps = {
 };
 
 const edit: React.FC<editProps> = ({ review, user }) => {
-    if (!review) {
-        return (
-            <NotAvailable title="Bài đánh giá này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
+    const { authAction } = useAuth();
+    useEffect(() => {
+        authAction.setDefaultPath(routes.getHomePage());
+        authAction.setNeedAuth(true);
+    }, []);
+
     return (
-        <Box p={6} bg="white" borderRadius={4} boxShadow="lg" flexGrow={1}>
-            <ReviewForm user={user} bookId={review.bookId} review={review} />
-        </Box>
+        <>
+            <Head>
+                <title>MangaKr - Sửa bài đánh giá</title>
+            </Head>
+            <>
+                {!review ? (
+                    <NotAvailable title="Bài đánh giá này không tồn tại hoặc đã bị xóa!" />
+                ) : (
+                    <Flex
+                        direction="column"
+                        p={6}
+                        bg="white"
+                        borderRadius={4}
+                        boxShadow="lg"
+                        flexGrow={1}
+                    >
+                        <ReviewForm
+                            user={user}
+                            bookId={review.bookId}
+                            review={review}
+                        />
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 

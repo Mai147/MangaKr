@@ -1,23 +1,20 @@
-import { Button, Flex, Image, Stack } from "@chakra-ui/react";
-import React, { useRef, useState } from "react";
+import { Button, Flex, Stack } from "@chakra-ui/react";
+import React, { useRef } from "react";
 
 type VideoUploadProps = {
     selectedFile?: string;
     onSelectVideo: (event: React.ChangeEvent<HTMLInputElement>) => void;
     setSelectedFile: (value: string) => void;
-    onUpload: () => Promise<void>;
 };
 
 const VideoUpload: React.FC<VideoUploadProps> = ({
     selectedFile,
     onSelectVideo,
     setSelectedFile,
-    onUpload,
 }) => {
     const selectedFileRef = useRef<HTMLInputElement>(null);
-    const [loading, setLoading] = useState(false);
     return (
-        <Flex justify="center" align="center" width="100%">
+        <Flex justify="center" align="center" width="100%" direction="column">
             {selectedFile ? (
                 <Flex direction="column" align="center" justify="center">
                     <video
@@ -29,24 +26,12 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
                     <Flex justify="center">
                         <Stack direction="row" mt={4}>
                             <Button
-                                height="28px"
+                                height={10}
+                                w={28}
                                 variant="outline"
                                 onClick={() => setSelectedFile("")}
                             >
                                 Xóa
-                            </Button>
-                            <Button
-                                height="28px"
-                                variant="outline"
-                                isLoading={loading}
-                                onClick={async () => {
-                                    setLoading(true);
-                                    const x = await onUpload();
-
-                                    setLoading(false);
-                                }}
-                            >
-                                Upload
                             </Button>
                         </Stack>
                     </Flex>
@@ -55,7 +40,7 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
                 <Flex
                     justify="center"
                     align="center"
-                    p={20}
+                    flexGrow={1}
                     border="1px dashed"
                     borderColor="gray.400"
                     borderRadius={4}
@@ -63,7 +48,8 @@ const VideoUpload: React.FC<VideoUploadProps> = ({
                 >
                     <Button
                         variant="outline"
-                        height="28px"
+                        height={10}
+                        w={28}
                         onClick={() => {
                             selectedFileRef.current?.click();
                         }}

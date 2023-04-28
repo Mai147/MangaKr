@@ -15,6 +15,7 @@ import { Community } from "@/models/Community";
 import CommunityService from "@/services/CommunityService";
 import { Box, Flex, Icon, Spinner, Text } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
+import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { BsFillFileEarmarkPostFill } from "react-icons/bs";
 import { IoBanOutline } from "react-icons/io5";
@@ -78,12 +79,6 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
         }
     }, [user, community]);
 
-    if (!community) {
-        return (
-            <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
-
     const onChangeTab = (value: string) => {
         setScrollHeight((prev) =>
             prev.map((item) =>
@@ -105,119 +100,159 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
     };
 
     return (
-        <Flex direction="column" flexGrow={1} bg="white" borderRadius={4}>
-            <CommunityHeader community={community} />
-            <Flex position="relative" flexGrow={1}>
-                <Box
-                    w="30%"
-                    p={6}
-                    py={8}
-                    position="sticky"
-                    top={20}
-                    alignSelf="flex-start"
-                    flexShrink={0}
-                >
-                    <CommunityLeftSideBar />
-                </Box>
-                <Box bg="white" p={6} flexGrow={1} position="relative">
-                    {communityState.communityLoading ? (
-                        <Flex align="center" justify="center">
-                            <Spinner my={4} />
-                        </Flex>
-                    ) : CommunityService.canViewPosts({
-                          communityType:
-                              communityState.selectedCommunity?.privacyType!,
-                          userRole: communityState.userCommunityRole?.role,
-                          user,
-                      }) ? (
-                        <>
-                            <Flex
-                                width="100%"
-                                py={4}
+        <>
+            <Head>
+                <title>{`MangaKr - Cộng đồng ${community?.name || ""}`}</title>
+            </Head>
+            <>
+                {!community ? (
+                    <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
+                ) : (
+                    <Flex
+                        direction="column"
+                        flexGrow={1}
+                        bg="white"
+                        borderRadius={4}
+                        boxShadow="lg"
+                    >
+                        <CommunityHeader community={community} />
+                        <Flex position="relative" flexGrow={1}>
+                            <Box
+                                w="30%"
+                                p={6}
+                                py={8}
                                 position="sticky"
                                 top={20}
-                                zIndex={100}
+                                alignSelf="flex-start"
+                                flexShrink={0}
+                            >
+                                <CommunityLeftSideBar />
+                            </Box>
+                            <Box
                                 bg="white"
+                                p={6}
+                                flexGrow={1}
+                                position="relative"
                             >
-                                {communityTab.map((item) => (
-                                    <TabItem
-                                        key={item.title}
-                                        item={item}
-                                        selected={item.title === selectedTab}
-                                        setSelectedTab={onChangeTab}
-                                    />
-                                ))}
-                            </Flex>
-                            <Flex
-                                direction="column"
-                                align="center"
-                                w="100%"
-                                px={12}
-                                mt={4}
-                            >
-                                <Flex
-                                    display={
-                                        selectedTab === communityTab[0].title
-                                            ? "flex"
-                                            : "none"
-                                    }
-                                    direction="column"
-                                    align="center"
-                                    w="100%"
-                                >
-                                    <TopicProvider community={community}>
-                                        <CommunityTopicTab />
-                                    </TopicProvider>
-                                </Flex>
-                                <Flex
-                                    display={
-                                        selectedTab === communityTab[1].title
-                                            ? "flex"
-                                            : "none"
-                                    }
-                                    direction="column"
-                                    align="center"
-                                    w="100%"
-                                >
-                                    <PostProvider selectedCommunity={community}>
-                                        <CommunityPostTab />
-                                    </PostProvider>
-                                </Flex>
-                                <Flex
-                                    display={
-                                        selectedTab === communityTab[2].title
-                                            ? "flex"
-                                            : "none"
-                                    }
-                                    direction="column"
-                                    align="center"
-                                    w="100%"
-                                >
-                                    <VotingProvider community={community}>
-                                        <CommunityVotingTab />
-                                    </VotingProvider>
-                                </Flex>
-                            </Flex>
-                        </>
-                    ) : (
-                        <Flex
-                            align="center"
-                            justify="center"
-                            direction="column"
-                        >
-                            <Icon
-                                as={IoBanOutline}
-                                color="brand.100"
-                                fontSize={150}
-                            />
-                            <Text fontSize={24} fontWeight={500}>
-                                Vui lòng gia nhập cộng đồng để xem bài viết
-                            </Text>
+                                {communityState.communityLoading ? (
+                                    <Flex align="center" justify="center">
+                                        <Spinner my={4} />
+                                    </Flex>
+                                ) : CommunityService.canViewPosts({
+                                      communityType:
+                                          communityState.selectedCommunity
+                                              ?.privacyType!,
+                                      userRole:
+                                          communityState.userCommunityRole
+                                              ?.role,
+                                      user,
+                                  }) ? (
+                                    <>
+                                        <Flex
+                                            width="100%"
+                                            py={4}
+                                            position="sticky"
+                                            top={20}
+                                            zIndex={100}
+                                            bg="white"
+                                        >
+                                            {communityTab.map((item) => (
+                                                <TabItem
+                                                    key={item.title}
+                                                    item={item}
+                                                    selected={
+                                                        item.title ===
+                                                        selectedTab
+                                                    }
+                                                    setSelectedTab={onChangeTab}
+                                                />
+                                            ))}
+                                        </Flex>
+                                        <Flex
+                                            direction="column"
+                                            align="center"
+                                            w="100%"
+                                            px={12}
+                                            mt={4}
+                                        >
+                                            <Flex
+                                                display={
+                                                    selectedTab ===
+                                                    communityTab[0].title
+                                                        ? "flex"
+                                                        : "none"
+                                                }
+                                                direction="column"
+                                                align="center"
+                                                w="100%"
+                                            >
+                                                <TopicProvider
+                                                    community={community}
+                                                >
+                                                    <CommunityTopicTab />
+                                                </TopicProvider>
+                                            </Flex>
+                                            <Flex
+                                                display={
+                                                    selectedTab ===
+                                                    communityTab[1].title
+                                                        ? "flex"
+                                                        : "none"
+                                                }
+                                                direction="column"
+                                                align="center"
+                                                w="100%"
+                                            >
+                                                <PostProvider
+                                                    selectedCommunity={
+                                                        community
+                                                    }
+                                                >
+                                                    <CommunityPostTab />
+                                                </PostProvider>
+                                            </Flex>
+                                            <Flex
+                                                display={
+                                                    selectedTab ===
+                                                    communityTab[2].title
+                                                        ? "flex"
+                                                        : "none"
+                                                }
+                                                direction="column"
+                                                align="center"
+                                                w="100%"
+                                            >
+                                                <VotingProvider
+                                                    community={community}
+                                                >
+                                                    <CommunityVotingTab />
+                                                </VotingProvider>
+                                            </Flex>
+                                        </Flex>
+                                    </>
+                                ) : (
+                                    <Flex
+                                        align="center"
+                                        justify="center"
+                                        direction="column"
+                                    >
+                                        <Icon
+                                            as={IoBanOutline}
+                                            color="brand.100"
+                                            fontSize={150}
+                                        />
+                                        <Text fontSize={24} fontWeight={500}>
+                                            Vui lòng gia nhập cộng đồng để xem
+                                            bài viết
+                                        </Text>
+                                    </Flex>
+                                )}
+                            </Box>
                         </Flex>
-                    )}
-                </Box>
-            </Flex>
-        </Flex>
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 

@@ -8,6 +8,7 @@ import CommunityService from "@/services/CommunityService";
 import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type CommunityApprovePageProps = {
@@ -26,26 +27,32 @@ const CommunityApprovePage: React.FC<CommunityApprovePageProps> = ({
         authAction.setDefaultPath(routes.getHomePage());
     }, []);
 
-    if (!community) {
-        return (
-            <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
-    if (!user) {
-        return <></>;
-    }
-
     return (
-        <Flex
-            direction="column"
-            p={0}
-            boxShadow="lg"
-            bg="white"
-            borderRadius={4}
-            flexGrow={1}
-        >
-            <CommunityInfoApprove community={community} />
-        </Flex>
+        <>
+            <Head>
+                <title>{`MangaKr - Cộng đồng ${
+                    community?.name || ""
+                } - Phê duyệt`}</title>
+            </Head>
+            <>
+                {!community ? (
+                    <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
+                ) : !user ? (
+                    <></>
+                ) : (
+                    <Flex
+                        direction="column"
+                        p={0}
+                        boxShadow="lg"
+                        bg="white"
+                        borderRadius={4}
+                        flexGrow={1}
+                    >
+                        <CommunityInfoApprove community={community} />
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 

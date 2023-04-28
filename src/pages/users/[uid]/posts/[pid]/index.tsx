@@ -8,6 +8,7 @@ import { UserModel } from "@/models/User";
 import PostService from "@/services/PostService";
 import UserService from "@/services/UserService";
 import { GetServerSidePropsContext } from "next";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type PostPageProps = {
@@ -25,13 +26,27 @@ const PostPage: React.FC<PostPageProps> = ({ post, postUser }) => {
 
     if (!postUser || !post) {
         return (
-            <NotAvailable title="Bài viết này không tồn tại hoặc đã bị xóa!" />
+            <>
+                <Head>
+                    <title>MangaKr</title>
+                </Head>
+                <>
+                    <NotAvailable title="Bài viết này không tồn tại hoặc đã bị xóa!" />
+                </>
+            </>
         );
     }
     return (
-        <PostProvider selectedUser={postUser}>
-            <PostItemDetail post={post} />
-        </PostProvider>
+        <>
+            <Head>
+                <title>MangaKr</title>
+            </Head>
+            <>
+                <PostProvider selectedUser={postUser}>
+                    <PostItemDetail post={post} />
+                </PostProvider>
+            </>
+        </>
     );
 };
 

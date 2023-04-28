@@ -1,5 +1,6 @@
 import NotAvailable from "@/components/Error/NotAvailable";
 import VotingForm from "@/components/Form/Voting";
+import { CommunityRole } from "@/constants/roles";
 import { routes } from "@/constants/routes";
 import useAuth from "@/hooks/useAuth";
 import useCommunity from "@/hooks/useCommunity";
@@ -9,16 +10,19 @@ import CommunityService from "@/services/CommunityService";
 import { Flex } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import cookies from "next-cookies";
+import Head from "next/head";
 import React, { useEffect } from "react";
 
 type CommunityCreateVotingPageProps = {
     community: Community;
     user?: UserModel;
+    userRole?: CommunityRole;
 };
 
 const CommunityCreateVotingPage: React.FC<CommunityCreateVotingPageProps> = ({
     community,
     user,
+    userRole,
 }) => {
     const { authAction } = useAuth();
     const { communityAction } = useCommunity();
@@ -32,25 +36,36 @@ const CommunityCreateVotingPage: React.FC<CommunityCreateVotingPageProps> = ({
         communityAction.setSelectedCommunity(community);
     }, [community]);
 
-    if (!community) {
-        return (
-            <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
-        );
-    }
-    if (!user) {
-        return <></>;
-    }
     return (
-        <Flex
-            direction="column"
-            flexGrow={1}
-            p={6}
-            boxShadow="lg"
-            bg="white"
-            borderRadius={4}
-        >
-            <VotingForm user={user} community={community} />
-        </Flex>
+        <>
+            <Head>
+                <title>{`MangaKr - Cộng đồng ${
+                    community?.name || ""
+                } - Tạo cuộc bình chọn`}</title>
+            </Head>
+            <>
+                {!community ? (
+                    <NotAvailable title="Cộng đồng này không tồn tại hoặc đã bị xóa!" />
+                ) : !user ? (
+                    <></>
+                ) : (
+                    <Flex
+                        direction="column"
+                        flexGrow={1}
+                        p={6}
+                        boxShadow="lg"
+                        bg="white"
+                        borderRadius={4}
+                    >
+                        <VotingForm
+                            user={user}
+                            community={community}
+                            userRole={userRole}
+                        />
+                    </Flex>
+                )}
+            </>
+        </>
     );
 };
 
@@ -87,6 +102,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 props: {
                     community,
                     user: us,
+                    userRole: userRole
+                        ? JSON.parse(JSON.stringify(userRole?.role))
+                        : null,
                 },
             };
         }
