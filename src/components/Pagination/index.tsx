@@ -18,7 +18,7 @@ const Pagination: React.FC<PaginationProps> = ({
     totalPage,
 }) => {
     return (
-        <Flex justify="center">
+        <Flex justify="center" mt={10}>
             <Flex w="fit-content" bg="white">
                 {page > 1 && (
                     <Flex

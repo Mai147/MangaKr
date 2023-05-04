@@ -29,7 +29,7 @@ const BookDetail: React.FC<BookDetailProps> = ({ book, user }) => {
                 pl={{ base: 0, xl: 5 }}
                 borderLeft={{ base: "none", xl: "1px solid" }}
                 borderColor={{ base: "transparent", xl: "gray.400" }}
-                w="100%"
+                w={{ base: "100%", xl: "calc(100% - 260px)" }}
             >
                 <BookDetailHeader book={book} user={user} />
                 <Divider my={4} />

@@ -96,6 +96,7 @@ const BookCarousel: React.FC<Props> = ({
               })
             : useBreakpointValue({ base: { ...defaultSetting, autoplay } });
 
+    console.log(100 / (slidesToShow as number));
     return (
         <>
             {slidesToShow! >= length ? (

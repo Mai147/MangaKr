@@ -148,7 +148,10 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
                         mr={{ base: 0, md: 8 }}
                         mb={{ base: 8, md: 0 }}
                     >
-                        <Avatar size="2xl" src={selectedFile} />
+                        <Avatar
+                            size="2xl"
+                            src={selectedFile || "/images/noImage.jpg"}
+                        />
                         <Flex
                             w="10"
                             h="10"

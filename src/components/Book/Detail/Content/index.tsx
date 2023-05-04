@@ -33,7 +33,7 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
     }, []);
 
     return (
-        <Box>
+        <Box w="100%">
             <BookDetailSection
                 title="Tóm tắt"
                 children={<Text whiteSpace="pre-line">{book.description}</Text>}
@@ -56,17 +56,19 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                     className="ck ck-content"
                 ></div>
                 {book.characterSnippets ? (
-                    <BookCarousel
-                        length={book.characterSnippets?.length}
-                        type="characterSnippet"
-                    >
-                        {book.characterSnippets?.map((char) => (
-                            <CharacterSnippetItem
-                                key={char.id}
-                                character={char}
-                            />
-                        ))}
-                    </BookCarousel>
+                    <Box w="100%">
+                        <BookCarousel
+                            length={book.characterSnippets?.length}
+                            type="characterSnippet"
+                        >
+                            {book.characterSnippets?.map((char) => (
+                                <CharacterSnippetItem
+                                    key={char.id}
+                                    character={char}
+                                />
+                            ))}
+                        </BookCarousel>
+                    </Box>
                 ) : (
                     <></>
                 )}

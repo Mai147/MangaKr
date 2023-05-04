@@ -13,7 +13,7 @@ const BookDetailSection: React.FC<BookDetailSectionProps> = ({
     seeMoreHref,
 }) => {
     return (
-        <Box>
+        <Box w="100%" position="relative">
             <Flex justify="space-between" align="center">
                 <Text fontSize={24} fontWeight={600}>
                     {title}

@@ -113,26 +113,29 @@ const BookSearch: React.FC<BookSearchProps> = ({
                     </Text>
                 </Box>
             ) : (
-                bookState.bookPaginationOutput.list.map(
-                    (book: Book, idx: number) =>
-                        pageView === "search" ? (
-                            <BookSnippetHorizontalItem
-                                key={book.id}
-                                book={book}
-                            />
-                        ) : (
-                            <BookTopSnippetItem
-                                key={book.id}
-                                rank={
-                                    (bookState.bookPaginationOutput.page - 1) *
-                                        BOOK_PAGE_COUNT +
-                                    1 +
-                                    idx
-                                }
-                                book={book}
-                            />
-                        )
-                )
+                <VStack spacing={4} w="100%">
+                    {bookState.bookPaginationOutput.list.map(
+                        (book: Book, idx: number) =>
+                            pageView === "search" ? (
+                                <BookSnippetHorizontalItem
+                                    key={book.id}
+                                    book={book}
+                                />
+                            ) : (
+                                <BookTopSnippetItem
+                                    key={book.id}
+                                    rank={
+                                        (bookState.bookPaginationOutput.page -
+                                            1) *
+                                            BOOK_PAGE_COUNT +
+                                        1 +
+                                        idx
+                                    }
+                                    book={book}
+                                />
+                            )
+                    )}
+                </VStack>
             )}
             <Flex flexGrow={1} align="flex-end" justify="center">
                 <Pagination

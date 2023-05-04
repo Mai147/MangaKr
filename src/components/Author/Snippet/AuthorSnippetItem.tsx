@@ -62,6 +62,7 @@ const AuthorSnippetItem: React.FC<AuthorSnippetItemProps> = ({
                             WebkitLineClamp: 2,
                             WebkitBoxOrient: "vertical",
                             overflow: "hidden",
+                            maxHeight: "80px",
                         }}
                         className="ck ck-content"
                     ></div>

@@ -79,9 +79,7 @@ const BookDetailSidebar: React.FC<BookDetailSidebarProps> = ({
                                             author.id!
                                         )}
                                     >
-                                        <Text maxW={"90px"} noOfLines={1}>
-                                            {author.name}
-                                        </Text>
+                                        <Text noOfLines={1}>{author.name}</Text>
                                     </Link>
                                 </Flex>
                             ))}

@@ -103,7 +103,12 @@ const Home: React.FC<HomeProps> = () => {
                 </BookCarousel>
             </Flex>
             <PageContent>
-                <VStack spacing={2} align="flex-start" px={4} pb={4}>
+                <VStack
+                    spacing={2}
+                    align="flex-start"
+                    px={{ base: 4, md: 0 }}
+                    pb={4}
+                >
                     <VStack spacing={0} align="flex-start" w="100%">
                         <SectionHeading
                             title="Manga vừa ra mắt"
