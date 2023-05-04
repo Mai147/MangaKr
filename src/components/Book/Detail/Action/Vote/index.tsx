@@ -60,8 +60,8 @@ const BookDetailVote: React.FC<BookDetailVoteProps> = ({ bookId, user }) => {
             {!user ? (
                 <RequiredLoginContainer action="bình chọn" />
             ) : (
-                <Flex align="flex-end">
-                    <Text mr={4}>Để lại bình chọn</Text>
+                <Flex align="center">
+                    <Text mr={4}>Bình chọn</Text>
                     <Flex align="center">
                         <RatingBar
                             maxRate={10}

@@ -8,8 +8,18 @@ type SectionHeadingProps = {
 
 const SectionHeading: React.FC<SectionHeadingProps> = ({ title, href }) => {
     return (
-        <Flex justify="space-between" w={"100%"} align="flex-end" pr={2}>
-            <Text fontSize={24} fontWeight={600} color="gray.700">
+        <Flex
+            justify="space-between"
+            w={"100%"}
+            align={{ base: "flex-start", sm: "flex-end" }}
+            // px={{ base: 0, sm: 2 }}
+            direction={{ base: "column", sm: "row" }}
+        >
+            <Text
+                fontSize={{ base: 20, sm: 24 }}
+                fontWeight={600}
+                color="gray.700"
+            >
                 {title}
             </Text>
             {href && (

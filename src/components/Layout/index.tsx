@@ -45,11 +45,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Navbar onOpen={onOpen} />
                 <Flex
                     direction="column"
-                    p={4}
-                    px={{ base: 4, md: 24, xl: 32 }}
+                    p={{ base: 0, md: 4 }}
+                    px={{ base: 0, md: 18, lg: 24, xl: 32 }}
+                    // px={{ base: 0, md: 14, lg: 18, xl: 20, "2xl": 32 }}
                     flexGrow={1}
                     bg="#FAFAFA"
-                    pt={"100px"}
+                    pt={{ base: "80px !important", md: "100px !important" }}
                 >
                     {children}
                 </Flex>

@@ -67,16 +67,18 @@ const CommentSection: React.FC<CommentSectionProps> = ({ user }) => {
                                 </Box>
                             )}
                         </Flex>
-                        {commentState.commentPaginationOutput.page <
-                            commentState.commentPaginationOutput.totalPage && (
-                            <Button
-                                variant={"link"}
-                                color="brand.100"
-                                onClick={commentAction.loadMore}
-                            >
-                                Xem thêm
-                            </Button>
-                        )}
+                        {!commentState.loading.getComment &&
+                            commentState.commentPaginationOutput.page <
+                                commentState.commentPaginationOutput
+                                    .totalPage && (
+                                <Button
+                                    variant={"link"}
+                                    color="brand.100"
+                                    onClick={commentAction.loadMore}
+                                >
+                                    Xem thêm
+                                </Button>
+                            )}
                     </VStack>
                 </Box>
             )}

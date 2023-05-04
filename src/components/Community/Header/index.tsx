@@ -36,16 +36,27 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
             justify="space-between"
             align="flex-start"
         >
-            <Flex align="center">
+            <Flex
+                align="center"
+                direction={{ base: "column", sm: "row" }}
+                w="100%"
+            >
                 <Avatar
                     src={
                         communityState.selectedCommunity?.imageUrl ||
                         "/images/noImage.jpg"
                     }
                     size="xl"
+                    mb={{ base: 4, sm: 0 }}
                 />
-                <Flex align="flex-end">
-                    <VStack align="flex-start" ml={4} mr={8}>
+                <Flex align="flex-end" w="100%">
+                    <VStack
+                        align={{ base: "center", sm: "flex-start" }}
+                        ml={4}
+                        mr={8}
+                        w="100%"
+                        spacing={4}
+                    >
                         <HStack>
                             <Text
                                 fontSize={20}
@@ -68,11 +79,11 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                                 ?.numberOfMembers || 0}{" "}
                             thành viên
                         </Text>
-                        <Flex align="flex-end">
+                        <Flex align="flex-end" alignSelf="flex-start">
                             <Text color="white" mr="2">
                                 Quản trị viên:
                             </Text>
-                            <Box position="relative" h="8" w="28">
+                            <Box position="relative" h="8">
                                 {communityState.selectedCommunityModerators?.map(
                                     (mod, idx) => {
                                         if (idx < 3) {

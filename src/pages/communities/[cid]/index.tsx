@@ -116,13 +116,17 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                         boxShadow="lg"
                     >
                         <CommunityHeader community={community} />
-                        <Flex position="relative" flexGrow={1}>
+                        <Flex
+                            position="relative"
+                            flexGrow={1}
+                            direction={{ base: "column", md: "row" }}
+                        >
                             <Box
-                                w="30%"
+                                w={{ base: "100%", md: "30%" }}
                                 p={6}
                                 py={8}
-                                position="sticky"
-                                top={20}
+                                position={{ base: "relative", md: "sticky" }}
+                                top={{ base: 0, md: 20 }}
                                 alignSelf="flex-start"
                                 flexShrink={0}
                             >
@@ -130,7 +134,8 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                             </Box>
                             <Box
                                 bg="white"
-                                p={6}
+                                p={{ base: 4, md: 6 }}
+                                pt={{ base: 0, md: 6 }}
                                 flexGrow={1}
                                 position="relative"
                             >
@@ -151,10 +156,14 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                                         <Flex
                                             width="100%"
                                             py={4}
-                                            position="sticky"
-                                            top={20}
+                                            position={{
+                                                base: "relative",
+                                                md: "sticky",
+                                            }}
+                                            top={{ base: 0, md: 20 }}
                                             zIndex={100}
                                             bg="white"
+                                            wrap="wrap"
                                         >
                                             {communityTab.map((item) => (
                                                 <TabItem
@@ -172,7 +181,7 @@ const CommunityDetailPage: React.FC<CommunityDetailPageProps> = ({
                                             direction="column"
                                             align="center"
                                             w="100%"
-                                            px={12}
+                                            px={{ base: 0, md: 12 }}
                                             mt={4}
                                         >
                                             <Flex

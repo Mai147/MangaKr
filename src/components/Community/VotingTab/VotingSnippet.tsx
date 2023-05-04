@@ -9,6 +9,7 @@ import {
     HStack,
     IconButton,
     Link,
+    Stack,
     Text,
 } from "@chakra-ui/react";
 import moment from "moment";
@@ -36,40 +37,60 @@ const VotingSnippet: React.FC<VotingSnippetProps> = ({ voting }) => {
                 _hover={{ bg: "gray.50" }}
                 transition="all 0.3s"
             >
-                <HStack spacing={4}>
-                    {voting.createdAt && (
-                        <Text color="gray.400" fontSize={14}>
-                            {moment(new Date(voting.createdAt.seconds * 1000))
-                                .locale("vi")
-                                .fromNow()}
-                        </Text>
-                    )}
+                <Stack
+                    direction={{ base: "column", md: "row" }}
+                    spacing={{ base: 0, md: 4 }}
+                >
+                    <HStack spacing={4}>
+                        {voting.createdAt && (
+                            <Text
+                                color="gray.400"
+                                fontSize={{ base: 12, sm: 14 }}
+                            >
+                                {moment(
+                                    new Date(voting.createdAt.seconds * 1000)
+                                )
+                                    .locale("vi")
+                                    .fromNow()}
+                            </Text>
+                        )}
 
+                        <Text
+                            color={
+                                isDateEnd(voting.timeLast)
+                                    ? "brand.100"
+                                    : "green.400"
+                            }
+                            fontSize={{ base: 12, sm: 14 }}
+                            fontWeight={500}
+                        >
+                            {isDateEnd(voting.timeLast)
+                                ? "Đã kết thúc"
+                                : "Đang mở"}
+                        </Text>
+                    </HStack>
                     <Text
-                        color={
-                            isDateEnd(voting.timeLast)
-                                ? "brand.100"
-                                : "green.400"
-                        }
-                        fontSize={14}
+                        color="gray.700"
+                        fontSize={{ base: 12, sm: 14 }}
                         fontWeight={500}
                     >
-                        {isDateEnd(voting.timeLast) ? "Đã kết thúc" : "Đang mở"}
-                    </Text>
-                    <Text color="gray.700" fontSize={14} fontWeight={500}>
                         Đến{" "}
                         {moment(
                             new Date(voting.timeLast.seconds * 1000)
                         ).format("HH:mm DD/MM/yyyy")}
                     </Text>
-                </HStack>
+                </Stack>
                 <Text noOfLines={3} whiteSpace="pre-line" fontWeight={600}>
                     {voting.content}
                 </Text>
                 <Divider my={4} />
-                <Text>{voting.numberOfOptions} lựa chọn</Text>
+                <Text fontSize={{ base: 14, sm: 16 }}>
+                    {voting.numberOfOptions} lựa chọn
+                </Text>
                 <Flex align="center">
-                    <Text>{voting.numberOfVotes} người đã bình chọn</Text>
+                    <Text fontSize={{ base: 14, sm: 16 }}>
+                        {voting.numberOfVotes} người đã bình chọn
+                    </Text>
                     <Box position="relative" h="8" w="28" ml={2}>
                         {voting.votingVoteSnippets.map((snippet, idx) => {
                             return (
@@ -131,7 +152,7 @@ const VotingSnippet: React.FC<VotingSnippetProps> = ({ voting }) => {
                                 voting.creatorImageUrl || "/images/noImage.jpg"
                             }
                             size="sm"
-                            ml={2}
+                            ml={{ base: 1, md: 2 }}
                         />
                     </Flex>
                     <IconButton
@@ -139,8 +160,9 @@ const VotingSnippet: React.FC<VotingSnippetProps> = ({ voting }) => {
                         variant="outline"
                         color="gray.500"
                         borderColor="gray.500"
+                        size={{ base: "sm", md: "md" }}
                         icon={<AiOutlineArrowRight />}
-                        ml={10}
+                        ml={{ base: 6, md: 10 }}
                     />
                 </Flex>
             </Box>

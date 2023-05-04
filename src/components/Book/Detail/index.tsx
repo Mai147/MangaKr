@@ -18,16 +18,18 @@ const BookDetail: React.FC<BookDetailProps> = ({ book, user }) => {
             position="relative"
             alignItems="flex-start"
             bg="white"
-            p={6}
+            p={{ base: 4, sm: 6 }}
             borderRadius={4}
             boxShadow="lg"
+            flexDirection={{ base: "column", xl: "row" }}
         >
-            <BookDetailSidebar book={book} />
+            <BookDetailSidebar book={book} user={user} />
             <Box
                 flexGrow={1}
-                pl={5}
-                borderLeft="1px solid"
-                borderColor="gray.400"
+                pl={{ base: 0, xl: 5 }}
+                borderLeft={{ base: "none", xl: "1px solid" }}
+                borderColor={{ base: "transparent", xl: "gray.400" }}
+                w="100%"
             >
                 <BookDetailHeader book={book} user={user} />
                 <Divider my={4} />

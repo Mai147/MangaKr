@@ -10,8 +10,7 @@ const BookImage: React.FC<BookImageProps> = ({ imageUrl }) => {
         <AspectRatio
             ratio={3 / 4}
             w={{
-                base: "100px",
-                sm: "150px",
+                base: "150px",
                 lg: "200px",
                 xl: "250px",
             }}

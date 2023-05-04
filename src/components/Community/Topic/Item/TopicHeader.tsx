@@ -22,7 +22,11 @@ const TopicItemHeader: React.FC<TopicItemHeaderProps> = ({
     const [changeStatusLoading, setChangeStatusLoading] = useState(false);
     const router = useRouter();
     return (
-        <Flex align="center" justify="space-between">
+        <Flex
+            align={{ base: "flex-start", md: "center" }}
+            justify="space-between"
+            direction={{ base: "column", md: "row" }}
+        >
             <Flex align="center">
                 <Text as="span" fontSize={14} color="gray.400" display="inline">
                     Tạo bởi{" "}
@@ -43,11 +47,12 @@ const TopicItemHeader: React.FC<TopicItemHeaderProps> = ({
                     </Text>
                 )}
             </Flex>
-            <HStack spacing={4}>
+            <HStack spacing={4} mt={{ base: 4, md: 0 }}>
                 {canChangeStatus && user && user.uid === topic.creatorId && (
                     <Button
                         variant="outline"
                         isLoading={changeStatusLoading}
+                        size={{ base: "sm", sm: "md" }}
                         onClick={async () => {
                             setChangeStatusLoading(true);
                             await TopicService.changeStatus({
@@ -66,7 +71,9 @@ const TopicItemHeader: React.FC<TopicItemHeaderProps> = ({
                         href={routes.getCommunityDetailPage(topic.communityId)}
                         _hover={{ textDecoration: "none" }}
                     >
-                        <Button>Quay lại cộng đồng</Button>
+                        <Button size={{ base: "sm", sm: "md" }}>
+                            Quay lại cộng đồng
+                        </Button>
                     </Link>
                 )}
             </HStack>

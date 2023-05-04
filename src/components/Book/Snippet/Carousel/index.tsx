@@ -34,6 +34,7 @@ const BookCarousel: React.FC<Props> = ({
         bookSnippetLibraryLg,
         characterSnippetLg,
         characterSnippetSm,
+        characterSnippetBase,
     } = carouselSetting;
     const [slider, setSlider] = useState<Slider | null>(null);
 
@@ -51,7 +52,7 @@ const BookCarousel: React.FC<Props> = ({
               })
             : type === "characterSnippet"
             ? useBreakpointValue({
-                  base: defaultSetting,
+                  base: characterSnippetBase.slidesToShow,
                   sm: characterSnippetSm.slidesToShow,
                   lg: characterSnippetLg.slidesToShow,
               })
@@ -78,7 +79,7 @@ const BookCarousel: React.FC<Props> = ({
               })
             : type === "characterSnippet"
             ? useBreakpointValue({
-                  base: { ...defaultSetting, autoplay },
+                  base: { ...characterSnippetBase, autoplay },
                   sm: { ...characterSnippetSm, autoplay },
                   lg: { ...characterSnippetLg, autoplay },
               })
@@ -115,6 +116,7 @@ const BookCarousel: React.FC<Props> = ({
                     width={"full"}
                     overflow={"hidden"}
                     role="group"
+                    height="inherit"
                 >
                     <CarouselButton
                         slider={slider}
@@ -138,12 +140,7 @@ const BookCarousel: React.FC<Props> = ({
                     />
                     <Slider {...settings} ref={(slider) => setSlider(slider)}>
                         {children.map((child: any) => (
-                            <Box
-                                key={child.key}
-                                py={2}
-                                px={2}
-                                ml={"calc(2px - 0.5rem)"}
-                            >
+                            <Box key={child.key} py={2} height="inherit">
                                 {child}
                             </Box>
                         ))}

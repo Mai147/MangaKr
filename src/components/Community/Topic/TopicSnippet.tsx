@@ -36,7 +36,7 @@ const TopicSnippet: React.FC<TopicSnippetProps> = ({ topic }) => {
             >
                 <HStack spacing={4}>
                     {topic.createdAt && (
-                        <Text color="gray.400" fontSize={14}>
+                        <Text color="gray.400" fontSize={{ base: 12, md: 14 }}>
                             {moment(new Date(topic.createdAt.seconds * 1000))
                                 .locale("vi")
                                 .fromNow()}
@@ -44,16 +44,20 @@ const TopicSnippet: React.FC<TopicSnippetProps> = ({ topic }) => {
                     )}
                     <Text
                         color={topic.isClose ? "brand.100" : "green.400"}
-                        fontSize={14}
+                        fontSize={{ base: 12, md: 14 }}
                         fontWeight={500}
                     >
                         {topic.isClose ? "Đã đóng" : "Đang mở"}
                     </Text>
                 </HStack>
-                <Text fontWeight={600} fontSize={20}>
+                <Text fontWeight={600} fontSize={{ base: 18, md: 20 }}>
                     {topic.title}
                 </Text>
-                <Text noOfLines={3} whiteSpace="pre-line">
+                <Text
+                    noOfLines={3}
+                    whiteSpace="pre-line"
+                    fontSize={{ base: 14, md: 16 }}
+                >
                     {topic.description}
                 </Text>
                 <Flex align="center" justify="space-between" mt={4}>
@@ -85,7 +89,8 @@ const TopicSnippet: React.FC<TopicSnippetProps> = ({ topic }) => {
                         color="gray.500"
                         borderColor="gray.500"
                         icon={<AiOutlineArrowRight />}
-                        ml={10}
+                        ml={{ base: 6, md: 10 }}
+                        size={{ base: "sm", md: "md" }}
                     />
                 </Flex>
             </Box>

@@ -150,7 +150,11 @@ const CommunityPage: React.FC<CommunityPageProps> = () => {
             </Head>
             <>
                 <PageContent>
-                    <VStack spacing={2} align="flex-start">
+                    <VStack
+                        spacing={2}
+                        align="flex-start"
+                        p={{ base: 4, lg: 0 }}
+                    >
                         <SectionHeading title="Cộng đồng của bạn" />
                         {loading.mine ? (
                             [1, 2, 3].map((e) => (

@@ -15,6 +15,8 @@ import {
     Link,
     Divider,
     Flex,
+    useBreakpointValue,
+    Box,
 } from "@chakra-ui/react";
 import React from "react";
 import ReviewActionInfoBar from "./ActionInfoBar";
@@ -28,7 +30,14 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
     const { user } = useAuth();
     return (
         <Flex align="flex-start">
-            <ReviewLeftSideBar reviewId={review.id!} />
+            <Box
+                display={useBreakpointValue({
+                    base: "none",
+                    md: "block",
+                })}
+            >
+                <ReviewLeftSideBar reviewId={review.id!} />
+            </Box>
             <VStack
                 spacing={4}
                 align="flex-start"
@@ -36,7 +45,7 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
                 bg="white"
                 borderRadius={4}
                 boxShadow="lg"
-                p={6}
+                p={{ base: 4, md: 6 }}
             >
                 <AspectRatio ratio={3 / 1} w="100%">
                     <Image
@@ -46,7 +55,13 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
                     />
                 </AspectRatio>
                 <VStack spacing={2} w="100%">
-                    <Heading as="h3">{review.title}</Heading>
+                    <Heading
+                        as="h3"
+                        fontSize={{ base: 20, md: 28 }}
+                        textAlign="center"
+                    >
+                        {review.title}
+                    </Heading>
                     <VStack spacing={0}>
                         <Link
                             href={routes.getBookDetailPage(review.bookId!)}
@@ -66,6 +81,17 @@ const ReviewDetail: React.FC<ReviewDetailProps> = ({ review }) => {
                         </Text>
                     </VStack>
                     <ReviewActionInfoBar review={review} />
+                    <Box
+                        display={useBreakpointValue({
+                            base: "block",
+                            md: "none",
+                        })}
+                    >
+                        <ReviewLeftSideBar
+                            reviewId={review.id!}
+                            direction="row"
+                        />
+                    </Box>
                 </VStack>
                 <Divider />
                 <div

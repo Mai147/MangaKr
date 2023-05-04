@@ -22,12 +22,12 @@ const CommunityTopicTab: React.FC<CommunityTopicTabProps> = () => {
         <>
             <Box
                 mb={4}
-                position="sticky"
-                top={40}
+                position={{ base: "relative", md: "sticky" }}
+                top={{ base: 0, md: 40 }}
                 left={0}
                 bg="white"
-                zIndex={999}
-                w={"calc(100% + 36px)"}
+                zIndex={{ base: 1, md: 999 }}
+                w={{ base: "100%", md: "calc(100% + 36px)" }}
                 pb={4}
             >
                 <InputGroup>
@@ -39,6 +39,7 @@ const CommunityTopicTab: React.FC<CommunityTopicTabProps> = () => {
                         type="text"
                         placeholder="Tìm kiếm chủ đề..."
                         borderColor="gray.400"
+                        fontSize={{ base: 12, sm: 16 }}
                         value={topicState.input.searchValue || ""}
                         onChange={(e) => topicAction.search(e.target.value)}
                     />

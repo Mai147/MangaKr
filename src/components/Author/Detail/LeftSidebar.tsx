@@ -8,9 +8,13 @@ import React, { useEffect, useState } from "react";
 
 type AuthorLeftSidebarProps = {
     authorId: string;
+    direction?: "row" | "column";
 };
 
-const AuthorLeftSidebar: React.FC<AuthorLeftSidebarProps> = ({ authorId }) => {
+const AuthorLeftSidebar: React.FC<AuthorLeftSidebarProps> = ({
+    authorId,
+    direction,
+}) => {
     const { user } = useAuth();
     const { toggleView } = useModal();
     const [userVote, setUserVote] = useState<Vote | undefined>();
@@ -75,6 +79,7 @@ const AuthorLeftSidebar: React.FC<AuthorLeftSidebarProps> = ({ authorId }) => {
             voteList={basicVoteList}
             userVote={userVote}
             onVote={onVote}
+            direction={direction}
         />
     );
 };

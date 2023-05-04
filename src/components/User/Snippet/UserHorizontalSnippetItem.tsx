@@ -23,9 +23,7 @@ const UserHorizontalSnippetItem: React.FC<UserHorizontalSnippetItemProps> = ({
             _hover={{ textDecoration: "none" }}
         >
             <Flex
-                p={4}
-                // border="1px solid"
-                // borderColor="gray.200"
+                p={{ base: 2, md: 4 }}
                 boxShadow="rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px"
                 borderRadius={4}
                 align="center"
@@ -38,14 +36,21 @@ const UserHorizontalSnippetItem: React.FC<UserHorizontalSnippetItemProps> = ({
                 <Flex align="center">
                     <Avatar
                         src={user.imageUrl || "/images/noImage.jpg"}
-                        size={size}
+                        size={{ base: "md", md: size }}
                     />
                     <VStack
                         align="flex-start"
-                        ml={size === "sm" ? 2 : size === "md" ? 4 : 8}
+                        ml={{
+                            base: 4,
+                            md: size === "sm" ? 2 : size === "md" ? 4 : 8,
+                        }}
                         spacing={0}
                     >
-                        <Text noOfLines={1} fontWeight={600}>
+                        <Text
+                            noOfLines={1}
+                            fontWeight={600}
+                            fontSize={{ base: 14, md: 16 }}
+                        >
                             {user.displayName}
                         </Text>
                     </VStack>

@@ -20,7 +20,7 @@ const BookTopSnippetItem: React.FC<BookTopSnippetItemProps> = ({
             _hover={{ textDecoration: "none" }}
         >
             <Box
-                p={4}
+                p={{ base: 2, md: 4 }}
                 boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
                 borderRadius={4}
                 mb={4}
@@ -33,14 +33,14 @@ const BookTopSnippetItem: React.FC<BookTopSnippetItemProps> = ({
                         borderRadius="full"
                         border="1px dashed"
                         borderColor="brand.400"
-                        w={8}
-                        h={8}
-                        fontSize={12}
+                        w={{ base: 6, md: 8 }}
+                        h={{ base: 6, md: 8 }}
+                        fontSize={{ base: 10, md: 12 }}
                         fontWeight={500}
                         align="center"
                         justify="center"
                         flexShrink={0}
-                        mr={4}
+                        mr={{ base: 2, md: 4 }}
                     >
                         {rank}
                     </Flex>
@@ -49,7 +49,7 @@ const BookTopSnippetItem: React.FC<BookTopSnippetItemProps> = ({
                         direction="column"
                         justify="space-between"
                         align="flex-start"
-                        ml={8}
+                        ml={{ base: 4, sm: 6, md: 8 }}
                         alignSelf="stretch"
                     >
                         <Box>

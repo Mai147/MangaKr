@@ -24,10 +24,10 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
     onPrev,
     ...rest
 }) => {
-    const top = useBreakpointValue({ base: "80%", sm: "50%" });
+    const top = useBreakpointValue({ base: "200%", md: "50%" });
     const side = useBreakpointValue({
         base: "35%",
-        sm: "40px",
+        sm: "20px",
         md: "1rem",
     });
     return (
@@ -45,7 +45,7 @@ const CarouselButton: React.FC<CarouselButtonProps> = ({
             opacity="30%"
             _hover={{ bg: "brand.700", opacity: "100%" }}
             transition="opacity 0.3s, bg 0.3s"
-            size="md"
+            size={{ base: "sm", md: "md" }}
             onClick={async () => {
                 if (btnPos === "left") {
                     onPrev && (await onPrev());

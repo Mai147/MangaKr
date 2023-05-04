@@ -17,28 +17,71 @@ const BookActionInfoBar: React.FC<BookActionInfoBarProps> = ({
     textSize = 20,
 }) => {
     return (
-        <Flex justify="space-between">
-            <Flex align="center">
-                <Text color="gray.600" fontSize={textSize} mr={2}>
+        <Flex justify="space-between" w="100%" mt={{ base: 2, md: 0 }}>
+            <Flex align="center" flexGrow={1}>
+                <Text
+                    color="gray.600"
+                    fontSize={{ base: 14, sm: textSize, md: 16, xl: textSize }}
+                    mr={2}
+                >
                     {book.rating || 0}/10
                 </Text>
                 <RatingBar rate={book.rating / 2} size={textSize} readonly />
             </Flex>
-            <Flex align="center" mx={6}>
-                <Text color="gray.600" fontSize={textSize} mr={2}>
-                    {book.numberOfComments || 0}
-                </Text>
-                <Icon as={FaRegComment} fontSize={iconSize} color="gray.300" />
-            </Flex>
-            <Flex align="center">
-                <Text color="gray.600" fontSize={textSize} mr={2}>
-                    {book.numberOfReviews || 0}
-                </Text>
-                <Icon
-                    as={MdOutlineRateReview}
-                    fontSize={iconSize}
-                    color="gray.300"
-                />
+            <Flex
+                align={{
+                    base: "flex-end",
+                    sm: "center",
+                    md: "flex-end",
+                    lg: "center",
+                }}
+                justify={"space-between"}
+                direction={{
+                    base: "column",
+                    sm: "row",
+                    md: "column",
+                    lg: "row",
+                }}
+                flexGrow={1}
+            >
+                <Flex align="center">
+                    <Text
+                        color="gray.600"
+                        fontSize={{
+                            base: 14,
+                            sm: textSize,
+                            md: 16,
+                            xl: textSize,
+                        }}
+                        mr={2}
+                    >
+                        {book.numberOfComments || 0}
+                    </Text>
+                    <Icon
+                        as={FaRegComment}
+                        fontSize={iconSize}
+                        color="gray.300"
+                    />
+                </Flex>
+                <Flex align="center">
+                    <Text
+                        color="gray.600"
+                        fontSize={{
+                            base: 14,
+                            sm: textSize,
+                            md: 16,
+                            xl: textSize,
+                        }}
+                        mr={2}
+                    >
+                        {book.numberOfReviews || 0}
+                    </Text>
+                    <Icon
+                        as={MdOutlineRateReview}
+                        fontSize={iconSize}
+                        color="gray.300"
+                    />
+                </Flex>
             </Flex>
         </Flex>
     );

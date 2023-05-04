@@ -56,7 +56,13 @@ const TopicItem: React.FC<TopicItemProps> = ({ topic }) => {
     }, [topicReplyPaginationInput.page]);
 
     return (
-        <Box p={6} borderRadius={4} boxShadow="lg" bg="white" flexGrow={1}>
+        <Box
+            p={{ base: 4, md: 6 }}
+            borderRadius={{ base: 0, md: 4 }}
+            boxShadow="lg"
+            bg="white"
+            flexGrow={1}
+        >
             <TopicItemHeader topic={topic} />
             <Divider my={4} />
             <Text fontWeight={600} fontSize={20}>

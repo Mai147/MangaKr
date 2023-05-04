@@ -25,8 +25,10 @@ const Tag: React.FC<TagProps> = ({
         >
             <Box
                 {...rest}
-                px={4}
-                py={1}
+                px={{ base: 2, sm: 4 }}
+                py={{ base: 1, sm: 1 }}
+                minW={20}
+                textAlign="center"
                 bg={isActive ? "brand.400" : "gray.300"}
                 color={isActive ? "white" : "gray.700"}
                 borderRadius={"full"}
@@ -40,7 +42,7 @@ const Tag: React.FC<TagProps> = ({
                 }
                 transition="all 0.3s"
             >
-                <Text fontSize={14}>{label}</Text>
+                <Text fontSize={{ base: 12, sm: 14 }}>{label}</Text>
             </Box>
         </Link>
     );

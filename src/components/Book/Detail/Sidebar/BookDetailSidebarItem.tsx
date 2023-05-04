@@ -11,8 +11,11 @@ const BookDetailSidebarItem: React.FC<BookDetailSidebarItemProps> = ({
     title,
 }) => {
     return (
-        <Flex align="flex-start" wordBreak="break-word">
-            <Text mr={2} fontWeight={500} flexShrink={0}>
+        <Flex
+            align="flex-start"
+            wordBreak={{ base: "normal", xl: "break-word" }}
+        >
+            <Text mr={2} fontWeight={500} flexShrink={{ base: 1, xl: 0 }}>
                 {title}
             </Text>
             {children}

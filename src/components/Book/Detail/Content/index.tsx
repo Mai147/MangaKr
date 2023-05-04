@@ -31,6 +31,7 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
     useEffect(() => {
         getBookReviews(book.id!);
     }, []);
+
     return (
         <Box>
             <BookDetailSection
@@ -54,7 +55,7 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                     }}
                     className="ck ck-content"
                 ></div>
-                {book.characterSnippets && (
+                {book.characterSnippets ? (
                     <BookCarousel
                         length={book.characterSnippets?.length}
                         type="characterSnippet"
@@ -66,6 +67,8 @@ const BookDetailContent: React.FC<BookDetailContentProps> = ({ book }) => {
                             />
                         ))}
                     </BookCarousel>
+                ) : (
+                    <></>
                 )}
             </BookDetailSection>
             <Divider my={4} />

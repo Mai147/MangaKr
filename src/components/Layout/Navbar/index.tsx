@@ -35,6 +35,8 @@ const Navbar = ({ onOpen }: NavbarProps) => {
                 onClick={onOpen}
                 variant="outline"
                 aria-label="open menu"
+                color="gray.500"
+                borderColor="gray.500"
                 icon={<FiMenu />}
             />
 

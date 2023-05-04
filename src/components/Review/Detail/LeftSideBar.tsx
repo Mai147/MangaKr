@@ -8,16 +8,20 @@ import React, { useEffect, useState } from "react";
 
 type ReviewLeftSideBarProps = {
     reviewId: string;
+    direction?: "row" | "column";
 };
 
-const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({ reviewId }) => {
+const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({
+    reviewId,
+    direction,
+}) => {
     const { user } = useAuth();
     const { toggleView } = useModal();
     const [userVote, setUserVote] = useState<Vote | undefined>();
 
     const getUserVote = async (userId: string) => {
         const userVote = await VoteService.get({
-            voteRoute: firebaseRoute.getUserAuthorVoteRoute(userId),
+            voteRoute: firebaseRoute.getUserReviewVoteRoute(userId),
             voteId: reviewId,
         });
         if (userVote) {
@@ -75,6 +79,7 @@ const ReviewLeftSideBar: React.FC<ReviewLeftSideBarProps> = ({ reviewId }) => {
             voteList={basicVoteList}
             userVote={userVote}
             onVote={onVote}
+            direction={direction}
         />
     );
 };

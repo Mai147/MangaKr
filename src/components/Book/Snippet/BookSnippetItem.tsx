@@ -1,4 +1,4 @@
-import { Book, BookSnippet } from "@/models/Book";
+import { BookSnippet } from "@/models/Book";
 import {
     AspectRatio,
     Box,
@@ -52,7 +52,7 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
                     _hover={{ transform: "scale(1.02)", bg: "gray.50" }}
                     transition="all 0.3s"
                 >
-                    <AspectRatio ratio={1}>
+                    <AspectRatio ratio={{ base: 4 / 3, sm: 1 }}>
                         <Image
                             src={book.imageUrl || "/images/noImage.jpg"}
                             objectFit={"cover"}
@@ -73,7 +73,7 @@ const BookSnippetItem: React.FC<BookSnippetItemProps> = ({
                             {book.name}
                         </Text>
                         <Text
-                            fontSize={{ base: 12, md: 14 }}
+                            fontSize={14}
                             color="gray.400"
                             noOfLines={descriptionLines}
                             height={descriptionHeight}

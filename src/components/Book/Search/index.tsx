@@ -5,7 +5,17 @@ import { BOOK_PAGE_COUNT } from "@/constants/pagination";
 import { routes } from "@/constants/routes";
 import useBooks from "@/hooks/useBooks";
 import { Book, Filter, filterList, FilterValue } from "@/models/Book";
-import { Box, Divider, Flex, Select, Spinner, Text } from "@chakra-ui/react";
+import {
+    Box,
+    Divider,
+    Flex,
+    HStack,
+    Select,
+    Spinner,
+    Text,
+    useBreakpointValue,
+    VStack,
+} from "@chakra-ui/react";
 import router from "next/router";
 import React from "react";
 import BookSnippetHorizontalItem from "../Snippet/BookSnippetHorizontalItem";
@@ -23,16 +33,24 @@ const BookSearch: React.FC<BookSearchProps> = ({
     pageView = "search",
 }) => {
     const { bookAction, bookState } = useBooks();
+    const genreScroll = useBreakpointValue({
+        base: "scroll mobile is-hidden",
+        md: "",
+    });
     return (
-        <Flex direction="column" flexGrow={1}>
+        <Flex direction="column" flexGrow={1} p={4}>
             <Text fontSize={24} fontWeight={600}>
                 {title}
             </Text>
             <Divider my={4} borderColor="gray.400" />
             {pageView === "search" && (
                 <>
-                    <Flex justify="center">
-                        <Box mx={2}>
+                    <HStack
+                        overflowX={{ base: "auto" }}
+                        className={genreScroll}
+                        wrap={{ base: "nowrap", md: "wrap" }}
+                    >
+                        <Box mb={2}>
                             <Tag
                                 label="Tất cả"
                                 isActive={!bookState.selectedGenre?.id}
@@ -43,7 +61,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
                         </Box>
                         {bookState.loading.getGenre && <Spinner />}
                         {bookState.genreList.map((genre) => (
-                            <Box key={genre.id} mx={2}>
+                            <Box key={genre.id}>
                                 <Tag
                                     label={genre.name}
                                     isActive={
@@ -59,8 +77,8 @@ const BookSearch: React.FC<BookSearchProps> = ({
                                 />
                             </Box>
                         ))}
-                    </Flex>
-                    <Flex align="center" justify="center" my={4}>
+                    </HStack>
+                    <Flex align="center" justify="center" mb={4}>
                         <Text whiteSpace="pre-line">
                             {bookState.selectedGenre?.description}
                         </Text>
@@ -68,7 +86,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
                 </>
             )}
             {pageView === "top" && (
-                <Flex justify="center" mb={10}>
+                <Flex justify="center" mb={{ base: 4, md: 10 }}>
                     <Select
                         onChange={(event) => {
                             bookAction.onChangeFilter(
@@ -89,7 +107,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
             {bookState.loading.getBook &&
                 [1, 2, 3, 4].map((e, idx) => <HorizontalSkeleton key={idx} />)}
             {bookState.bookPaginationOutput.list.length <= 0 ? (
-                <Box mt={10}>
+                <Box mt={{ base: 2, md: 10 }}>
                     <Text fontSize={20} align="center">
                         {noResultText}
                     </Text>

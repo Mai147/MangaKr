@@ -39,7 +39,7 @@ const RatingItem: React.FC<RatingItemProps> = ({
                     ? "gray.300"
                     : "yellow.300"
             }
-            fontSize={size || 20}
+            fontSize={{ base: 14, sm: size || 20, md: 16, xl: size || 20 }}
             cursor={readonly ? "default" : "pointer"}
             onMouseOver={() => {
                 if (readonly) return;

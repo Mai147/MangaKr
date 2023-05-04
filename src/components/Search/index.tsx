@@ -1,19 +1,8 @@
-import { routes } from "@/constants/routes";
 import useSearch from "@/hooks/useSearch";
-import {
-    Box,
-    Divider,
-    Flex,
-    Input,
-    InputGroup,
-    InputLeftElement,
-    Text,
-} from "@chakra-ui/react";
-import { useRouter } from "next/router";
-import React, { useRef } from "react";
+import { Box, Flex } from "@chakra-ui/react";
+import React from "react";
 import { AiOutlineUser } from "react-icons/ai";
 import { BsBook } from "react-icons/bs";
-import { FiSearch } from "react-icons/fi";
 import { HiOutlineUserGroup } from "react-icons/hi";
 import { IoPersonOutline } from "react-icons/io5";
 import { MdOutlineRateReview } from "react-icons/md";
@@ -61,7 +50,7 @@ const SearchResult: React.FC<SearchResultProps> = () => {
     return (
         <Flex direction="column" justifyContent="space-between" flexGrow={1}>
             <Box>
-                <Flex width="100%" mb={4}>
+                <Flex width="100%" mb={4} wrap="wrap">
                     {searchTab.map((item) => (
                         <TabItem
                             key={item.title}

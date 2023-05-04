@@ -29,7 +29,7 @@ const SearchPage: React.FC<SearchPageProps> = () => {
             </Head>
             <>
                 <PageContent>
-                    <Flex direction="column" flexGrow={1}>
+                    <Flex direction="column" flexGrow={1} p={4}>
                         <Text fontSize={24} fontWeight={600}>
                             Kết quả tìm kiếm cho "{rounter.query.q}"
                         </Text>

@@ -15,7 +15,10 @@ const SearchAuthorTab: React.FC<SearchAuthorTabProps> = () => {
                 [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
             ) : searchState.author.output.list.length > 0 ? (
                 <Grid
-                    templateColumns={"repeat(2, minmax(0, 1fr))"}
+                    templateColumns={{
+                        base: "repeat(1, minmax(0, 1fr))",
+                        md: "repeat(2, minmax(0, 1fr))",
+                    }}
                     gap={2}
                     mb={4}
                 >

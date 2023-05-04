@@ -23,12 +23,12 @@ const CommunityVotingTab: React.FC<CommunityVotingTabProps> = () => {
         <>
             <Box
                 mb={4}
-                position="sticky"
-                top={40}
+                position={{ base: "relative", md: "sticky" }}
+                top={{ base: 0, md: 40 }}
                 left={0}
                 bg="white"
-                zIndex={999}
-                w={"calc(100% + 36px)"}
+                zIndex={{ base: 1, md: 999 }}
+                w={{ base: "100%", md: "calc(100% + 36px)" }}
                 pb={4}
             >
                 <InputGroup>
@@ -40,6 +40,7 @@ const CommunityVotingTab: React.FC<CommunityVotingTabProps> = () => {
                         type="text"
                         placeholder="Tìm kiếm cuộc bình chọn..."
                         borderColor="gray.400"
+                        fontSize={{ base: 12, sm: 16 }}
                         value={votingState.input.searchValue || ""}
                         onChange={(e) => votingAction.search(e.target.value)}
                     />

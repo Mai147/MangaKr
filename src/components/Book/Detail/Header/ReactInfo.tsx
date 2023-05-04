@@ -16,7 +16,7 @@ const ReactInfo: React.FC<ReactInfoProps> = ({
     subChild,
 }) => {
     return (
-        <Flex align="center" ml={6}>
+        <Flex align="center">
             <Text color="gray.600" fontSize={18} mr={2}>
                 {value || 0} {title}
             </Text>

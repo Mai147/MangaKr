@@ -8,7 +8,10 @@ import {
 } from "@chakra-ui/react";
 import React from "react";
 import { IconType } from "react-icons";
-import { FiHome, FiTrendingUp, FiCompass } from "react-icons/fi";
+import { BiLibrary } from "react-icons/bi";
+import { BsBook } from "react-icons/bs";
+import { FiHome } from "react-icons/fi";
+import { HiOutlineUserGroup } from "react-icons/hi";
 import NavSearch from "../Navbar/NavRightContent/NavSearch";
 import SidebarItem from "./SidebarItem";
 
@@ -16,12 +19,38 @@ interface LinkItemProps {
     name: string;
     icon: IconType;
     href?: string;
+    subChildren?: {
+        name: string;
+        href?: string;
+    }[];
 }
 const LinkItems: Array<LinkItemProps> = [
-    { name: "Home", icon: FiHome, href: routes.getHomePage() },
-    { name: "Trending", icon: FiTrendingUp },
-    { name: "Job", icon: FiCompass },
-    { name: "Library", icon: FiCompass },
+    { name: "Trang chủ", icon: FiHome, href: routes.getHomePage() },
+    {
+        name: "Manga",
+        icon: BsBook,
+        href: routes.getBookHomePage(),
+        subChildren: [
+            {
+                name: "Tìm kiếm Manga",
+                href: routes.getBookHomePage(),
+            },
+            {
+                name: "Manga hàng đầu",
+                href: routes.getBookTopPage(),
+            },
+            {
+                name: "Reviews",
+                href: routes.getReviewHomePage(),
+            },
+        ],
+    },
+    {
+        name: "Cộng đồng",
+        icon: HiOutlineUserGroup,
+        href: routes.getCommunityHomePage(),
+    },
+    { name: "Thư viện", icon: BiLibrary, href: routes.getProfileLibraryPage() },
 ];
 
 type SidebarProps = {
@@ -57,7 +86,12 @@ const Sidebar = ({ onClose }: SidebarProps) => {
                 <NavSearch />
             </Flex>
             {LinkItems.map((link) => (
-                <SidebarItem key={link.name} icon={link.icon} href={link.href}>
+                <SidebarItem
+                    key={link.name}
+                    icon={link.icon}
+                    href={link.href}
+                    subChildren={link.subChildren}
+                >
                     {link.name}
                 </SidebarItem>
             ))}

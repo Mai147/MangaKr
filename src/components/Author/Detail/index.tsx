@@ -20,6 +20,9 @@ import {
     Grid,
     GridItem,
     Text,
+    Box,
+    useBreakpointValue,
+    Stack,
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { FaBook } from "react-icons/fa";
@@ -85,23 +88,32 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
 
     return (
         <Flex align="flex-start">
-            <AuthorLeftSidebar authorId={author.id!} />
+            <Box display={useBreakpointValue({ base: "none", xl: "block" })}>
+                <AuthorLeftSidebar authorId={author.id!} />
+            </Box>
+
             <VStack
                 align="flex-start"
                 border="1px solid"
                 borderColor="gray.300"
-                borderRadius={4}
-                p={6}
+                borderRadius={{ base: 0, md: 4 }}
+                p={{ base: 4, md: 6 }}
                 w="100%"
                 bg="white"
             >
-                <Flex>
+                <Stack
+                    direction={{ base: "column", xl: "row" }}
+                    align={{ base: "center", xl: "flex-start" }}
+                    spacing={{ base: 2, md: 6, lg: 10 }}
+                >
                     <Avatar
                         src={author.imageUrl || "/images/noImage.jpg"}
                         size="2xl"
-                        mr={10}
                     />
-                    <VStack spacing={2} align="flex-start">
+                    <VStack
+                        spacing={2}
+                        align={{ base: "center", xl: "flex-start" }}
+                    >
                         <Text fontSize={20} fontWeight={500}>
                             {author.name}
                         </Text>
@@ -134,8 +146,19 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                                 {author.numberOfBooks.toLocaleString("vi")}
                             </Flex>
                         </Flex>
+                        <Box
+                            display={useBreakpointValue({
+                                base: "block",
+                                xl: "none",
+                            })}
+                        >
+                            <AuthorLeftSidebar
+                                authorId={author.id!}
+                                direction="row"
+                            />
+                        </Box>
                     </VStack>
-                </Flex>
+                </Stack>
                 <Divider pb={4} />
                 <VStack spacing={2} pt={4} align="flex-start" w="100%">
                     <Text fontSize={20} fontWeight={600}>
@@ -143,7 +166,12 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                     </Text>
                     {loading ? (
                         <Grid
-                            templateColumns="repeat(2, minmax(0, 1fr))"
+                            templateColumns={{
+                                base: "repeat(1, minmax(0, 1fr))",
+                                sm: "repeat(2, minmax(0, 1fr))",
+                                md: "repeat(1, minmax(0, 1fr))",
+                                "2xl": "repeat(2, minmax(0, 1fr))",
+                            }}
                             gap={4}
                             w="100%"
                         >
@@ -164,8 +192,13 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                                     authorBookPaginationOutput.list
                                 ).map((bookGroup) => (
                                     <Grid
-                                        templateColumns="repeat(2, 1fr)"
-                                        gap={4}
+                                        templateColumns={{
+                                            base: "repeat(1, minmax(0, 1fr))",
+                                            sm: "repeat(2, minmax(0, 1fr))",
+                                            md: "repeat(1, minmax(0, 1fr))",
+                                            "2xl": "repeat(2, minmax(0, 1fr))",
+                                        }}
+                                        gap={{ base: 0, "2xl": 4 }}
                                         key={bookGroup[0].id}
                                     >
                                         {bookGroup.map((book) => (

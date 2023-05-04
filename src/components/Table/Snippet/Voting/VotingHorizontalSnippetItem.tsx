@@ -1,10 +1,8 @@
 import { votingHeaderList } from "@/components/Community/Approve/CommunityInfoApprove";
 import { Voting } from "@/models/Vote";
-import { Flex, HStack, IconButton, Text } from "@chakra-ui/react";
+import { Flex, HStack, Text } from "@chakra-ui/react";
 import moment from "moment";
 import React, { useState } from "react";
-import { AiOutlineCheck } from "react-icons/ai";
-import { MdOutlineClear } from "react-icons/md";
 import VotingItemPreview from "./VotingPreview";
 
 type VotingHorizontalSnippetItemProps = {

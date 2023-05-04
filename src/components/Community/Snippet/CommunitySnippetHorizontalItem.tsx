@@ -27,20 +27,24 @@ const CommunitySnippetHorizontalItem: React.FC<
         >
             <Box
                 {...rest}
-                p={4}
+                p={{ base: 2, sm: 4 }}
                 boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
                 borderRadius={4}
                 bg="white"
                 _hover={{ bg: "gray.50" }}
                 transition="all 0.5s"
             >
-                <Flex>
+                <Flex align="center">
                     <Avatar
                         src={community.imageUrl || "/images/noImage.jpg"}
-                        size="xl"
+                        size={{ base: "md", sm: "lg", md: "xl" }}
                     />
-                    <VStack align="flex-start" ml={8}>
-                        <HStack align="center">
+                    <VStack
+                        align="flex-start"
+                        ml={{ base: 4, sm: 6, md: 8 }}
+                        lineHeight={1}
+                    >
+                        <HStack align="flex-end">
                             <Text noOfLines={1} fontWeight={600}>
                                 {community.name}
                             </Text>
@@ -58,7 +62,7 @@ const CommunitySnippetHorizontalItem: React.FC<
                                 }
                             </Text>
                         </HStack>
-                        <Text color="gray.500">
+                        <Text color="gray.500" fontSize={14}>
                             {community.numberOfMembers} thành viên
                         </Text>
                         <Tag label={community.bookName} />

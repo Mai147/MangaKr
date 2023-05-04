@@ -12,9 +12,9 @@ const SnippetHorizontalImage: React.FC<SnippetHorizontalImageProps> = ({
         <AspectRatio
             ratio={3 / 4}
             w={{
-                base: "40px",
-                lg: "60px",
-                xl: "80px",
+                base: "60px",
+                lg: "80px",
+                xl: "100px",
             }}
             flexShrink={0}
         >

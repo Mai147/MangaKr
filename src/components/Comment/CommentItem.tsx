@@ -88,88 +88,95 @@ const CommentItem: React.FC<CommentItemProps> = ({
                     <Text fontSize="10pt" whiteSpace={"pre-line"}>
                         {comment.text}
                     </Text>
-                    <Stack direction="row" align="center" spacing={2}>
-                        <VotePopup
-                            voteList={basicVoteList}
-                            triggerIconSize={20}
-                            userVoteValue={
-                                commentState.commentPaginationOutput.commentDatas.find(
-                                    (item) => item.comment.id === comment.id
-                                )?.voteValue
-                            }
-                            onVote={async (vote) => {
-                                await commentAction.vote(
-                                    vote as Vote,
-                                    comment.id!,
-                                    isReply
-                                );
-                            }}
-                        />
-                        <CommentReaction
-                            icon={AiOutlineLike}
-                            value={comment.numberOfLikes}
-                        />
-                        <CommentReaction
-                            icon={AiOutlineDislike}
-                            value={comment.numberOfDislikes}
-                        />
-                        <CommentReaction
-                            icon={BsReply}
-                            value={comment.numberOfReplies}
-                        />
-                        {canReply && (
-                            <>
-                                <Box
-                                    borderLeft="1px solid"
-                                    borderColor="gray.300"
-                                    h="100%"
-                                ></Box>
-                                <Text
-                                    fontSize={12}
-                                    fontWeight={500}
-                                    cursor="pointer"
-                                    _hover={{ color: "brand.400" }}
-                                    onClick={() => {
-                                        if (!user) {
-                                            toggleView("login");
-                                        } else {
-                                            setShowReplyComment(true);
-                                        }
-                                    }}
-                                >
-                                    Phản hồi
-                                </Text>
-                            </>
-                        )}
-                        {user?.uid === comment.creatorId && (
-                            <>
-                                <Box
-                                    borderLeft="1px solid"
-                                    borderColor="gray.300"
-                                    h="100%"
-                                ></Box>
-                                {commentState.loading.deleteComment.find(
-                                    (item) => item.commentId === comment.id
-                                )?.loading ? (
-                                    <Spinner size="sm" />
-                                ) : (
+                    <Stack
+                        direction={{ base: "column", sm: "row" }}
+                        spacing={2}
+                    >
+                        <HStack spacing={2} align="center">
+                            <VotePopup
+                                voteList={basicVoteList}
+                                triggerIconSize={20}
+                                userVoteValue={
+                                    commentState.commentPaginationOutput.commentDatas.find(
+                                        (item) => item.comment.id === comment.id
+                                    )?.voteValue
+                                }
+                                onVote={async (vote) => {
+                                    await commentAction.vote(
+                                        vote as Vote,
+                                        comment.id!,
+                                        isReply
+                                    );
+                                }}
+                            />
+                            <CommentReaction
+                                icon={AiOutlineLike}
+                                value={comment.numberOfLikes}
+                            />
+                            <CommentReaction
+                                icon={AiOutlineDislike}
+                                value={comment.numberOfDislikes}
+                            />
+                            <CommentReaction
+                                icon={BsReply}
+                                value={comment.numberOfReplies}
+                            />
+                        </HStack>
+                        <HStack spacing={2} align="center">
+                            {canReply && (
+                                <>
+                                    <Box
+                                        borderLeft="1px solid"
+                                        borderColor="gray.300"
+                                        h="100%"
+                                    ></Box>
                                     <Text
                                         fontSize={12}
                                         fontWeight={500}
                                         cursor="pointer"
                                         _hover={{ color: "brand.400" }}
-                                        onClick={async () => {
-                                            await commentAction.delete(
-                                                comment,
-                                                isReply
-                                            );
+                                        onClick={() => {
+                                            if (!user) {
+                                                toggleView("login");
+                                            } else {
+                                                setShowReplyComment(true);
+                                            }
                                         }}
                                     >
-                                        Xóa bình luận
+                                        Phản hồi
                                     </Text>
-                                )}
-                            </>
-                        )}
+                                </>
+                            )}
+                            {user?.uid === comment.creatorId && (
+                                <>
+                                    <Box
+                                        borderLeft="1px solid"
+                                        borderColor="gray.300"
+                                        h="100%"
+                                    ></Box>
+                                    {commentState.loading.deleteComment.find(
+                                        (item) => item.commentId === comment.id
+                                    )?.loading ? (
+                                        <Spinner size="sm" />
+                                    ) : (
+                                        <Text
+                                            fontSize={12}
+                                            fontWeight={500}
+                                            cursor="pointer"
+                                            _hover={{ color: "brand.400" }}
+                                            onClick={async () => {
+                                                await commentAction.delete(
+                                                    comment,
+                                                    isReply
+                                                );
+                                            }}
+                                        >
+                                            Xóa bình luận
+                                        </Text>
+                                    )}
+                                </>
+                            )}
+                        </HStack>
                     </Stack>
                 </VStack>
                 {showReplyComment && (

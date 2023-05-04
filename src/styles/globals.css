@@ -116,16 +116,31 @@ a {
   background: #ccc;
   border-radius: 24px;
 }
+
+.scroll.mobile::-webkit-scrollbar {
+  height: 4px;
+}
+.scroll.mobile::-webkit-scrollbar-track {
+  height: 6px;
+}
+.scroll.mobile::-webkit-scrollbar-thumb {
+background: #ccc;
+border-radius: 24px;
+}
+
 .scroll.dark::-webkit-scrollbar-thumb {
   background: #666;
 }
-.scroll.is-hover::-webkit-scrollbar-thumb {
+.scroll.is-hover::-webkit-scrollbar-thumb,
+.scroll.mobile.is-hover::-webkit-scrollbar-thumb {
   background: transparent;
 }
-.scroll.is-hidden::-webkit-scrollbar-thumb{
+.scroll.is-hidden::-webkit-scrollbar-thumb,
+.scroll.mobile.is-hidden::-webkit-scrollbar-thumb{
   background: transparent;
 }
-.scroll.is-hover:hover::-webkit-scrollbar-thumb{
+.scroll.is-hover:hover::-webkit-scrollbar-thumb,
+.scroll.mobile.is-hover:hover::-webkit-scrollbar-thumb{
   background: #ccc;
 }
 .scroll.dark.is-hover:hover::-webkit-scrollbar-thumb{
@@ -140,10 +155,25 @@ a {
   box-shadow: "rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
 }
 
-main{
-  display: flex !important;
-  direction: 'column';
-  flex-grow: 1;
+.slick-track
+{
+    display: flex !important;
+}
+
+.slick-slide
+{
+    height: inherit !important;
+    margin: 0 6px;
+}
+
+/* the parent */
+.slick-list {
+  margin: 0 -4px;
+}
+
+
+.slick-slide > div:first-child {
+  height: 100% !important;
 }
 
 

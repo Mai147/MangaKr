@@ -11,6 +11,7 @@ import {
     HStack,
     Link,
     Spinner,
+    Stack,
     Text,
 } from "@chakra-ui/react";
 import moment from "moment";
@@ -25,41 +26,60 @@ const VotingItem: React.FC<VotingItemProps> = ({ voting }) => {
     const { votingAction, votingState } = useVoting();
 
     return (
-        <Box p={6} borderRadius={4} boxShadow="lg" bg="white" flexGrow={1}>
-            <Flex align="center" justify="space-between">
-                <HStack align="center" spacing={4}>
-                    <Flex align="center">
-                        <Text
-                            as="span"
-                            fontSize={14}
-                            color="gray.400"
-                            display="inline"
-                        >
-                            Tạo bởi{" "}
+        <Box
+            p={{ base: 4, md: 6 }}
+            borderRadius={{ base: 0, md: 4 }}
+            boxShadow="lg"
+            bg="white"
+            flexGrow={1}
+        >
+            <Flex
+                align={{ base: "flex-start", md: "center" }}
+                justify="space-between"
+                direction={{ base: "column", md: "row" }}
+            >
+                <Stack
+                    align={{ base: "flex-start", md: "center" }}
+                    spacing={{ base: 0, md: 4 }}
+                    direction={{ base: "column", md: "row" }}
+                >
+                    <HStack align="center" spacing={4}>
+                        <Flex align="center">
                             <Text
+                                as="span"
+                                fontSize={14}
+                                color="gray.400"
                                 display="inline"
-                                color="gray.600"
-                                fontWeight={500}
                             >
-                                {voting.creatorDisplayName}
+                                Tạo bởi{" "}
+                                <Text
+                                    display="inline"
+                                    color="gray.600"
+                                    fontWeight={500}
+                                >
+                                    {voting.creatorDisplayName}
+                                </Text>
                             </Text>
-                        </Text>
-                        <Avatar
-                            src={
-                                voting.creatorImageUrl || "/images/noImage.jpg"
-                            }
-                            size="sm"
-                            ml={2}
-                        />
-                    </Flex>
+                            <Avatar
+                                src={
+                                    voting.creatorImageUrl ||
+                                    "/images/noImage.jpg"
+                                }
+                                size="sm"
+                                ml={2}
+                            />
+                        </Flex>
 
-                    {voting.createdAt && (
-                        <Text color="gray.400" fontSize={14} ml={4}>
-                            {moment(new Date(voting.createdAt.seconds * 1000))
-                                .locale("vi")
-                                .fromNow()}
-                        </Text>
-                    )}
+                        {voting.createdAt && (
+                            <Text color="gray.400" fontSize={14} ml={4}>
+                                {moment(
+                                    new Date(voting.createdAt.seconds * 1000)
+                                )
+                                    .locale("vi")
+                                    .fromNow()}
+                            </Text>
+                        )}
+                    </HStack>
                     {!isDateEnd(voting.timeLast) ? (
                         <Text color="gray.700" fontSize={14} fontWeight={500}>
                             Đến{" "}
@@ -72,7 +92,7 @@ const VotingItem: React.FC<VotingItemProps> = ({ voting }) => {
                             Cuộc bình chọn đã kết thúc
                         </Text>
                     )}
-                </HStack>
+                </Stack>
                 <HStack spacing={4}>
                     {/* {user && user.uid === voting.creatorId && (
                         <Button
@@ -96,12 +116,15 @@ const VotingItem: React.FC<VotingItemProps> = ({ voting }) => {
                     <Link
                         href={routes.getCommunityDetailPage(voting.communityId)}
                         _hover={{ textDecoration: "none" }}
+                        mt={{ base: 2, md: 0 }}
                     >
-                        <Button>Quay lại cộng đồng</Button>
+                        <Button size={{ base: "sm", sm: "md" }}>
+                            Quay lại cộng đồng
+                        </Button>
                     </Link>
                 </HStack>
             </Flex>
-            <Text>
+            <Text mt={{ base: 2, md: 0 }}>
                 {votingState.selectedVoting?.voting.numberOfOptions || 0} lựa
                 chọn
             </Text>

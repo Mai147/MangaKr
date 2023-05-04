@@ -63,7 +63,7 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
             </Head>
             <>
                 <PageContent>
-                    <Box flexGrow={1}>
+                    <Box flexGrow={1} p={4}>
                         <Text fontSize={24} fontWeight={600}>
                             Bài đánh giá
                         </Text>
@@ -77,7 +77,11 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
                                 Không có bài đánh giá nào!
                             </Text>
                         ) : (
-                            <VStack spacing={4} mb={4} align="flex-start">
+                            <VStack
+                                spacing={{ base: 3, md: 4 }}
+                                mb={4}
+                                align="flex-start"
+                            >
                                 {reviewPaginationOutput.list.map(
                                     (review: Review) => (
                                         <ReviewSnippetItem

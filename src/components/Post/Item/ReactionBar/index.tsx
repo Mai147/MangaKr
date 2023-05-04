@@ -47,23 +47,43 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
             spacing={3}
         >
             <Flex px={size === "md" ? 6 : 8} justify="space-between" w="100%">
-                <HStack spacing={1} fontSize={24}>
+                <HStack
+                    spacing={1}
+                    fontSize={{ base: 20, md: 24 }}
+                    align="center"
+                >
                     <Text>{formatNumber(post.numberOfLikes)}</Text>
                     <Icon as={AiFillLike} color="blue.500" />
                 </HStack>
-                <HStack spacing={1} fontSize={24}>
+                <HStack
+                    spacing={1}
+                    fontSize={{ base: 20, md: 24 }}
+                    align="center"
+                >
                     <Text>{formatNumber(post.numberOfFavorites)}</Text>
                     <Icon as={MdFavorite} color="brand.100" />
                 </HStack>
-                <HStack spacing={1} fontSize={24}>
+                <HStack
+                    spacing={1}
+                    fontSize={{ base: 20, md: 24 }}
+                    align="center"
+                >
                     <Text>{formatNumber(post.numberOfLaughs)}</Text>
                     <Icon as={FaLaughSquint} color="yellow.400" />
                 </HStack>
-                <HStack spacing={1} fontSize={24}>
+                <HStack
+                    spacing={1}
+                    fontSize={{ base: 20, md: 24 }}
+                    align="center"
+                >
                     <Text>{formatNumber(post.numberOfDislikes)}</Text>
                     <Icon as={AiFillDislike} color="gray.700" />
                 </HStack>
-                <HStack spacing={1} fontSize={24}>
+                <HStack
+                    spacing={1}
+                    fontSize={{ base: 20, md: 24 }}
+                    align="center"
+                >
                     <Text>{formatNumber(post.numberOfAngrys)}</Text>
                     <Icon as={FaAngry} color="red.500" />
                 </HStack>

@@ -10,6 +10,7 @@ import {
     Image,
     Link,
     Text,
+    useBreakpointValue,
 } from "@chakra-ui/react";
 import React from "react";
 import { FaTimes } from "react-icons/fa";
@@ -29,6 +30,12 @@ const ReviewSnippetItem: React.FC<ReviewSnippetItemProps> = ({
     onCarousel = false,
     ...rest
 }) => {
+    const ratingBarMaxRate = useBreakpointValue({
+        base: 5,
+        sm: 10,
+        md: 5,
+        lg: 10,
+    });
     return (
         <Link
             _hover={{ textDecoration: "none" }}
@@ -38,10 +45,9 @@ const ReviewSnippetItem: React.FC<ReviewSnippetItemProps> = ({
         >
             <Flex
                 {...rest}
-                p={4}
+                p={{ base: 2, sm: 4, md: 2, lg: 4 }}
                 bg="white"
-                border="1px solid"
-                borderColor="gray.200"
+                boxShadow="rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px"
                 borderRadius={4}
                 align="center"
                 justify="space-between"
@@ -50,19 +56,37 @@ const ReviewSnippetItem: React.FC<ReviewSnippetItemProps> = ({
                 position="relative"
             >
                 <Flex>
-                    <AspectRatio ratio={4 / 3} w={"120px"} flexShrink={0}>
+                    <AspectRatio
+                        ratio={{ base: 4 / 3, md: 3 / 4, lg: 4 / 3 }}
+                        w={{
+                            base: "90px",
+                            sm: "120px",
+                            md: "100px",
+                            lg: "120px",
+                        }}
+                        flexShrink={0}
+                    >
                         <Image src={review.imageUrl || "/images/noImage.jpg"} />
                     </AspectRatio>
                     <Flex
-                        ml={8}
+                        ml={{ base: 4, sm: 8, md: 4, lg: 8 }}
                         align="flex-start"
                         direction="column"
                         justify="space-between"
                     >
-                        <Text fontSize={18} fontWeight={600} noOfLines={1}>
+                        <Text
+                            fontSize={{ base: 16, sm: 18 }}
+                            fontWeight={600}
+                            noOfLines={1}
+                            lineHeight={1}
+                        >
                             {review.title}
                         </Text>
-                        <RatingBar rate={review.rating} maxRate={10} readonly />
+                        <RatingBar
+                            rate={review.rating}
+                            maxRate={ratingBarMaxRate}
+                            readonly
+                        />
                         <Tag
                             label={
                                 tagReviewList.find(
