@@ -95,6 +95,7 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
                                                     href={routes.getProfilePage(
                                                         mod.id
                                                     )}
+                                                    key={idx}
                                                 >
                                                     <Avatar
                                                         key={mod.id}

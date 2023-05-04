@@ -27,9 +27,9 @@ const BookCreatePage: React.FC<BookCreatePageProps> = () => {
             <>
                 <Flex
                     direction="column"
-                    p="6"
+                    p={{ base: 4, md: 6 }}
                     bg="white"
-                    borderRadius={4}
+                    borderRadius={{ base: 0, md: 4 }}
                     boxShadow="lg"
                     flexGrow={1}
                 >

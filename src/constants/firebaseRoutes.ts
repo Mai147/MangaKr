@@ -26,6 +26,7 @@ const TOPIC_REPLY_ROUTE = `replies`;
 const VOTING_ROUTE = `votings`;
 const VOTING_OPTION_ROUTE = `options`;
 const VOTING_VOTE_ROUTE = `votingVotes`;
+const VOTING_OPTION_VOTE_ROUTE = `optionVotingVotes`;
 const MESSAGE_ROUTE = `messages`;
 const FOLLOW_ROUTE = `follows`;
 const FOLLOWED_ROUTE = `followeds`;
@@ -158,7 +159,7 @@ export const firebaseRoute = {
         votingId: string,
         voteOptionId: string
     ) {
-        return `${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/${votingId}/${VOTING_OPTION_ROUTE}/${voteOptionId}/${VOTING_VOTE_ROUTE}`;
+        return `${COMMUNITY_ROUTE}/${communityId}/${VOTING_ROUTE}/${votingId}/${VOTING_OPTION_ROUTE}/${voteOptionId}/${VOTING_OPTION_VOTE_ROUTE}`;
     },
     getCommunityVotingImageRoute(
         communityId: string,

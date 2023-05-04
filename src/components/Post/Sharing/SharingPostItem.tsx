@@ -19,20 +19,26 @@ import PostItem from "../Item";
 
 type SharingPostItemProps = {
     sharingPost: SharingPost;
+    boxShadow?: boolean;
 };
 
-const SharingPostItem: React.FC<SharingPostItemProps> = ({ sharingPost }) => {
+const SharingPostItem: React.FC<SharingPostItemProps> = ({
+    sharingPost,
+    boxShadow = true,
+}) => {
     return (
         <Box
             border="1px solid"
             borderColor="gray.300"
             borderRadius={8}
-            boxShadow="rgba(0, 0, 0, 0.24) 0px 3px 8px"
+            boxShadow={
+                boxShadow ? "rgba(0, 0, 0, 0.24) 0px 3px 8px" : undefined
+            }
             overflow="hidden"
             mb={10}
             w="100%"
             bg="white"
-            px={4}
+            px={{ base: 2, md: 4 }}
             py={2}
         >
             <Flex py={4} align="center" justify="space-between" w="100%">

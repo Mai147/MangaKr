@@ -10,7 +10,7 @@ import { defaultTopicForm, Topic } from "@/models/Topic";
 import { UserModel } from "@/models/User";
 import TopicService from "@/services/TopicService";
 import { validateCreateTopic } from "@/validation/topicValidation";
-import { Button, Divider, Flex, Link, Text, useToast } from "@chakra-ui/react";
+import { Divider, Flex, useToast } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { IoDocument, IoImageOutline } from "react-icons/io5";
 import FormFooter from "../Footer";
@@ -119,7 +119,7 @@ const TopicForm: React.FC<TopicFormProps> = ({ community, user, userRole }) => {
                         />
                     ))}
                 </Flex>
-                <Flex p={4} flexGrow={1}>
+                <Flex py={4} px={{ base: 0, md: 4 }} flexGrow={1}>
                     {selectedTab === formTab[0].title && (
                         <TopicFormContent
                             title={topicForm.title}

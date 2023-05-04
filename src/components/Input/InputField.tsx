@@ -8,6 +8,7 @@ type InputFieldProps = {
     isFull?: boolean;
     isHalf?: boolean;
     required?: boolean;
+    maxWidth?: boolean;
 };
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -16,6 +17,7 @@ const InputField: React.FC<InputFieldProps> = ({
     isHalf,
     children,
     required = false,
+    maxWidth,
 }) => {
     return (
         <Flex
@@ -30,6 +32,7 @@ const InputField: React.FC<InputFieldProps> = ({
                 isFull={isFull}
                 isHalf={isHalf}
                 required={required}
+                maxWidth={maxWidth}
             />
             {children}
         </Flex>

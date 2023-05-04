@@ -31,7 +31,7 @@ const ProfileLibraryPage: React.FC<ProfileLibaryPageProps> = () => {
                 <title>MangaKr - Thư viện</title>
             </Head>
             <>
-                <Box>
+                <Box p={4}>
                     <ConfirmModal
                         title={confirmTitle}
                         content={confirmContent}

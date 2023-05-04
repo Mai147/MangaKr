@@ -23,11 +23,18 @@ const PostPrivacyTab: React.FC<PostPrivacyTabProps> = ({
             >
                 <VStack align="flex-start">
                     {privacyList.map((item) => (
-                        <Flex key={item.value}>
-                            <Radio size="lg" value={item.value}>
+                        <Flex key={item.value} align="center">
+                            <Radio
+                                size={{ base: "md", md: "lg" }}
+                                value={item.value}
+                            >
                                 {item.title}
                             </Radio>
-                            <Text color="gray.400" ml={2}>
+                            <Text
+                                color="gray.400"
+                                ml={{ base: 1, md: 2 }}
+                                fontSize={{ base: 14, md: 16 }}
+                            >
                                 {item.content}
                             </Text>
                         </Flex>

@@ -93,7 +93,10 @@ const LibraryReview: React.FC<LibraryReviewProps> = ({
                         {getReviewGroup().map((reviewGroup, idx) => (
                             <Box key={idx}>
                                 <Grid
-                                    templateColumns="repeat(2, minmax(0, 1fr))"
+                                    templateColumns={{
+                                        base: "repeat(1, minmax(0, 1fr))",
+                                        md: "repeat(2, minmax(0, 1fr))",
+                                    }}
                                     gap={2}
                                 >
                                     {reviewGroup.map((review) => (

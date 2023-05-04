@@ -52,10 +52,10 @@ const CommunityCreateVotingPage: React.FC<CommunityCreateVotingPageProps> = ({
                     <Flex
                         direction="column"
                         flexGrow={1}
-                        p={6}
+                        p={{ base: 4, md: 6 }}
                         boxShadow="lg"
                         bg="white"
-                        borderRadius={4}
+                        borderRadius={{ base: 0, md: 4 }}
                     >
                         <VotingForm
                             user={user}

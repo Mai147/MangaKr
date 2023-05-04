@@ -21,6 +21,7 @@ import {
     Box,
     Input,
     HStack,
+    Stack,
 } from "@chakra-ui/react";
 import { Timestamp } from "firebase/firestore";
 import React, { useState } from "react";
@@ -119,8 +120,16 @@ const VotingForm: React.FC<VotingFormProps> = ({
 
                     <Divider my={4} />
                     <Box>
-                        <HStack spacing={12} align="flex-start">
-                            <VStack flexGrow={1} align="flex-start">
+                        <Stack
+                            direction={{ base: "column", md: "row" }}
+                            spacing={{ base: 0, md: 12 }}
+                            align="flex-start"
+                        >
+                            <VStack
+                                flexGrow={1}
+                                align="flex-start"
+                                w={{ base: "100%", md: "auto" }}
+                            >
                                 <InputText
                                     onInputChange={(e) => {
                                         setVotingForm((prev) => ({
@@ -148,10 +157,14 @@ const VotingForm: React.FC<VotingFormProps> = ({
                                     }
                                 />
                             </VStack>
-                            <VStack align="flex-end">
-                                <HStack flexShrink={0} spacing={4}>
-                                    <Text>Thời gian:</Text>
-                                    <Box w="300px">
+                            <VStack
+                                align="flex-end"
+                                w={{ base: "100%", md: "auto" }}
+                                flexShrink={0}
+                            >
+                                <HStack spacing={4} w="100%">
+                                    <Text flexShrink={0}>Thời gian:</Text>
+                                    <Box w={{ base: "100%", md: "300px" }}>
                                         <Input
                                             type="datetime-local"
                                             value={formatDateToDateTimeLocal(
@@ -188,7 +201,7 @@ const VotingForm: React.FC<VotingFormProps> = ({
                                     }
                                 />
                             </VStack>
-                        </HStack>
+                        </Stack>
                     </Box>
                     <VStack mt={4}>
                         <VStack w="100%" spacing={4}>

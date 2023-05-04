@@ -6,6 +6,7 @@ type InputLabelProps = {
     isFull?: boolean;
     isHalf?: boolean;
     required?: boolean;
+    maxWidth?: boolean;
 };
 
 const InputLabel: React.FC<InputLabelProps> = ({
@@ -13,13 +14,19 @@ const InputLabel: React.FC<InputLabelProps> = ({
     isFull = true,
     isHalf,
     required = false,
+    maxWidth = true,
 }) => {
     return (
         <>
             {isFull && (
                 <Flex
-                    width={{ base: "100px", md: "130px", xl: "170px" }}
+                    width={
+                        maxWidth
+                            ? { base: "130px", md: "150px", xl: "170px" }
+                            : "auto"
+                    }
                     flexShrink={0}
+                    mb={{ base: 2, md: 0 }}
                 >
                     <Text>{label}</Text>
                     {required && (
@@ -30,7 +37,11 @@ const InputLabel: React.FC<InputLabelProps> = ({
                 </Flex>
             )}
             {isHalf && (
-                <Flex mr={{ md: 0, lg: 4 }} w={{ md: "145px", lg: "80px" }}>
+                <Flex
+                    mr={{ md: 0, lg: 4 }}
+                    w={maxWidth ? { md: "145px", lg: "80px" } : "auto"}
+                    mb={{ base: 2, md: 0 }}
+                >
                     <Text>{label}</Text>
                     {required && (
                         <Text color="red" ml={2}>

@@ -139,7 +139,7 @@ const PostForm: React.FC<PostFormProps> = ({ community, user, userRole }) => {
                         }
                     />
                     <Divider my={4} />
-                    <Flex width="100%">
+                    <Flex width="100%" wrap="wrap">
                         {formTab.map((item) => (
                             <TabItem
                                 key={item.title}
@@ -159,7 +159,7 @@ const PostForm: React.FC<PostFormProps> = ({ community, user, userRole }) => {
                             ))}
                     </Flex>
                 </Flex>
-                <Flex p={4} flexGrow={1}>
+                <Flex px={{ base: 0, md: 4 }} py={4} flexGrow={1}>
                     {selectedTab === formTab[0].title && (
                         <PostFormContent
                             caption={postForm.caption}

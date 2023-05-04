@@ -1,4 +1,5 @@
 import Pagination from "@/components/Pagination";
+import TableHeader, { TableInfoHeader } from "@/components/Table/TableHeader";
 import { USER_PAGE_COUNT } from "@/constants/pagination";
 import {
     COMMUNITY_ADMIN_ROLE,
@@ -31,6 +32,7 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import CommunityLeftSideBarAction from "../LeftSideBar/Action";
+import CommunityInfoApproveList from "./CommunityInfoApproveList";
 import CommunityUserSnippetApproveItem from "./CommunityUserSnippetApproveItem";
 
 type CommunityUserApproveProps = {
@@ -54,6 +56,22 @@ const defaultCommunityUserApproveState: CommunityUserApproveState = {
     paginationOutput: defaultPaginationOutput,
     loading: true,
 };
+
+export const userHeaderList: TableInfoHeader[] = [
+    {
+        title: "Avatar",
+        width: { base: "80px", md: "100px" },
+    },
+    {
+        title: "Tên",
+        width: { base: "200px", md: "300px" },
+    },
+    {
+        title: "Ngày yêu cầu",
+        width: "200px",
+        display: { base: "none", md: "block" },
+    },
+];
 
 const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
     community,
@@ -170,34 +188,11 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                     w="100%"
                     fontSize={20}
                     fontWeight={600}
-                    align="center"
-                    justify="space-between"
+                    direction="column"
                 >
-                    <Text>Phê duyệt thành viên</Text>
-                    <HStack spacing={4}>
-                        <Select
-                            w="250px"
-                            borderColor="gray.400"
-                            value={
-                                communityUserApproveState.paginationInput
-                                    .isAccept
-                                    ? 1
-                                    : 0
-                            }
-                            onChange={(e) => {
-                                setCommunityUserApproveState((prev) => ({
-                                    ...prev,
-                                    paginationInput: {
-                                        ...prev.paginationInput,
-                                        isAccept: !!e.target.value,
-                                    },
-                                }));
-                            }}
-                        >
-                            <option value={""}>Chưa duyệt</option>
-                            <option value={1}>Đã duyệt</option>
-                        </Select>
-                        <HStack spacing={2} align="center">
+                    <Flex justify="space-between" align="center">
+                        <Text>Phê duyệt thành viên</Text>
+                        <HStack spacing={2} align="center" ml={4}>
                             <Link
                                 href={routes.getCommunityDetailPage(
                                     community.id!
@@ -208,28 +203,33 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                             </Link>
                             <CommunityLeftSideBarAction />
                         </HStack>
-                    </HStack>
+                    </Flex>
+                    <Select
+                        w="250px"
+                        borderColor="gray.400"
+                        value={
+                            communityUserApproveState.paginationInput.isAccept
+                                ? 1
+                                : 0
+                        }
+                        onChange={(e) => {
+                            setCommunityUserApproveState((prev) => ({
+                                ...prev,
+                                paginationInput: {
+                                    ...prev.paginationInput,
+                                    isAccept: !!e.target.value,
+                                },
+                            }));
+                        }}
+                        alignSelf="flex-end"
+                        mt={2}
+                    >
+                        <option value={""}>Chưa duyệt</option>
+                        <option value={1}>Đã duyệt</option>
+                    </Select>
                 </Flex>
                 <Divider borderColor="gray.300" />
-                <HStack
-                    spacing={4}
-                    flexGrow={1}
-                    w="100%"
-                    p={4}
-                    fontWeight={500}
-                >
-                    <Text w="100px" flexShrink={0}>
-                        Avatar
-                    </Text>
-                    <Text w="300px" flexShrink={0}>
-                        Tên
-                    </Text>
-                    <Text w="200px" flexShrink={0}>
-                        {!communityUserApproveState.paginationInput.isAccept
-                            ? "Ngày yêu cầu"
-                            : "Ngày gia nhập"}
-                    </Text>
-                </HStack>
+                <TableHeader list={userHeaderList} />
                 <Divider borderColor="gray.300" />
                 {communityUserApproveState.loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>
@@ -237,27 +237,28 @@ const CommunityUserApprove: React.FC<CommunityUserApproveProps> = ({
                     </Flex>
                 ) : communityUserApproveState.paginationOutput.list &&
                   communityUserApproveState.paginationOutput.list.length > 0 ? (
-                    communityUserApproveState.paginationOutput.list.map(
-                        (u: CommunityUserSnippet) =>
-                            u.id !== user?.uid ? (
-                                <Box key={u.id} w="100%">
-                                    <CommunityUserSnippetApproveItem
-                                        user={u}
-                                        isDeleteOnly={
-                                            communityUserApproveState
-                                                .paginationInput.isAccept ||
-                                            false
-                                        }
-                                        handleApprove={async (isAccept) => {
-                                            await handleApprove(u, isAccept);
-                                        }}
-                                    />
-                                    <Divider borderColor="gray.300" />
-                                </Box>
+                    <CommunityInfoApproveList
+                        list={communityUserApproveState.paginationOutput.list}
+                        type={"users"}
+                        isAccept={
+                            communityUserApproveState.paginationInput
+                                .isAccept || false
+                        }
+                        handleApprove={async (item, isAccept) => {
+                            await handleApprove(item, isAccept);
+                        }}
+                        handleDelete={async (item) => {
+                            await handleApprove(item, true);
+                        }}
+                        renderChild={(item) =>
+                            item.id !== user?.uid ? (
+                                <CommunityUserSnippetApproveItem user={item} />
                             ) : (
-                                <Box key={u.id}></Box>
+                                <></>
                             )
-                    )
+                        }
+                        exception={(item) => item.id === user?.uid}
+                    />
                 ) : (
                     <Flex align="center" justify="center" w="100%" py={10}>
                         <Text>Không có thành viên cần phê duyệt</Text>

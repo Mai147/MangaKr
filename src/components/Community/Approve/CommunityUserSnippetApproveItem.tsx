@@ -4,34 +4,36 @@ import moment from "moment";
 import React, { useState } from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 import { MdOutlineClear } from "react-icons/md";
+import { userHeaderList } from "./CommunityUserApprove";
 
 type CommunityUserSnippetApproveItemProps = {
     user: CommunityUserSnippet;
-    isDeleteOnly: boolean;
-    handleApprove?: (isAccept: boolean) => Promise<void>;
 };
 
 const CommunityUserSnippetApproveItem: React.FC<
     CommunityUserSnippetApproveItemProps
-> = ({ user, handleApprove, isDeleteOnly }) => {
-    const [acceptLoading, setAcceptLoading] = useState(false);
-    const [deleLoading, setDeleteLoading] = useState(false);
+> = ({ user }) => {
     return (
         <Flex
             justify="space-between"
             align="center"
             w="100%"
-            p={4}
+            px={{ base: 2, md: 4 }}
+            py={4}
             _hover={{ bg: "gray.50" }}
         >
             <HStack spacing={4} flexGrow={1}>
-                <Box w="100px">
+                <Box w={userHeaderList[0].width}>
                     <Avatar src={user.imageUrl || "/images/noImage.jpg"} />
                 </Box>
-                <Text w="300px" flexShrink={0}>
+                <Text w={userHeaderList[1].width} flexShrink={0}>
                     {user.displayName}
                 </Text>
-                <Box w="200px" flexShrink={0}>
+                <Box
+                    w={userHeaderList[2].width}
+                    flexShrink={0}
+                    display={userHeaderList[2].display}
+                >
                     {user.createdAt?.seconds && (
                         <Text>
                             {moment(
@@ -40,44 +42,6 @@ const CommunityUserSnippetApproveItem: React.FC<
                         </Text>
                     )}
                 </Box>
-            </HStack>
-            <HStack spacing={4}>
-                {!isDeleteOnly && (
-                    <IconButton
-                        aria-label="approve-button"
-                        icon={<AiOutlineCheck fontSize={16} />}
-                        ml={10}
-                        flexShrink={0}
-                        bg={"green.300"}
-                        _hover={{
-                            bg: "green.400",
-                        }}
-                        isLoading={acceptLoading}
-                        isDisabled={deleLoading}
-                        onClick={async () => {
-                            setAcceptLoading(true);
-                            handleApprove && (await handleApprove(true));
-                            setAcceptLoading(false);
-                        }}
-                    />
-                )}
-                <IconButton
-                    aria-label="approve-button"
-                    icon={<MdOutlineClear fontSize={16} />}
-                    ml={10}
-                    flexShrink={0}
-                    bg={"brand.100"}
-                    _hover={{
-                        bg: "brand.400",
-                    }}
-                    isLoading={deleLoading}
-                    isDisabled={acceptLoading}
-                    onClick={async () => {
-                        setDeleteLoading(true);
-                        handleApprove && (await handleApprove(false));
-                        setDeleteLoading(false);
-                    }}
-                />
             </HStack>
         </Flex>
     );

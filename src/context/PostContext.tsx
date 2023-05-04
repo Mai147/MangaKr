@@ -425,7 +425,13 @@ export const PostProvider = ({
         } else {
             isFirstRun.current = false;
         }
-    }, [user, selectedUser, selectedCommunity, postState.input.page]);
+    }, [
+        user,
+        selectedUser,
+        selectedCommunity,
+        postState.input.page,
+        isFirstRun.current,
+    ]);
 
     useEffect(() => {
         if (selectedUser || selectedCommunity) {

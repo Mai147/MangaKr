@@ -1,11 +1,11 @@
-import { Box, Flex, Icon } from "@chakra-ui/react";
+import { Box, Flex, Icon, ResponsiveValue } from "@chakra-ui/react";
 import React, { ReactNode, useEffect } from "react";
 import { TfiClose } from "react-icons/tfi";
 
 type OverlayProps = {
     children: ReactNode;
     onHidden: () => void;
-    contentWidth: string;
+    contentWidth: ResponsiveValue<string>;
 };
 
 const Overlay: React.FC<OverlayProps> = ({

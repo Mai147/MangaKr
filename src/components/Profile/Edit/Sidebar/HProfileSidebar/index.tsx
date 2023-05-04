@@ -15,7 +15,7 @@ const HProfileSidebar: React.FC<HProfileSidebarProps> = ({
     setTab,
 }) => {
     return (
-        <HStack spacing={0} mb={2}>
+        <HStack spacing={0} mb={4}>
             {list.map((item) => (
                 <HProfileSidebarItem
                     key={item.id}

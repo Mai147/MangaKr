@@ -34,7 +34,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
 }) => {
     const { bookAction, bookState } = useBooks();
     const genreScroll = useBreakpointValue({
-        base: "scroll mobile is-hidden",
+        base: "scroll horizontal is-hidden",
         md: "",
     });
     return (

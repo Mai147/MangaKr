@@ -67,7 +67,7 @@ const ProfileSharingPostTab: React.FC<ProfileSharingPostTabProps> = ({
                 </Flex>
             ) : (
                 <>
-                    <Box w="100%" mt={8}>
+                    <Box w="100%" mb={8}>
                         <InfiniteScroll
                             isLoading={loading}
                             page={sharingPostPaginationOutput.page}
@@ -85,6 +85,7 @@ const ProfileSharingPostTab: React.FC<ProfileSharingPostTabProps> = ({
                                     <SharingPostItem
                                         key={item.id}
                                         sharingPost={item}
+                                        boxShadow={false}
                                     />
                                 )
                             )}

@@ -75,6 +75,7 @@ const CharacterInput: React.FC<CharacterInputProps> = ({}) => {
             borderColor="gray.200"
             borderRadius={4}
             p={4}
+            direction={{ base: "column", md: "row" }}
         >
             <Flex justify="center" flexShrink={0}>
                 <VStack spacing={4} mr={8} top={4} align="stretch">

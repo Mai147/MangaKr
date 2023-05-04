@@ -53,7 +53,7 @@ const ProfileFollowTab: React.FC<ProfileFollowTabProps> = ({ user }) => {
 
     return (
         <Box w="100%">
-            <VStack w="100%" spacing={4} mb={8}>
+            <VStack w="100%" spacing={{ base: 2, md: 4 }} mb={8}>
                 {loading ? (
                     <Spinner />
                 ) : (

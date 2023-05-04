@@ -7,8 +7,10 @@ type CommunityInfoApproveListProps = {
     renderChild: (item: any) => ReactNode;
     handleApprove?: (item: any, isAccept: boolean) => Promise<void>;
     handleLock?: (item: any) => Promise<void>;
-    type: "posts" | "topics" | "votings";
+    handleDelete?: (item: any) => Promise<void>;
+    type: "posts" | "topics" | "votings" | "users";
     isAccept: boolean;
+    exception?: (item: any) => boolean;
 };
 
 const CommunityInfoApproveList: React.FC<CommunityInfoApproveListProps> = ({
@@ -17,24 +19,50 @@ const CommunityInfoApproveList: React.FC<CommunityInfoApproveListProps> = ({
     renderChild,
     handleApprove,
     handleLock,
+    handleDelete,
     isAccept,
+    exception,
 }) => {
     return list && list.length > 0 ? (
         <>
-            {list.map((item) => (
-                <CommunityInfoApproveItem
-                    key={item.id}
-                    child={renderChild(item)}
-                    handleApprove={async (isAccept) => {
-                        handleApprove && (await handleApprove(item, isAccept));
-                    }}
-                    handleLock={async () => {
-                        handleLock && (await handleLock(item));
-                    }}
-                    itemLockStatus={item.isLock}
-                    isAccept={isAccept}
-                />
-            ))}
+            {list.map((item) =>
+                exception && exception(item) ? (
+                    <></>
+                ) : (
+                    <CommunityInfoApproveItem
+                        key={item.id}
+                        child={renderChild(item)}
+                        handleApprove={
+                            exception && exception(item)
+                                ? undefined
+                                : async (isAccept) => {
+                                      handleApprove &&
+                                          (await handleApprove(item, isAccept));
+                                  }
+                        }
+                        handleLock={
+                            exception
+                                ? undefined
+                                : handleLock
+                                ? async () => {
+                                      await handleLock(item);
+                                  }
+                                : undefined
+                        }
+                        handleDelete={
+                            exception && exception(item)
+                                ? undefined
+                                : handleDelete
+                                ? async () => {
+                                      await handleDelete(item);
+                                  }
+                                : undefined
+                        }
+                        itemLockStatus={item.isLock}
+                        isAccept={isAccept}
+                    />
+                )
+            )}
         </>
     ) : (
         <Flex align="center" justify="center" w="100%" py={10}>
@@ -44,7 +72,9 @@ const CommunityInfoApproveList: React.FC<CommunityInfoApproveListProps> = ({
                     ? "bài viết"
                     : type === "topics"
                     ? "chủ đề"
-                    : "cuộc bình chọn"}{" "}
+                    : type === "votings"
+                    ? "cuộc bình chọn"
+                    : "thành viên"}{" "}
                 cần phê duyệt
             </Text>
         </Flex>

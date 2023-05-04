@@ -6,6 +6,7 @@ import {
     Image,
     Stack,
     Text,
+    useBreakpointValue,
 } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
 import ImageShow from "./ImageShow";
@@ -23,6 +24,8 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
 }) => {
     const selectedFileRef = useRef<HTMLInputElement>(null);
     const [showImageList, setShowImageList] = useState(false);
+
+    const imageLength = useBreakpointValue({ base: 2, sm: 3, md: 4 });
 
     return (
         <Flex
@@ -44,25 +47,42 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
                 )}
             {selectedListFile && selectedListFile.length > 0 ? (
                 <Flex direction="column" align="center" justify="center">
-                    <Grid templateColumns={"repeat(5, 1fr)"} gap={1}>
-                        {selectedListFile.map((url, idx) =>
-                            idx < 4 ? (
-                                <GridItem h="200px" key={url}>
-                                    <Image
-                                        src={url}
-                                        h="100%"
-                                        w="100%"
-                                        borderRadius={4}
-                                        objectFit="cover"
-                                    />
-                                </GridItem>
-                            ) : (
-                                <></>
-                            )
+                    <Grid
+                        templateColumns={{
+                            base: "repeat(3, 1fr)",
+                            sm: "repeat(4, 1fr)",
+                            md: "repeat(5, 1fr)",
+                        }}
+                        gap={1}
+                    >
+                        {selectedListFile.map(
+                            (url, idx) =>
+                                idx < (imageLength || 4) && (
+                                    <GridItem
+                                        h={{
+                                            base: "140px",
+                                            sm: "150px",
+                                            lg: "200px",
+                                        }}
+                                        key={url}
+                                    >
+                                        <Image
+                                            src={url}
+                                            h="100%"
+                                            w="100%"
+                                            borderRadius={4}
+                                            objectFit="cover"
+                                        />
+                                    </GridItem>
+                                )
                         )}
-                        {selectedListFile.length > 4 && (
+                        {selectedListFile.length > (imageLength || 4) && (
                             <GridItem
-                                h="200px"
+                                h={{
+                                    base: "140px",
+                                    sm: "150px",
+                                    lg: "200px",
+                                }}
                                 position="relative"
                                 cursor="pointer"
                                 onClick={() => setShowImageList(true)}
@@ -70,6 +90,7 @@ const ImageMultipleUpload: React.FC<ImageMultipleUploadProps> = ({
                                 <Image
                                     src={selectedListFile[4]}
                                     h="100%"
+                                    w="100%"
                                     borderRadius={4}
                                     filter="auto"
                                     brightness={0.4}

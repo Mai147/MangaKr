@@ -1,5 +1,5 @@
 import { Flex, IconButton, Image } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import Overlay from "../Overlay";
 
@@ -24,6 +24,10 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
         }
     };
 
+    const handleScroll = () => {
+        setSelectedIndex((prev) => (prev + 1) % imageList.length);
+    };
+
     useEffect(() => {
         window.addEventListener("keyup", handleKeyUp);
 
@@ -38,7 +42,7 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                         aria-label="Prev button"
                         bg="gray.600"
                         icon={<IoIosArrowBack />}
-                        size="lg"
+                        size={{ base: "md", md: "lg" }}
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -50,7 +54,15 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                         }}
                     />
                 )}
-                <Flex flexGrow={1} px={12} align="center" justify="center">
+                <Flex
+                    flexGrow={1}
+                    px={{ base: 4, md: 12 }}
+                    align="center"
+                    justify="center"
+                    // onScroll={(e) => {
+                    //     console.log(e.currentTarget.scrollLeft);
+                    // }}
+                >
                     <Image
                         src={imageList[selectedIndex]}
                         maxH="90vh"
@@ -65,7 +77,7 @@ const ImageShow: React.FC<ImageShowProps> = ({ imageList, onHidden }) => {
                     <IconButton
                         aria-label="Next button"
                         bg="gray.500"
-                        size="lg"
+                        size={{ base: "md", md: "lg" }}
                         icon={<IoIosArrowForward />}
                         onClick={(e) => {
                             e.preventDefault();

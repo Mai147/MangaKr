@@ -21,6 +21,7 @@ import moment from "moment";
 import React from "react";
 import { AiOutlineCheck } from "react-icons/ai";
 import { MdOutlineClear } from "react-icons/md";
+import { userHeaderList } from "./CommunityUserAuthorize";
 
 type CommunityUserSnippetAuthorizeItemProps = {
     user: CommunityUserSnippet;
@@ -45,13 +46,17 @@ const CommunityUserSnippetAuthorizeItem: React.FC<
             transition="all 0.3s"
         >
             <HStack spacing={4}>
-                <Box w="100px">
+                <Box w={userHeaderList[0].width}>
                     <Avatar src={user.imageUrl || "/images/noImage.jpg"} />
                 </Box>
-                <Text w="200px" flexShrink={0}>
+                <Text w={userHeaderList[1].width} flexShrink={0}>
                     {user.displayName}
                 </Text>
-                <Box w="150px" flexShrink={0}>
+                <Box
+                    w={userHeaderList[2].width}
+                    flexShrink={0}
+                    display={userHeaderList[2].display}
+                >
                     {user.createdAt?.seconds && (
                         <Text>
                             {moment(
@@ -61,7 +66,8 @@ const CommunityUserSnippetAuthorizeItem: React.FC<
                     )}
                 </Box>
                 <Flex
-                    w="100px"
+                    w={userHeaderList[3].width}
+                    display={userHeaderList[3].display}
                     flexShrink={0}
                     fontSize={30}
                     align="center"
@@ -74,7 +80,13 @@ const CommunityUserSnippetAuthorizeItem: React.FC<
                     )}
                 </Flex>
             </HStack>
-            <HStack flexGrow={1} align="center" justify="center" spacing={8}>
+            <HStack
+                flexGrow={1}
+                align="center"
+                justify="center"
+                spacing={{ base: 4, xl: 8 }}
+                wrap="wrap"
+            >
                 {listCommunityRole.map(
                     (role) =>
                         (role.value !== COMMUNITY_SUPER_ADMIN_ROLE ||

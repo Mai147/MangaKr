@@ -1,6 +1,6 @@
 import useBookCreate from "@/hooks/useBookCreate";
 import { Button, Icon, VStack } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React from "react";
 import { BiPlus } from "react-icons/bi";
 import CharacterInput from "./CharacterInput";
 import CharacterItem from "./CharacterItem";

@@ -22,8 +22,13 @@ const TopicItemPreview: React.FC<TopicItemPreviewProps> = ({
     topic,
 }) => {
     return (
-        <Overlay onHidden={onHidden} contentWidth="80%">
-            <Flex flexGrow={1} px={12} align="center" justify="center">
+        <Overlay onHidden={onHidden} contentWidth="100%">
+            <Flex
+                flexGrow={1}
+                px={{ base: 0, md: 12 }}
+                align="center"
+                justify="center"
+            >
                 <Box
                     border="1px solid"
                     borderColor="gray.300"

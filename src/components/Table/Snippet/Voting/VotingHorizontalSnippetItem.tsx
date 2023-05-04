@@ -18,7 +18,8 @@ const VotingHorizontalSnippetItem: React.FC<
             justify="space-between"
             align="center"
             w="100%"
-            p={4}
+            px={{ base: 2, md: 4 }}
+            py={4}
             _hover={{ bg: "gray.50" }}
             transition="all 0.3s"
             cursor="pointer"
@@ -33,7 +34,11 @@ const VotingHorizontalSnippetItem: React.FC<
                 />
             )}
             <HStack spacing={4} flexGrow={1}>
-                <Text w={votingHeaderList[0].width} flexShrink={0}>
+                <Text
+                    w={votingHeaderList[0].width}
+                    flexShrink={0}
+                    display={votingHeaderList[0].display}
+                >
                     {voting.creatorDisplayName}
                 </Text>
                 <Text w={votingHeaderList[1].width} flexShrink={0}>

@@ -1,10 +1,11 @@
-import { Flex, HStack, Text } from "@chakra-ui/react";
+import { Flex, HStack, ResponsiveValue, Text } from "@chakra-ui/react";
 import React from "react";
 
 export type TableInfoHeader = {
     title: string;
-    width?: string;
+    width?: ResponsiveValue<string>;
     isCenter?: boolean;
+    display?: ResponsiveValue<string>;
 };
 
 type TableHeaderProps = {
@@ -16,9 +17,9 @@ const TableHeader: React.FC<TableHeaderProps> = ({ list }) => {
         <HStack
             spacing={4}
             flexGrow={1}
-            // w={"calc(100% - 160px)"}
             w={"100%"}
-            p={4}
+            p={{ base: 2, md: 4 }}
+            py={4}
             fontWeight={500}
         >
             {list.map((item) =>
@@ -30,6 +31,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({ list }) => {
                         flexShrink={0}
                         align="center"
                         justify="center"
+                        display={item.display}
                     >
                         <Text>{item.title}</Text>
                     </Flex>
@@ -39,6 +41,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({ list }) => {
                         flexShrink={0}
                         key={item.title}
                         flexGrow={item.width ? undefined : 1}
+                        display={item.display}
                     >
                         {item.title}
                     </Text>

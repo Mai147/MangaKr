@@ -36,12 +36,13 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
             borderRadius={8}
         >
             <VStack w="100%" spacing={4}>
-                <Flex w="100%">
+                <Flex w="100%" direction={{ base: "column", md: "row" }}>
                     {votingOption.imageUrl ? (
-                        <Flex direction="column">
+                        <Flex direction="column" w="100%">
                             <Image
                                 src={votingOption.imageUrl}
-                                maxW="200px"
+                                maxW={{ base: "100%", md: "200px" }}
+                                w="100%"
                                 h="150px"
                                 objectFit="cover"
                                 borderRadius={8}
@@ -89,7 +90,8 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                         height="100%"
                         placeholder="Nội dung lựa chọn..."
                         value={votingOption.value}
-                        ml={4}
+                        ml={{ base: 0, md: 4 }}
+                        mt={{ base: 4, md: 0 }}
                     />
                 </Flex>
                 <Button

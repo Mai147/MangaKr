@@ -14,10 +14,10 @@ const FormHeader: React.FC<FormHeaderProps> = ({
 }) => {
     return (
         <Flex align="center" justify="space-between">
-            <Text fontSize={24} fontWeight={600}>
+            <Text fontSize={{ base: 20, md: 24 }} fontWeight={600}>
                 {title}
             </Text>
-            <HStack spacing={4}>
+            <HStack spacing={4} ml={4}>
                 <Link href={backHref} _hover={{ textDecoration: "none" }}>
                     <Button variant="outline" minW={28}>
                         {backTitle}

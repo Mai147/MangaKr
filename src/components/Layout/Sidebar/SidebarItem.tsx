@@ -9,6 +9,7 @@ interface SidebarItemProps extends FlexProps {
     subChildren?: {
         name: string;
         href?: string;
+        onClick?: () => void;
     }[];
 }
 
@@ -53,7 +54,7 @@ const SidebarItem = ({
                 {subChildren?.map((item) => (
                     <Link
                         px={4}
-                        pl={10}
+                        pl={"44px"}
                         py={2}
                         borderRadius="lg"
                         w="100%"
@@ -61,7 +62,8 @@ const SidebarItem = ({
                             bg: "brand.400",
                             color: "white",
                         }}
-                        href={item.href}
+                        href={!item.onClick ? item.href : undefined}
+                        onClick={item.onClick}
                     >
                         <Text>{item.name}</Text>
                     </Link>

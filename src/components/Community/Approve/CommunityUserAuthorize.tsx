@@ -1,5 +1,6 @@
 import ConfirmModal from "@/components/Modal/ConfirmModal";
 import Pagination from "@/components/Pagination";
+import TableHeader, { TableInfoHeader } from "@/components/Table/TableHeader";
 import { USER_PAGE_COUNT } from "@/constants/pagination";
 import { CommunityRole, COMMUNITY_SUPER_ADMIN_ROLE } from "@/constants/roles";
 import { routes } from "@/constants/routes";
@@ -62,6 +63,38 @@ type RoleInfo = {
     role: CommunityRole;
     label: string;
 };
+
+export const userHeaderList: TableInfoHeader[] = [
+    {
+        title: "Avatar",
+        width: {
+            base: "60px",
+            sm: "80px",
+            md: "100px",
+            lg: "80px",
+            xl: "100px",
+        },
+    },
+    {
+        title: "Tên",
+        width: { base: "100px", sm: "150px", lg: "130px", xl: "200px" },
+    },
+    {
+        title: "Ngày yêu cầu",
+        width: { base: "130px", xl: "150px" },
+        display: { base: "none", xl: "block" },
+    },
+    {
+        title: "Trạng thái",
+        width: { base: "80px", xl: "100px" },
+        isCenter: true,
+        display: { base: "none", lg: "flex" },
+    },
+    {
+        title: "Vai trò",
+        isCenter: true,
+    },
+];
 
 const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
     community,
@@ -166,11 +199,7 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
 
     useEffect(() => {
         getCommunityUsers();
-    }, [
-        communityUserAuthorizeState.paginationInput.page,
-        // communityUserAuthorizeState.paginationInput.searchValue,
-        debouncedSearch,
-    ]);
+    }, [communityUserAuthorizeState.paginationInput.page, debouncedSearch]);
 
     return (
         <Flex direction="column" flexGrow={1} justify="space-between">
@@ -187,9 +216,18 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
             />
             <VStack spacing={0} align="flex-start">
                 <Box p={4} w="100%" fontSize={20} fontWeight={600}>
-                    <Flex justify="space-between">
+                    <Flex
+                        justify="space-between"
+                        align={{ base: "flex-start", sm: "center" }}
+                        direction={{ base: "column", sm: "row" }}
+                    >
                         <Text>Thêm cộng tác viên</Text>
-                        <HStack spacing={2} align="center">
+                        <HStack
+                            spacing={2}
+                            align="center"
+                            ml={{ base: 0, sm: 4 }}
+                            mt={{ base: 2, sm: 0 }}
+                        >
                             <Link
                                 href={routes.getCommunityDetailPage(
                                     community.id!
@@ -223,34 +261,7 @@ const CommunityUserAuthorize: React.FC<CommunityUserAuthorizeProps> = ({
                     </InputGroup>
                 </Box>
                 <Divider borderColor="gray.300" />
-                <HStack
-                    spacing={4}
-                    flexGrow={1}
-                    w="100%"
-                    p={4}
-                    fontWeight={500}
-                >
-                    <Text w="100px" flexShrink={0}>
-                        Avatar
-                    </Text>
-                    <Text w="200px" flexShrink={0}>
-                        Tên
-                    </Text>
-                    <Text w="150px" flexShrink={0}>
-                        Ngày yêu cầu
-                    </Text>
-                    <Flex
-                        w="100px"
-                        flexShrink={0}
-                        align="center"
-                        justify="center"
-                    >
-                        <Text>Trạng thái</Text>
-                    </Flex>
-                    <Flex flexGrow={1} align="center" justify="center">
-                        <Text>Vai trò</Text>
-                    </Flex>
-                </HStack>
+                <TableHeader list={userHeaderList} />
                 <Divider borderColor="gray.300" />
                 {communityUserAuthorizeState.loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>

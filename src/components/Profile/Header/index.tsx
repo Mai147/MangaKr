@@ -64,8 +64,9 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
                 <Text>{user.bio || "------"}</Text>
                 <Grid
                     templateColumns={"repeat(3, minmax(0, 1fr))"}
-                    px={6}
+                    px={{ base: 0, md: 6 }}
                     py={2}
+                    gap={2}
                     w="100%"
                 >
                     <Box>

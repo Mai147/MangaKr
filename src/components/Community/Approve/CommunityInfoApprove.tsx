@@ -24,6 +24,7 @@ import {
     Link,
     Select,
     Spinner,
+    Stack,
     Text,
     VStack,
 } from "@chakra-ui/react";
@@ -81,6 +82,7 @@ export const postHeaderList: TableInfoHeader[] = [
     {
         title: "Người viết",
         width: "150px",
+        display: { base: "none", md: "block" },
     },
     {
         title: "Ảnh",
@@ -92,13 +94,15 @@ export const postHeaderList: TableInfoHeader[] = [
     },
     {
         title: "Nội dung",
+        display: { base: "none", md: "block" },
     },
 ];
 
 export const topicHeaderList: TableInfoHeader[] = [
     {
         title: "Người viết",
-        width: "100px",
+        width: { base: "80px", md: "100px" },
+        display: { base: "none", md: "block" },
     },
     {
         title: "Ảnh",
@@ -106,10 +110,11 @@ export const topicHeaderList: TableInfoHeader[] = [
     },
     {
         title: "Chủ đề",
-        width: "300px",
+        width: { base: "200px", md: "300px" },
     },
     {
         title: "Mô tả",
+        display: { base: "none", md: "block" },
     },
 ];
 
@@ -117,10 +122,11 @@ export const votingHeaderList: TableInfoHeader[] = [
     {
         title: "Người viết",
         width: "200px",
+        display: { base: "none", md: "block" },
     },
     {
         title: "Thời gian",
-        width: "200px",
+        width: { base: "100px", sm: "150px", md: "200px" },
     },
     {
         title: "Nội dung",
@@ -294,21 +300,41 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                     w="100%"
                     fontSize={20}
                     fontWeight={600}
-                    justify="space-between"
+                    direction="column"
                 >
-                    <Text>
-                        Phê duyệt{" "}
-                        {communityApproveState.field === "posts"
-                            ? "bài viết"
-                            : communityApproveState.field === "topics"
-                            ? "chủ đề"
-                            : "cuộc bình chọn"}
-                    </Text>
-                    <HStack spacing={4}>
+                    <Flex justify="space-between" align="center">
+                        <Text>
+                            Phê duyệt{" "}
+                            {communityApproveState.field === "posts"
+                                ? "bài viết"
+                                : communityApproveState.field === "topics"
+                                ? "chủ đề"
+                                : "cuộc bình chọn"}
+                        </Text>
+                        <HStack spacing={2} align="center" ml={4}>
+                            <Link
+                                href={routes.getCommunityDetailPage(
+                                    community.id!
+                                )}
+                                _hover={{ textDecoration: "none" }}
+                            >
+                                <Button>Quay lại cộng đồng</Button>
+                            </Link>
+                            <CommunityLeftSideBarAction />
+                        </HStack>
+                    </Flex>
+                    <Stack
+                        spacing={2}
+                        alignSelf="flex-end"
+                        mt={2}
+                        direction={{ base: "column", sm: "row" }}
+                        align="flex-end"
+                    >
                         <Select
-                            w="250px"
+                            w={{ base: "200px", lg: "250px" }}
                             borderColor="gray.400"
                             value={communityApproveState.isAccept ? 1 : 0}
+                            fontSize={{ base: 14, lg: 16 }}
                             onChange={(e) => {
                                 setCommunityApproveState((prev) => ({
                                     ...prev,
@@ -320,9 +346,10 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                             <option value={1}>Đã duyệt</option>
                         </Select>
                         <Select
-                            w="200px"
+                            w={{ base: "150px", lg: "200px" }}
                             borderColor="gray.400"
                             value={communityApproveState.field}
+                            fontSize={{ base: 14, lg: 16 }}
                             onChange={(e) => {
                                 setCommunityApproveState((prev) => ({
                                     ...prev,
@@ -334,18 +361,7 @@ const CommunityInfoApprove: React.FC<CommunityInfoApproveProps> = ({
                             <option value={"posts"}>Bài viết</option>
                             <option value={"votings"}>Cuộc bình chọn</option>
                         </Select>
-                        <HStack spacing={2} align="center">
-                            <Link
-                                href={routes.getCommunityDetailPage(
-                                    community.id!
-                                )}
-                                _hover={{ textDecoration: "none" }}
-                            >
-                                <Button>Quay lại cộng đồng</Button>
-                            </Link>
-                            <CommunityLeftSideBarAction />
-                        </HStack>
-                    </HStack>
+                    </Stack>
                 </Flex>
                 <Divider borderColor="gray.300" />
                 {communityApproveState.field === "posts" ? (

@@ -31,7 +31,7 @@ const MessageList: React.FC<MessageListProps> = () => {
             flexGrow={1}
             w="100%"
             py={6}
-            px={12}
+            px={{ base: 4, lg: 12 }}
             overflow="auto"
             maxH="100%"
             className="scroll"

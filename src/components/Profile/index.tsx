@@ -92,8 +92,8 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
             align="flex-start"
             bg="white"
             py={6}
-            px={12}
-            borderRadius={4}
+            px={{ base: 4, md: 12 }}
+            borderRadius={{ base: 0, md: 4 }}
             boxShadow="lg"
             flexGrow={1}
         >
@@ -108,6 +108,7 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                     bg="white"
                     zIndex={999}
                     py={2}
+                    wrap="wrap"
                 >
                     {profileTab.map((item) => (
                         <TabItem
@@ -118,7 +119,13 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                         />
                     ))}
                 </Flex>
-                <Flex direction="column" align="center" w="100%" px={12} mt={4}>
+                <Flex
+                    direction="column"
+                    align="center"
+                    w="100%"
+                    px={{ base: 0, md: 12 }}
+                    mt={4}
+                >
                     <Flex
                         display={
                             selectedTab === profileTab[0].title
@@ -134,7 +141,7 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                             <Text>Chưa có bài viết nào</Text>
                         ) : (
                             <>
-                                <Box w="100%" mt={8}>
+                                <Box w="100%" mb={8}>
                                     <InfiniteScroll
                                         isLoading={postState.loading.getAll}
                                         page={postState.output.page}
@@ -151,6 +158,7 @@ const ProfileShow: React.FC<ProfileShowProps> = ({ user }) => {
                                                     <PostItem
                                                         key={postData.post.id}
                                                         postData={postData}
+                                                        boxShadow={false}
                                                     />
                                                 </Box>
                                             )

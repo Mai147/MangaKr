@@ -36,16 +36,19 @@ const ProfileEditPage: React.FC<ProfileEditPageProps> = ({}) => {
                         align="flex-start"
                         direction={{ base: "column", md: "row" }}
                         bg="white"
-                        p={6}
-                        boxShadow="lg"
-                        borderRadius={4}
+                        p={{ base: 4, md: 6 }}
+                        boxShadow={{ base: "none", md: "lg" }}
+                        borderRadius={{ base: 0, md: 4 }}
                         flexGrow={1}
                     >
                         <ProfileSidebar tab={tab} setTab={setTab} />
                         <Box
-                            borderLeft="1px solid"
-                            borderColor="gray.200"
-                            pl={5}
+                            borderLeft={{ base: "none", md: "1px solid" }}
+                            borderColor={{
+                                base: "transparent",
+                                md: "gray.200",
+                            }}
+                            pl={{ base: 0, md: 5 }}
                             flexGrow={1}
                             alignSelf="stretch"
                         >

@@ -27,10 +27,10 @@ const PostCreatePage: React.FC<PostCreatePageProps> = ({ user }) => {
             </Head>
             <>
                 <Flex
-                    p={6}
+                    p={{ base: 4, md: 6 }}
                     boxShadow="lg"
                     bg="white"
-                    borderRadius={4}
+                    borderRadius={{ base: 0, md: 4 }}
                     flexGrow={1}
                     direction="column"
                 >

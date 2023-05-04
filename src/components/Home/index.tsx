@@ -47,8 +47,8 @@ const Home: React.FC<HomeProps> = () => {
     });
     const bookLoading = useBreakpointValue({
         base: {
-            length: 1,
-            arr: [1],
+            length: 2,
+            arr: [1, 2],
             size: "md",
         },
         sm: {
@@ -82,6 +82,7 @@ const Home: React.FC<HomeProps> = () => {
                         bannerLoading?.length || 1
                     }, minmax(0, 1fr))`}
                     gap={4}
+                    p={4}
                 >
                     {bannerLoading?.arr.map(() => (
                         <HorizontalSkeleton

@@ -47,7 +47,7 @@ const ProfileSetting: React.FC<ProfileSettingProps> = ({ user }) => {
                     justify="flex-start"
                     alignItems="flex-start"
                 >
-                    <Text fontWeight={500} fontSize={{ base: 16, md: 18 }}>
+                    <Text fontWeight={500} fontSize={18}>
                         Cài đặt
                     </Text>
                 </VStack>

@@ -128,16 +128,10 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                 </Alert>
             )}
             <form onSubmit={onSubmit}>
-                <Flex justify="space-between" align="flex-end">
-                    <VStack
-                        spacing={0}
-                        justify="flex-start"
-                        alignItems="flex-start"
-                    >
-                        <Text fontWeight={500} fontSize={{ base: 16, md: 18 }}>
-                            Đổi mật khẩu
-                        </Text>
-                    </VStack>
+                <Flex justify="space-between" align="center">
+                    <Text fontWeight={500} fontSize={18}>
+                        Đổi mật khẩu
+                    </Text>
                     <Button
                         width={{ base: 20, md: 28 }}
                         size={{ base: "sm", sm: "md" }}
@@ -149,7 +143,7 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                 </Flex>
                 <Divider my={4} />
                 <Box>
-                    <InputField label="Mật khẩu cũ" required>
+                    <InputField label="Mật khẩu cũ" required maxWidth={false}>
                         <Flex
                             direction="column"
                             flexGrow={1}
@@ -179,7 +173,7 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                             />
                         </Flex>
                     </InputField>
-                    <InputField label="Mật khẩu mới" required>
+                    <InputField label="Mật khẩu mới" required maxWidth={false}>
                         <Flex
                             direction="column"
                             flexGrow={1}
@@ -202,7 +196,11 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                             />
                         </Flex>
                     </InputField>
-                    <InputField label="Xác nhận mật khẩu mới" required>
+                    <InputField
+                        label="Xác nhận mật khẩu mới"
+                        required
+                        maxWidth={false}
+                    >
                         <Flex
                             direction="column"
                             flexGrow={1}

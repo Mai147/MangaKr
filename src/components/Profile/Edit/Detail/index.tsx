@@ -150,13 +150,13 @@ const ProfileDetail: React.FC<ProfileDetailProps> = ({ user }) => {
                 </Alert>
             )}
             <form onSubmit={onSubmit}>
-                <Flex justify="space-between" align="flex-end">
+                <Flex justify="space-between" align="center">
                     <VStack
                         spacing={0}
                         justify="flex-start"
                         alignItems="flex-start"
                     >
-                        <Text fontWeight={500} fontSize={{ base: 16, md: 18 }}>
+                        <Text fontWeight={500} fontSize={18}>
                             Thông tin cá nhân
                         </Text>
                         <Text

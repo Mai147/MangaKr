@@ -21,6 +21,7 @@ const MessageLeftSideBar: React.FC<MessageLeftSideBarProps> = () => {
             borderRight="1px solid"
             borderColor="gray.400"
             flexShrink={0}
+            display={{ base: "none", lg: "flex" }}
         >
             <MessageLeftSideBarHeader />
             <Divider />

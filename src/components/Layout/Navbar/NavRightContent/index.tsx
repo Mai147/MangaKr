@@ -5,7 +5,6 @@ import { fireStore } from "@/firebase/clientApp";
 import useAuth from "@/hooks/useAuth";
 import useModal from "@/hooks/useModal";
 import { UserMessageSnippet } from "@/models/User";
-import NotificationService from "@/services/NotificationService";
 import {
     Box,
     Flex,
@@ -14,63 +13,20 @@ import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-    Stack,
 } from "@chakra-ui/react";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
-import React, { useEffect, useRef, useState } from "react";
-import { AiOutlineEdit, AiOutlinePlus, AiOutlineTags } from "react-icons/ai";
-import { BsFillFileEarmarkPostFill } from "react-icons/bs";
-import { FiBook } from "react-icons/fi";
-import { HiOutlineUserGroup } from "react-icons/hi";
-import { IoPersonOutline } from "react-icons/io5";
+import React, { useEffect, useState } from "react";
+import { AiOutlineEdit, AiOutlinePlus } from "react-icons/ai";
 import { RiChat3Line } from "react-icons/ri";
-import NavItem, { NavItemProps } from "../NavItem";
+import NavAdd from "./NavAdd";
 import NavNotification from "./NavNotification";
 import NavSearch from "./NavSearch";
 import NavUser from "./NavUser";
 
 type NavRightContentProps = {};
 
-const defaultNavList: NavItemProps[] = [
-    {
-        label: "Tạo cộng đồng",
-        leftIcon: HiOutlineUserGroup,
-        onClick: () => {},
-    },
-    {
-        label: "Tạo bài viết",
-        leftIcon: BsFillFileEarmarkPostFill,
-        href: routes.getPostCreatePage(),
-    },
-];
-
-const writerNavList: NavItemProps[] = [
-    {
-        label: "Thêm tác giả",
-        leftIcon: IoPersonOutline,
-        href: routes.getAuthorCreatePage(),
-        divider: true,
-    },
-    {
-        label: "Thêm thể loại",
-        leftIcon: AiOutlineTags,
-        href: routes.getGenreCreatePage(),
-    },
-    {
-        label: "Viết Manga",
-        leftIcon: FiBook,
-        href: routes.getBookCreatePage(),
-    },
-    // {
-    //     label: "Viết tin tức",
-    //     leftIcon: AiOutlineTags,
-    //     // href: `${GENRE_PAGE}/create`,
-    // },
-];
-
 const NavRightContent: React.FC<NavRightContentProps> = () => {
     const { user } = useAuth();
-    const { toggleView } = useModal();
     const [numberOfNewMessage, setNumberOfNewMessage] = useState(0);
 
     useEffect(() => {
@@ -121,31 +77,7 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
                         rounded={"xl"}
                         minW={"xs"}
                     >
-                        <Stack>
-                            {defaultNavList.map((item, idx) => {
-                                return (
-                                    <NavItem
-                                        key={item.label}
-                                        {...item}
-                                        onClick={
-                                            idx === 0
-                                                ? () =>
-                                                      toggleView(
-                                                          "createCommunity"
-                                                      )
-                                                : undefined
-                                        }
-                                    />
-                                );
-                            })}
-                            {user && user.role === WRITER_ROLE && (
-                                <>
-                                    {writerNavList.map((item) => (
-                                        <NavItem key={item.label} {...item} />
-                                    ))}
-                                </>
-                            )}
-                        </Stack>
+                        <NavAdd />
                     </PopoverContent>
                 </Popover>
                 <NavNotification />

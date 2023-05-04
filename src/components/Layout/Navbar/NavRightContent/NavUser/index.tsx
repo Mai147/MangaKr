@@ -23,12 +23,42 @@ import useModal from "@/hooks/useModal";
 import { signOut } from "firebase/auth";
 import useAuth from "@/hooks/useAuth";
 import { routes } from "@/constants/routes";
+import { RiChat3Line } from "react-icons/ri";
+import { WRITER_ROLE } from "@/constants/roles";
+import { AiOutlineEdit } from "react-icons/ai";
 
 type NavUserProps = {};
 
 const NavUser: React.FC<NavUserProps> = () => {
     const { toggleView } = useModal();
     const { user, authAction } = useAuth();
+
+    const navUserList = [
+        {
+            icon: TiEdit,
+            title: "Hồ sơ",
+            href: routes.getProfileEditPage(),
+        },
+        {
+            icon: CgProfile,
+            title: "Trang cá nhân",
+            href: routes.getProfilePage(user?.uid!),
+        },
+        {
+            icon: BiLibrary,
+            title: "Thư viện",
+            href: routes.getProfileLibraryPage(),
+        },
+    ];
+
+    const mobileNavList = [
+        {
+            icon: RiChat3Line,
+            title: "Tin nhắn",
+            href: routes.getMessagePage(),
+        },
+    ];
+
     return (
         <Flex alignItems={"center"} ml={2}>
             {user ? (
@@ -62,21 +92,32 @@ const NavUser: React.FC<NavUserProps> = () => {
                         bg={useColorModeValue("white", "gray.900")}
                         borderColor={useColorModeValue("gray.200", "gray.700")}
                     >
-                        <NavUserMenuItem
-                            icon={TiEdit}
-                            title="Hồ sơ"
-                            href={routes.getProfileEditPage()}
-                        />
-                        <NavUserMenuItem
-                            icon={CgProfile}
-                            title="Trang cá nhân"
-                            href={routes.getProfilePage(user.uid)}
-                        />
-                        <NavUserMenuItem
-                            icon={BiLibrary}
-                            title="Thư viện"
-                            href={routes.getProfileLibraryPage()}
-                        />
+                        {navUserList.map((item) => (
+                            <NavUserMenuItem
+                                icon={item.icon}
+                                title={item.title}
+                                href={item.href}
+                                key={item.title}
+                            />
+                        ))}
+                        <MenuDivider display={{ base: "block", sm: "none" }} />
+                        <Box display={{ base: "block", sm: "none" }}>
+                            {mobileNavList.map((item) => (
+                                <NavUserMenuItem
+                                    icon={item.icon}
+                                    title={item.title}
+                                    href={item.href}
+                                    key={item.title}
+                                />
+                            ))}
+                            {user && user.role === WRITER_ROLE && (
+                                <NavUserMenuItem
+                                    icon={AiOutlineEdit}
+                                    title="Quản lý Manga"
+                                    href={routes.getWriterPage()}
+                                />
+                            )}
+                        </Box>
                         <MenuDivider />
                         <NavUserMenuItem
                             icon={FiLogOut}

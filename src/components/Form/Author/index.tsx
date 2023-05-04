@@ -135,14 +135,18 @@ const AuthorForm: React.FC<AuthorFormProps> = ({ author }) => {
                     backHref={routes.getWriterPage()}
                 />
                 <Divider my={4} />
-                <Flex align="flex-start">
+                <Flex
+                    align={{ base: "center", md: "flex-start" }}
+                    direction={{ base: "column", md: "row" }}
+                >
                     <Box
                         position="relative"
                         cursor="pointer"
                         onClick={() => {
                             selectedFileRef.current?.click();
                         }}
-                        mr={8}
+                        mr={{ base: 0, md: 8 }}
+                        mb={{ base: 8, md: 0 }}
                     >
                         <Avatar size="2xl" src={selectedFile} />
                         <Flex

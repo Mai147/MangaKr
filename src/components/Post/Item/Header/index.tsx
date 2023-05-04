@@ -126,6 +126,7 @@ const PostItemHeader: React.FC<PostItemHeaderProps> = ({
                             opacity={0}
                             visibility="hidden"
                             _groupHover={{ opacity: 1, visibility: "visible" }}
+                            zIndex={999}
                         >
                             <Link
                                 href={

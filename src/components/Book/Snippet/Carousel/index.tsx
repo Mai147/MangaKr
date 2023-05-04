@@ -32,6 +32,8 @@ const BookCarousel: React.FC<Props> = ({
         bookSnippetSm,
         bookSnippetLg,
         bookSnippetLibraryLg,
+        bookSnippetLibrarySm,
+        bookSnippetLibraryMd,
         characterSnippetLg,
         characterSnippetSm,
         characterSnippetBase,
@@ -59,6 +61,8 @@ const BookCarousel: React.FC<Props> = ({
             : type === "librarySnippet"
             ? useBreakpointValue({
                   base: defaultSetting.slidesToShow,
+                  sm: bookSnippetLibrarySm.slidesToShow,
+                  md: bookSnippetLibraryMd.slidesToShow,
                   lg: bookSnippetLibraryLg.slidesToShow,
               })
             : useBreakpointValue({
@@ -86,6 +90,8 @@ const BookCarousel: React.FC<Props> = ({
             : type === "librarySnippet"
             ? useBreakpointValue({
                   base: { ...defaultSetting, autoplay },
+                  sm: { ...bookSnippetLibrarySm, autoplay },
+                  md: { ...bookSnippetLibraryMd, autoplay },
                   lg: { ...bookSnippetLibraryLg, autoplay },
               })
             : useBreakpointValue({ base: { ...defaultSetting, autoplay } });

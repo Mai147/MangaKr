@@ -1,7 +1,14 @@
 import Overlay from "@/components/Overlay";
 import UserHorizontalSnippetItem from "@/components/User/Snippet/UserHorizontalSnippetItem";
 import useVoting from "@/hooks/useVoting";
-import { Box, Flex, Spinner, Text, VStack } from "@chakra-ui/react";
+import {
+    Box,
+    Flex,
+    Spinner,
+    Text,
+    useBreakpointValue,
+    VStack,
+} from "@chakra-ui/react";
 import React from "react";
 
 type VotingOptionResultProps = {
@@ -13,8 +20,13 @@ const VotingOptionResult: React.FC<VotingOptionResultProps> = ({
 }) => {
     const { votingState } = useVoting();
     return (
-        <Overlay onHidden={onHidden} contentWidth="50%">
-            <Flex flexGrow={1} px={12} align="center" justify="center">
+        <Overlay onHidden={onHidden} contentWidth={{ base: "80%", md: "50%" }}>
+            <Flex
+                flexGrow={1}
+                px={{ base: 4, md: 12 }}
+                align="center"
+                justify="center"
+            >
                 <Box
                     border="1px solid"
                     borderColor="gray.300"

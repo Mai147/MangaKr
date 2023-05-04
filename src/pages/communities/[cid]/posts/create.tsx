@@ -51,10 +51,10 @@ const CommunityCreatePostPage: React.FC<CommunityCreatePostPageProps> = ({
                 ) : (
                     <Flex
                         direction="column"
-                        p={6}
+                        p={{ base: 4, md: 6 }}
                         boxShadow="lg"
                         bg="white"
-                        borderRadius={4}
+                        borderRadius={{ base: 0, md: 4 }}
                         flexGrow={1}
                     >
                         <PostForm user={user} community={community} />

@@ -429,7 +429,10 @@ class VotingService {
         const queryConstraint = [];
         const followerConstraint = [];
         const unfollowerConstraint = [];
-        const votingVoteDocsRef = collectionGroup(fireStore, "votingVotes");
+        const votingVoteDocsRef = collectionGroup(
+            fireStore,
+            "optionVotingVotes"
+        );
         queryConstraint.push(where("votingId", "==", votingId));
         let followerIds = [];
         if (userId) {

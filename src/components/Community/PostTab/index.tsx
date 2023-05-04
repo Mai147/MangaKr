@@ -19,7 +19,7 @@ const CommunityPostTab: React.FC<CommunityPostTabProps> = () => {
                     isLoading={postState.loading.getAll}
                 >
                     {postState.output.list.map((postData) => (
-                        <Box w="100%" mb={10}>
+                        <Box w="100%" mb={10} key={postData.post.id!}>
                             <PostItem
                                 key={postData.post.id}
                                 postData={postData}

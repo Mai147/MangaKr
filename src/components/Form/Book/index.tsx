@@ -112,7 +112,7 @@ const BookForm: React.FC<BookFormProps> = ({ book }) => {
                     backHref={routes.getHomePage()}
                 />
                 <Divider my={4} />
-                <Flex width="100%" mb={4}>
+                <Flex width="100%" mb={4} wrap="wrap">
                     {formTab.map((item) => (
                         <TabItem
                             key={item.title}
@@ -122,7 +122,12 @@ const BookForm: React.FC<BookFormProps> = ({ book }) => {
                         />
                     ))}
                 </Flex>
-                <Flex p={4} flexGrow={1} direction="column">
+                <Flex
+                    px={{ base: 0, md: 4 }}
+                    pb={4}
+                    flexGrow={1}
+                    direction="column"
+                >
                     {selectedTab === formTab[0].title && (
                         <BookFormDescriptionTab
                             bookName={bookForm.name}

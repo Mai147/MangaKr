@@ -53,7 +53,6 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                     <Flex
                         w="100%"
                         mr={{ base: 0, sm: 8 }}
-                        justify={{ base: "center", sm: "flex-start" }}
                         p={{ base: 2, sm: 0 }}
                         border={{ base: "1px solid #dedede", sm: "none" }}
                         borderRadius={{ base: 4, sm: 0 }}
@@ -74,7 +73,7 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                         )}
                         <Text whiteSpace="pre-line">{votingOption.value}</Text>
                     </Flex>
-                    <VStack flexShrink={0} spacing={1}>
+                    <VStack flexShrink={0} spacing={1} mt={{ base: 2, sm: 0 }}>
                         {votingOption.id ===
                             votingState.selectedVoting?.userVoteOptionId && (
                             <Icon
@@ -102,7 +101,7 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                                     votingState.selectedVoting.voting.timeLast
                                 ) && (
                                     <Button
-                                        w={{ base: "20", md: "28" }}
+                                        w={{ base: "24", sm: 20, md: "28" }}
                                         size={{ base: "sm", md: "md" }}
                                         isLoading={voteLoading}
                                         onClick={async () => {
@@ -122,7 +121,7 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                                 )}
                             <Button
                                 variant="outline"
-                                w={{ base: "20", md: "28" }}
+                                w={{ base: "24", sm: 20, md: "28" }}
                                 size={{ base: "sm", md: "md" }}
                                 onClick={() => {
                                     votingAction.switchVotingOption(
