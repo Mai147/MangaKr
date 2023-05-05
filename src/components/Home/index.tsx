@@ -169,6 +169,7 @@ const Home: React.FC<HomeProps> = () => {
                                 {reviewLoading?.arr.map((item) => (
                                     <HorizontalSkeleton
                                         size={reviewLoading.size as any}
+                                        key={item}
                                     />
                                 ))}
                             </Grid>

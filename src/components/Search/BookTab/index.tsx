@@ -2,7 +2,7 @@ import BookSnippetHorizontalItem from "@/components/Book/Snippet/BookSnippetHori
 import HorizontalSkeleton from "@/components/Skeleton/HorizontalSkeleton";
 import useSearch from "@/hooks/useSearch";
 import { Book } from "@/models/Book";
-import { Box, Text } from "@chakra-ui/react";
+import { Box, Text, VStack } from "@chakra-ui/react";
 import React from "react";
 
 type SearchBookTabProps = {};
@@ -15,9 +15,11 @@ const SearchBookTab: React.FC<SearchBookTabProps> = () => {
             {searchState.book.loading ? (
                 [1, 2, 3].map((idx) => <HorizontalSkeleton key={idx} />)
             ) : searchState.book.output.list.length > 0 ? (
-                searchState.book.output.list.map((book: Book) => (
-                    <BookSnippetHorizontalItem book={book} key={book.id} />
-                ))
+                <VStack spacing={4}>
+                    {searchState.book.output.list.map((book: Book) => (
+                        <BookSnippetHorizontalItem book={book} key={book.id} />
+                    ))}
+                </VStack>
             ) : (
                 <Text align="center" fontSize={18}>
                     Không có kết quả cần tìm

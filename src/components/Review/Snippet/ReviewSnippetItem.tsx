@@ -78,7 +78,7 @@ const ReviewSnippetItem: React.FC<ReviewSnippetItemProps> = ({
                             fontSize={{ base: 16, sm: 18 }}
                             fontWeight={600}
                             noOfLines={1}
-                            lineHeight={1}
+                            lineHeight={1.2}
                         >
                             {review.title}
                         </Text>

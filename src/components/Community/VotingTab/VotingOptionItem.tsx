@@ -51,7 +51,8 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                     direction={{ base: "column", sm: "row" }}
                 >
                     <Flex
-                        w="100%"
+                        w={"100%"}
+                        flexGrow={1}
                         mr={{ base: 0, sm: 8 }}
                         p={{ base: 2, sm: 0 }}
                         border={{ base: "1px solid #dedede", sm: "none" }}
@@ -60,7 +61,7 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                         {votingOption.imageUrl && (
                             <Image
                                 src={votingOption.imageUrl}
-                                maxW={{
+                                w={{
                                     base: "100px",
                                     sm: "150px",
                                     md: "200px",
@@ -101,8 +102,7 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                                     votingState.selectedVoting.voting.timeLast
                                 ) && (
                                     <Button
-                                        w={{ base: "24", sm: 20, md: "28" }}
-                                        size={{ base: "sm", md: "md" }}
+                                        w={{ base: 24, sm: 20, md: 28 }}
                                         isLoading={voteLoading}
                                         onClick={async () => {
                                             setVoteLoading(true);
@@ -122,7 +122,7 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
                             <Button
                                 variant="outline"
                                 w={{ base: "24", sm: 20, md: "28" }}
-                                size={{ base: "sm", md: "md" }}
+                                // size={{ base: "sm", md: "md" }}
                                 onClick={() => {
                                     votingAction.switchVotingOption(
                                         votingOption.id!

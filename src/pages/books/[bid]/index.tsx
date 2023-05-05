@@ -45,7 +45,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
     return {
         props: {
-            user: us,
+            user: us || null,
             book,
         },
     };

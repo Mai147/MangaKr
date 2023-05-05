@@ -198,7 +198,7 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
                                             md: "repeat(1, minmax(0, 1fr))",
                                             "2xl": "repeat(2, minmax(0, 1fr))",
                                         }}
-                                        gap={{ base: 0, "2xl": 4 }}
+                                        gap={{ base: 2, "2xl": 4 }}
                                         key={bookGroup[0].id}
                                     >
                                         {bookGroup.map((book) => (

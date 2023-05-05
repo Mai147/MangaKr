@@ -38,7 +38,10 @@ const VotingOptionItem: React.FC<VotingOptionItemProps> = ({
             <VStack w="100%" spacing={4}>
                 <Flex w="100%" direction={{ base: "column", md: "row" }}>
                     {votingOption.imageUrl ? (
-                        <Flex direction="column" w="100%">
+                        <Flex
+                            direction="column"
+                            w={{ base: "100%", md: "200px" }}
+                        >
                             <Image
                                 src={votingOption.imageUrl}
                                 maxW={{ base: "100%", md: "200px" }}

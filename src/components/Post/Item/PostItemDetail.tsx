@@ -41,9 +41,15 @@ const PostItemDetail: React.FC<PostItemDetailProps> = ({ post }) => {
                         <Box w="100%" px={8}>
                             <PostItemImages imageList={post.imageUrls} />
                         </Box>
-                        <Box w="100%" mt={2} px={8}>
-                            <video src={post.videoUrl} controls width="100%" />
-                        </Box>
+                        {post.videoUrl && (
+                            <Box w="100%" mt={2} px={8}>
+                                <video
+                                    src={post.videoUrl}
+                                    controls
+                                    width="100%"
+                                />
+                            </Box>
+                        )}
                         <PostReactionBar post={post} size="lg" />
                     </Box>
                     <Box borderRight="1px solid" borderColor="gray.300"></Box>
