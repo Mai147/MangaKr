@@ -50,7 +50,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         };
     } else {
         // context.res.writeHead(302, { Location: routes.getHomePage() });
-        context.res.writeHead(302, { Location: "/" });
+        // context.res.writeHead(302, { Location: "/" });
+        // context.res.end();
+        context.res.statusCode = 302;
+        context.res.setHeader("Location", routes.getHomePage());
         context.res.end();
     }
 }
