@@ -65,14 +65,13 @@ const ProfileEditPage: React.FC<ProfileEditPageProps> = ({}) => {
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { token } = cookies(context) || null;
-    if (token) {
-        return {
-            props: {},
-        };
-    } else {
+    if (!token) {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
+    return {
+        props: {},
+    };
 }
 
 export default ProfileEditPage;

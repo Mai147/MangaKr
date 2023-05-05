@@ -77,6 +77,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             Location: routes.getCommunityDetailPage(cid as string),
         });
         context.res.end();
+        return {
+            props: {},
+        };
     } else {
         const community = await CommunityService.get({
             communityId: cid as string,
@@ -97,6 +100,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                     Location: routes.getCommunityDetailPage(community.id!),
                 });
                 context.res.end();
+                return {
+                    props: {},
+                };
             }
             return {
                 props: {

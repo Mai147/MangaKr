@@ -45,11 +45,7 @@ const MessagePage: React.FC<MessagePageProps> = () => {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
     const { token } = cookies(context) || null;
     if (!token) {
-        // context.res.writeHead(302, { Location: routes.getHomePage() });
-        // context.res.writeHead(302, { Location: "/" });
-        // context.res.end();
-        context.res.statusCode = 302;
-        context.res.setHeader("Location", routes.getHomePage());
+        context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
     }
     return {

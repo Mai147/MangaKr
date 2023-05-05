@@ -51,10 +51,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         if (us.role !== WRITER_ROLE) {
             context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
+            return {
+                props: {},
+            };
         }
     } else {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
+        return {
+            props: {},
+        };
     }
 
     const { bid } = context.query;
@@ -66,6 +72,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         if (res.book?.writerId !== user_id) {
             context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
+            return {
+                props: {},
+            };
         }
         return {
             props: {
@@ -75,6 +84,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } else {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
+        return {
+            props: {},
+        };
     }
 }
 

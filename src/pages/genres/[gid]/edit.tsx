@@ -48,10 +48,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         if (us.role !== WRITER_ROLE) {
             context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
+            return {
+                props: {},
+            };
         }
     } else {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
+        return {
+            props: {},
+        };
     }
 
     const us = JSON.parse(JSON.stringify(user));

@@ -61,6 +61,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     if (!token) {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
+        return {
+            props: {},
+        };
     } else {
         const { cid } = context.query;
         const community = await CommunityService.get({
@@ -80,6 +83,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             if (!res) {
                 context.res.writeHead(302, { Location: routes.getHomePage() });
                 context.res.end();
+                return {
+                    props: {},
+                };
             }
             return {
                 props: {

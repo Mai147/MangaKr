@@ -74,7 +74,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
                 Location: routes.getCommunityDetailPage(community.id!),
             });
             context.res.end();
-            return;
+            return {
+                props: {},
+            };
         }
         const topic = await TopicService.get({
             communityId: cid as string,

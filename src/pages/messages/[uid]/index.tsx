@@ -59,6 +59,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } else {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
+        return {
+            props: {},
+        };
     }
 }
 

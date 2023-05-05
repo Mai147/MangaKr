@@ -48,10 +48,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         if (us.role !== WRITER_ROLE) {
             context.res.writeHead(302, { Location: routes.getHomePage() });
             context.res.end();
+            return {
+                props: {},
+            };
         }
     } else {
         context.res.writeHead(302, { Location: routes.getHomePage() });
         context.res.end();
+        return {
+            props: {},
+        };
     }
 
     const us = JSON.parse(JSON.stringify(user));
@@ -59,20 +65,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     const author = (await AuthorService.get({
         authorId: aid as string,
     })) as Author;
-    if (author) {
-        return {
-            props: {
-                user: us,
-                author,
-            },
-        };
-    } else {
-        return {
-            props: {
-                user: us,
-            },
-        };
-    }
+    return {
+        props: {
+            user: us || null,
+            author: author || null,
+        },
+    };
 }
 
 export default AuthorEditPage;
