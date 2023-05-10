@@ -5,7 +5,7 @@ import { routes } from "@/constants/routes";
 import { fireStore, storage } from "@/firebase/clientApp";
 import { Community } from "@/models/Community";
 import { Notification } from "@/models/Notification";
-import { LatestPost, Post, SharingPost } from "@/models/Post";
+import { Post, SharingPost } from "@/models/Post";
 import { UserModel } from "@/models/User";
 import FileUtils from "@/utils/FileUtils";
 import PostUtils from "@/utils/PostUtils";

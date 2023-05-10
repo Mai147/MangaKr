@@ -84,9 +84,10 @@ const Home: React.FC<HomeProps> = () => {
                     gap={4}
                     p={4}
                 >
-                    {bannerLoading?.arr.map(() => (
+                    {bannerLoading?.arr.map((item, idx) => (
                         <HorizontalSkeleton
                             size={(bannerLoading?.size as any) || "md"}
+                            key={idx}
                         />
                     ))}
                 </Grid>

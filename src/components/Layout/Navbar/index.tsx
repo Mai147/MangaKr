@@ -6,6 +6,7 @@ import {
     useColorModeValue,
     Text,
     Link,
+    Image,
 } from "@chakra-ui/react";
 import { FiMenu } from "react-icons/fi";
 import NavList from "./NavList";
@@ -45,13 +46,14 @@ const Navbar = ({ onOpen }: NavbarProps) => {
                     href={routes.getHomePage()}
                     _hover={{ textDecoration: "none" }}
                 >
-                    <Text
+                    {/* <Text
                         fontSize="2xl"
                         fontFamily="monospace"
                         fontWeight="bold"
                     >
                         Logo
-                    </Text>
+                    </Text> */}
+                    <Image src="/images/logo.png" w="100px" />
                 </Link>
                 <NavList />
             </HStack>

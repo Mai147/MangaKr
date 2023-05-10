@@ -267,7 +267,6 @@ export const CommunityProvider = ({ children }: any) => {
         }));
         if (userId) {
             await getUserCommunityRole(community.id!, userId);
-            // await CommunityService.updateUserLatestPost(userId, community);
         } else {
             setCommunityState((prev) => ({
                 ...prev,

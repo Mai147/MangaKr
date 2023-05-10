@@ -90,7 +90,7 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
                     />
                 ))}
             </Box>
-            <Box bg="blue.500" px={4} py={2}>
+            <Box bg="secondary.400" px={4} py={2}>
                 <Text color="white">Cộng đồng yêu thích</Text>
             </Box>
             <Box bg="white" p={2}>

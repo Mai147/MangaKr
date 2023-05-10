@@ -14,9 +14,15 @@ export const theme = extendTheme({
             900: "#171923",
         },
         brand: {
-            100: "#FF3c00",
+            // 100: "#FF3c00",
+            100: "#E21818",
             400: "#e74c3c",
             700: "#c0392b",
+        },
+        secondary: {
+            200: "#BAD7E9",
+            400: "#3E6D9C",
+            500: "#001253",
         },
     },
     fonts: {

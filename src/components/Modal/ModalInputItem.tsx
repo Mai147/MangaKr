@@ -47,13 +47,13 @@ const ModalInputItem: React.FC<ModalInputItemProps> = ({
                     _hover={{
                         bg: "white",
                         border: "1px solid",
-                        borderColor: "blue.500",
+                        borderColor: "secondary.400",
                     }}
                     _focus={{
                         outline: "none",
                         bg: "white",
                         border: "1px solid",
-                        borderColor: "blue.500",
+                        borderColor: "secondary.400",
                     }}
                     bg="gray.50"
                     resize="none"
@@ -73,13 +73,13 @@ const ModalInputItem: React.FC<ModalInputItemProps> = ({
                     _hover={{
                         bg: "white",
                         border: "1px solid",
-                        borderColor: "blue.500",
+                        borderColor: "secondary.400",
                     }}
                     _focus={{
                         outline: "none",
                         bg: "white",
                         border: "1px solid",
-                        borderColor: "blue.500",
+                        borderColor: "secondary.400",
                     }}
                     bg="gray.50"
                 />

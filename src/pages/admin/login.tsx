@@ -77,8 +77,23 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = () => {
                 <title>MangaKr - Admin - Đăng nhập</title>
             </Head>
             <>
-                <Flex justify="center" align="center" minH="100vh" px={24}>
-                    <Flex direction="column" w="33%" mr={24} flexShrink={0}>
+                <Flex
+                    justify="center"
+                    align="center"
+                    minH="100vh"
+                    px={24}
+                    bg="#FDFDFD"
+                >
+                    <Flex
+                        direction="column"
+                        w="33%"
+                        mr={24}
+                        flexShrink={0}
+                        p={6}
+                        borderRadius={8}
+                        boxShadow="xl"
+                        bg="white"
+                    >
                         <Text fontSize={24} fontWeight={600} mb={4}>
                             Đăng nhập hệ thống
                         </Text>
@@ -152,7 +167,8 @@ const AdminLoginPage: React.FC<AdminLoginPageProps> = () => {
                         </form>
                     </Flex>
                     <Image
-                        src="/images/noImage.jpg"
+                        src="/images/logo.png"
+                        w="50vw"
                         flexGrow={1}
                         objectFit="cover"
                         maxH="80vh"

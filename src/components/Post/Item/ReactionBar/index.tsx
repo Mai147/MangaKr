@@ -53,7 +53,7 @@ const PostReactionBar: React.FC<PostReactionBarProps> = ({
                     align="center"
                 >
                     <Text>{formatNumber(post.numberOfLikes)}</Text>
-                    <Icon as={AiFillLike} color="blue.500" />
+                    <Icon as={AiFillLike} color="secondary.400" />
                 </HStack>
                 <HStack
                     spacing={1}

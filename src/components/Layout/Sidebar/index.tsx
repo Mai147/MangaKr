@@ -7,6 +7,7 @@ import {
     CloseButton,
     Divider,
     Flex,
+    Image,
     Text,
     useColorModeValue,
 } from "@chakra-ui/react";
@@ -84,9 +85,10 @@ const Sidebar = ({ onClose }: SidebarProps) => {
                 mx="8"
                 justifyContent="space-between"
             >
-                <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
+                {/* <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
                     Logo
-                </Text>
+                </Text> */}
+                <Image src="/images/logo.png" w="100px" />
                 <CloseButton
                     display={{ base: "flex", md: "none" }}
                     onClick={onClose}

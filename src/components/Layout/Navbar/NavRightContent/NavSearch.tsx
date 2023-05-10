@@ -16,8 +16,10 @@ const NavSearch: React.FC<NavSearchProps> = () => {
                 children={<FiSearch color="gray.300" />}
             />
             <Input
+                fontSize={12}
+                minW="250px"
                 type="text"
-                placeholder="Tìm kiếm manga, tin tức..."
+                placeholder="Tìm kiếm manga, cộng đồng..."
                 ref={inputRef}
                 onKeyUp={(event) => {
                     if (event.key === "Enter") {

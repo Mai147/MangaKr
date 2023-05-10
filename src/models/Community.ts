@@ -1,5 +1,4 @@
 import { Timestamp } from "firebase/firestore";
-import { LatestPost } from "./Post";
 
 export type CommunityType = "public" | "restricted" | "private";
 
@@ -34,7 +33,6 @@ export interface Community {
     numberOfPosts: number;
     numberOfTopics: number;
     numberOfVotings: number;
-    latestPost?: LatestPost;
 }
 
 export const defaultCommunityForm: Community = {

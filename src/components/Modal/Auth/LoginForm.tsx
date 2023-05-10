@@ -92,23 +92,10 @@ const LoginForm: React.FC<LoginFormProps> = () => {
             >
                 Đăng nhập
             </Button>
-            {/* <Flex justifyContent="center" mb={2}>
-                <Text fontSize="9pt" mr={1}>
-                    Forgot your password?
-                </Text>
-                <Text
-                    fontSize="9pt"
-                    color="blue.500"
-                    cursor="pointer"
-                    onClick={() => toggleView("resetPassword")}
-                >
-                    Reset
-                </Text>
-            </Flex> */}
             <Flex fontSize="9pt" justifyContent="center">
                 <Text mr={2}>Chưa có tài khoản?</Text>
                 <Text
-                    color="blue.500"
+                    color="secondary.400"
                     fontWeight={700}
                     cursor="pointer"
                     onClick={() => toggleView("signup")}

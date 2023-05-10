@@ -39,8 +39,9 @@ const SearchPage: React.FC<SearchPageProps> = () => {
                                 children={<FiSearch color="gray.300" />}
                             />
                             <Input
+                                fontSize={12}
                                 type="text"
-                                placeholder="Tìm kiếm manga, tin tức..."
+                                placeholder="Tìm kiếm manga, cộng đồng..."
                                 bg="white"
                                 ref={inputRef}
                                 onKeyUp={(event) => {

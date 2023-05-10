@@ -16,6 +16,7 @@ const BookSnippetHorizontalItem: React.FC<BookSnippetHorizontalItemProps> = ({
         <Link
             href={routes.getBookDetailPage(book.id!)}
             _hover={{ textDecoration: "none" }}
+            w="100%"
         >
             <Box
                 p={{ base: 2, sm: 4 }}

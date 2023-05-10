@@ -872,29 +872,6 @@ class CommunityService {
         );
         return snapShot.data().count;
     };
-
-    // static updateUserLatestPost = async (
-    //     userId: string,
-    //     community: Community
-    // ) => {
-    //     try {
-    //         const userCommunityDocRef = doc(
-    //             fireStore,
-    //             firebaseRoute.getUserCommunitySnippetRoute(userId),
-    //             community.id!
-    //         );
-    //         const res = await getDoc(userCommunityDocRef);
-    //         if (res.exists()) {
-    //             await updateDoc(
-    //                 userCommunityDocRef,
-    //                 "latestPost",
-    //                 community.latestPost
-    //             );
-    //         }
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
 }
 
 export default CommunityService;

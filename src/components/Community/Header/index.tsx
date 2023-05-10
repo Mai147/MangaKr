@@ -25,7 +25,7 @@ const CommunityHeader: React.FC<CommunityHeaderProps> = ({ community }) => {
             w="100%"
             bg={
                 community.privacyType === "public"
-                    ? "blue.300"
+                    ? "secondary.400"
                     : community.privacyType === "restricted"
                     ? "brand.400"
                     : "gray.800"

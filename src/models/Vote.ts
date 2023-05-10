@@ -29,7 +29,7 @@ export const postVoteList: PostVote[] = [
         value: "like",
         field: "numberOfLikes",
         icon: AiFillLike,
-        color: "blue.500",
+        color: "secondary.400",
     },
     {
         value: "favorite",
@@ -62,7 +62,7 @@ export const basicVoteList: Vote[] = [
         value: "like",
         field: "numberOfLikes",
         icon: AiFillLike,
-        color: "blue.500",
+        color: "secondary.400",
     },
     {
         value: "dislike",

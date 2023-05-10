@@ -156,7 +156,7 @@ const CommunityLeftSideBarAction: React.FC<
                                     as={AiOutlineUserAdd}
                                     fontSize={18}
                                     ml={1}
-                                    color="blue.400"
+                                    color="secondary.400"
                                 />
                             </Flex>
                         </Button>

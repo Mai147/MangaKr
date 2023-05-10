@@ -37,16 +37,6 @@ export interface SharingPost extends Post {
     url: string;
 }
 
-export interface LatestPost {
-    id: string;
-    communityId: string;
-    communityName: string;
-    creatorId: string;
-    creatorDisplayName: string;
-    imageUrl?: string;
-    createdAt: Timestamp;
-}
-
 export const defaultPostForm: Post = {
     caption: "",
     description: "",

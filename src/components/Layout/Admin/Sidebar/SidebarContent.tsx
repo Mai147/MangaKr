@@ -10,6 +10,7 @@ import {
     Icon,
     Link,
     VStack,
+    Image,
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { IconType } from "react-icons";
@@ -108,9 +109,10 @@ const AdminSidebarContent = ({ onClose, ...rest }: SidebarProps) => {
                 mx="8"
                 justifyContent="space-between"
             >
-                <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
+                {/* <Text fontSize="2xl" fontFamily="monospace" fontWeight="bold">
                     Logo
-                </Text>
+                </Text> */}
+                <Image src="/images/logo.png" w="100px" />
                 <CloseButton
                     display={{ base: "flex", md: "none" }}
                     onClick={onClose}

@@ -49,8 +49,9 @@ const BookSearch: React.FC<BookSearchProps> = ({
                         overflowX={{ base: "auto" }}
                         className={genreScroll}
                         wrap={{ base: "nowrap", md: "wrap" }}
+                        align="center"
                     >
-                        <Box mb={2}>
+                        <Box>
                             <Tag
                                 label="Tất cả"
                                 isActive={!bookState.selectedGenre?.id}

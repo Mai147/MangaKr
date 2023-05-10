@@ -144,7 +144,7 @@ const SignUpForm: React.FC<Props> = () => {
             <Flex fontSize="9pt" justifyContent="center">
                 <Text mr={2}>Đã có tài khoản?</Text>
                 <Text
-                    color="blue.500"
+                    color="secondary.400"
                     fontWeight={700}
                     cursor="pointer"
                     onClick={() => toggleView("login")}

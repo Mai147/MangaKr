@@ -16,6 +16,7 @@ import {
     MenuButton,
     MenuItem,
     MenuList,
+    Image,
 } from "@chakra-ui/react";
 import { FiMenu, FiChevronDown } from "react-icons/fi";
 import useAuth from "@/hooks/useAuth";
@@ -85,14 +86,15 @@ const MobileNav = ({ onOpen, ...rest }: MobileProps) => {
                 icon={<FiMenu />}
             />
 
-            <Text
+            {/* <Text
                 display={{ base: "flex", md: "none" }}
                 fontSize="2xl"
                 fontFamily="monospace"
                 fontWeight="bold"
             >
                 Logo
-            </Text>
+            </Text> */}
+            {/* <Image src="/images/logo.png" w="100px" /> */}
 
             <HStack spacing={{ base: "0", md: "6" }}>
                 <Flex alignItems={"center"}>

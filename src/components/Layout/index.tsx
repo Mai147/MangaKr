@@ -49,7 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     px={{ base: 0, md: 18, lg: 24, xl: 32 }}
                     // px={{ base: 0, md: 14, lg: 18, xl: 20, "2xl": 32 }}
                     flexGrow={1}
-                    bg="#FAFAFA"
+                    bg="#FDFDFD"
                     pt={{ base: "80px !important", md: "100px !important" }}
                 >
                     {children}
