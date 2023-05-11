@@ -35,7 +35,9 @@ const PostItemContent: React.FC<PostItemContentProps> = ({
     };
 
     useEffect(() => {
-        checkOverflow();
+        if (contentRef.current) {
+            checkOverflow();
+        }
     }, [contentRef.current]);
 
     return (

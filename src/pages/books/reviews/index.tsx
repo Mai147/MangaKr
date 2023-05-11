@@ -11,7 +11,9 @@ import usePagination, {
     PaginationOutput,
     ReviewPaginationInput,
 } from "@/hooks/usePagination";
+import { Book } from "@/models/Book";
 import { Review } from "@/models/Review";
+import BookService from "@/services/BookService";
 import { Box, Divider, Text, VStack } from "@chakra-ui/react";
 import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
@@ -36,12 +38,19 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
         });
     const [reviewPaginationOutput, setReviewPaginationOutput] =
         useState<PaginationOutput>(defaultPaginationOutput);
+    const [book, setBook] = useState<Book | undefined>(undefined);
     const [loading, setLoading] = useState(false);
     const { getReviews } = usePagination();
 
     const getListReviews = async () => {
         setLoading(true);
         const res = await getReviews(reviewPaginationInput);
+        if (bookId) {
+            const bookRes = await BookService.get({ bookId });
+            if (bookRes) {
+                setBook(bookRes.book!);
+            }
+        }
         if (res) {
             setReviewPaginationOutput(res);
             setReviewPaginationInput((prev) => ({
@@ -67,6 +76,11 @@ const ReviewPage: React.FC<ReviewPageProps> = ({ bookId }) => {
                         <Text fontSize={24} fontWeight={600}>
                             Bài đánh giá
                         </Text>
+                        {book && (
+                            <Text>
+                                Kết quả tìm kiếm cho <b>{book.name}</b>{" "}
+                            </Text>
+                        )}
                         <Divider my={4} borderColor="gray.400" />
                         {loading ? (
                             [1, 2, 3, 4].map((e, idx) => (

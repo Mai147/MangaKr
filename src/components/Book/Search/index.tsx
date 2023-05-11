@@ -79,7 +79,7 @@ const BookSearch: React.FC<BookSearchProps> = ({
                             </Box>
                         ))}
                     </HStack>
-                    <Flex align="center" justify="center" mb={4}>
+                    <Flex align="center" justify="center" my={4}>
                         <Text whiteSpace="pre-line">
                             {bookState.selectedGenre?.description}
                         </Text>

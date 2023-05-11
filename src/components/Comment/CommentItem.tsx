@@ -1,3 +1,4 @@
+import { routes } from "@/constants/routes";
 import { useComment } from "@/hooks/useComment";
 import useModal from "@/hooks/useModal";
 import { Comment } from "@/models/Comment";
@@ -66,15 +67,11 @@ const CommentItem: React.FC<CommentItemProps> = ({
             <Flex direction="column" flexGrow={1}>
                 <VStack spacing={1} align="flex-start">
                     <HStack align="center" spacing={2} fontSize="8pt">
-                        <Text
-                            fontWeight={700}
-                            _hover={{
-                                textDecoration: "underline",
-                                cursor: "pointer",
-                            }}
-                        >
-                            {comment.creatorDisplayName}
-                        </Text>
+                        <Link href={routes.getProfilePage(comment.creatorId)}>
+                            <Text fontWeight={700}>
+                                {comment.creatorDisplayName}
+                            </Text>
+                        </Link>
                         {comment.createdAt?.seconds && (
                             <Text color="gray.600">
                                 {moment(
