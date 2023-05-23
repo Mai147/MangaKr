@@ -52,6 +52,7 @@ const TopicHorizontalSnippetItem: React.FC<TopicHorizontalSnippetItemProps> = ({
                 <Text
                     flexGrow={1}
                     noOfLines={3}
+                    maxH="76px"
                     whiteSpace="pre-line"
                     display={topicHeaderList[0].display}
                 >

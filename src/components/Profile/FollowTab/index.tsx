@@ -8,8 +8,12 @@ import usePagination, {
     defaultPaginationOutput,
 } from "@/hooks/usePagination";
 import { Follow, UserModel } from "@/models/User";
-import { Box, Spinner, VStack } from "@chakra-ui/react";
+import { Box, Flex, IconButton, Spinner, VStack } from "@chakra-ui/react";
+import { CiCircleRemove } from "react-icons/ci";
 import React, { useEffect, useState } from "react";
+import { IoMdClose } from "react-icons/io";
+import UserService from "@/services/UserService";
+import useAuth from "@/hooks/useAuth";
 
 type ProfileFollowTabProps = {
     user: UserModel;
@@ -33,6 +37,7 @@ const ProfileFollowTab: React.FC<ProfileFollowTabProps> = ({ user }) => {
         useState<PaginationOutput>(defaultPaginationOutput);
     const [loading, setLoading] = useState(true);
     const { getFollows } = usePagination();
+    const userAuth = useAuth();
 
     const getListFollows = async () => {
         setLoading(true);
@@ -58,15 +63,50 @@ const ProfileFollowTab: React.FC<ProfileFollowTabProps> = ({ user }) => {
                     <Spinner />
                 ) : (
                     followPaginationOutput.list.map((item: Follow) => (
-                        <Box w="100%" key={item.id}>
-                            <UserHorizontalSnippetItem
-                                user={{
-                                    id: item.id!,
-                                    displayName: item.displayName!,
-                                    imageUrl: item.imageUrl,
-                                }}
-                            />
-                        </Box>
+                        <Flex
+                            w="100%"
+                            key={item.id}
+                            pr={{ base: 2, md: 4 }}
+                            boxShadow="rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px"
+                            borderRadius={4}
+                            align="center"
+                            justify="space-between"
+                        >
+                            <Box flexGrow={1}>
+                                <UserHorizontalSnippetItem
+                                    user={{
+                                        id: item.id!,
+                                        displayName: item.displayName!,
+                                        imageUrl: item.imageUrl,
+                                    }}
+                                    boxShadow="none"
+                                />
+                            </Box>
+                            {user.uid === userAuth.user?.uid && (
+                                <IconButton
+                                    aria-label="unfollow-button"
+                                    icon={<IoMdClose />}
+                                    fontSize={20}
+                                    onClick={async () => {
+                                        await UserService.unfollow({
+                                            userId: userAuth.user!.uid,
+                                            followerId: user.uid,
+                                        });
+                                        setFollowPaginationOutput((prev) => ({
+                                            ...prev,
+                                            accept: {
+                                                ...prev,
+                                                list: prev.list.filter(
+                                                    (acceptItem: Follow) =>
+                                                        acceptItem.id !==
+                                                        item.id
+                                                ),
+                                            },
+                                        }));
+                                    }}
+                                />
+                            )}
+                        </Flex>
                     ))
                 )}
             </VStack>

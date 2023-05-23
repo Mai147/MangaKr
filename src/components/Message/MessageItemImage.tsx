@@ -26,7 +26,10 @@ const MessageItemImage: React.FC<MessageItemImageProps> = ({ url }) => {
             />
         </>
     ) : (
-        <Image src={url} maxW="100%" />
+        <Image
+            src={url}
+            maxW={{ base: "100%", sm: "50%", md: "40%", xl: "30%" }}
+        />
     );
 };
 export default MessageItemImage;

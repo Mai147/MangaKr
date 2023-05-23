@@ -39,7 +39,7 @@ const PostPage: React.FC<PostPageProps> = ({ post, postUser }) => {
     return (
         <>
             <Head>
-                <title>MangaKr</title>
+                <title>{`MangaKr - Bài viết - ${post?.caption || ""}`}</title>
             </Head>
             <>
                 <PostProvider selectedUser={postUser}>

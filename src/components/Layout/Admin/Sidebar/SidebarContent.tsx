@@ -27,8 +27,12 @@ interface LinkItemProps {
 const LinkItems: Array<LinkItemProps> = [
     { name: "Dashboard", icon: FiHome, href: routes.getAdminPage() },
     /// TODO
-    // { name: "Manga", icon: FiBookOpen, href: "#" },
-    // { name: "Bài đánh giá", icon: MdOutlineRateReview, href: "#" },
+    { name: "Manga", icon: FiBookOpen, href: routes.getAdminBookPage() },
+    {
+        name: "Bài đánh giá",
+        icon: MdOutlineRateReview,
+        href: routes.getAdminReviewPage(),
+    },
     { name: "Tài khoản", icon: BiUser, href: routes.getAdminUserPage() },
     { name: "Bài viết", icon: TiDocument, href: routes.getAdminPostPage() },
 ];

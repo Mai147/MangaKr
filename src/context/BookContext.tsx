@@ -15,6 +15,7 @@ const defaultBookPaginationInput: BookPaginationInput = {
     ...defaultPaginationInput,
     pageCount: BOOK_PAGE_COUNT,
     filter: "rating",
+    isLock: false,
 };
 
 type BookState = {

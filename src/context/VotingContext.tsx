@@ -266,7 +266,11 @@ export const VotingProvider = ({
                     ...prev,
                     selectedVoting: {
                         ...prev.selectedVoting!,
-                        userVoteOptionId: voteOptionId,
+                        userVoteOptionId:
+                            voteOptionId !==
+                            votingState.selectedVoting?.userVoteOptionId
+                                ? voteOptionId
+                                : undefined,
                         voting: {
                             ...prev.selectedVoting!.voting,
                             numberOfVotes:

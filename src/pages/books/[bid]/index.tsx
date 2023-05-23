@@ -26,7 +26,11 @@ const BookDetailPage: React.FC<BookDetailPageProps> = ({ book, user }) => {
                 <title>{`MangaKr - Manga ${book?.name || ""}`}</title>
             </Head>
             <>
-                {!book ? <BookError /> : <BookDetail book={book} user={user} />}
+                {!book || book.isLock ? (
+                    <BookError />
+                ) : (
+                    <BookDetail book={book} user={user} />
+                )}
             </>
         </>
     );

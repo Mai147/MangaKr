@@ -58,60 +58,64 @@ const NavRightContent: React.FC<NavRightContentProps> = () => {
             </Flex>
 
             <Flex display={{ base: "none", sm: "flex" }} align="center">
-                <Popover trigger={"hover"} placement={"bottom-start"}>
-                    <PopoverTrigger>
-                        <IconButton
-                            size="lg"
-                            variant="ghost"
-                            aria-label="add"
-                            borderRadius="full"
-                            icon={<AiOutlinePlus />}
-                        />
-                    </PopoverTrigger>
+                {user && (
+                    <>
+                        <Popover trigger={"hover"} placement={"bottom-start"}>
+                            <PopoverTrigger>
+                                <IconButton
+                                    size="lg"
+                                    variant="ghost"
+                                    aria-label="add"
+                                    borderRadius="full"
+                                    icon={<AiOutlinePlus />}
+                                />
+                            </PopoverTrigger>
 
-                    <PopoverContent
-                        border={0}
-                        boxShadow="md"
-                        bg="white"
-                        p={4}
-                        rounded={"xl"}
-                        minW={"xs"}
-                    >
-                        <NavAdd />
-                    </PopoverContent>
-                </Popover>
-                <NavNotification />
-                <Link href={routes.getMessagePage()}>
-                    <Box position="relative">
-                        <IconButton
-                            size="lg"
-                            variant="ghost"
-                            aria-label="Notification"
-                            borderRadius="full"
-                            icon={<RiChat3Line />}
-                        />
-                        {numberOfNewMessage > 0 && (
-                            <Flex
-                                w="4"
-                                h="4"
-                                rounded="full"
-                                bg="red"
-                                position="absolute"
-                                bottom="2"
-                                right="2"
-                                color="white"
-                                fontSize={10}
-                                fontWeight={500}
-                                align="center"
-                                justify="center"
+                            <PopoverContent
+                                border={0}
+                                boxShadow="md"
+                                bg="white"
+                                p={4}
+                                rounded={"xl"}
+                                minW={"xs"}
                             >
-                                {numberOfNewMessage <= 99
-                                    ? numberOfNewMessage
-                                    : `99+`}
-                            </Flex>
-                        )}
-                    </Box>
-                </Link>
+                                <NavAdd />
+                            </PopoverContent>
+                        </Popover>
+                        <NavNotification />
+                        <Link href={routes.getMessagePage()}>
+                            <Box position="relative">
+                                <IconButton
+                                    size="lg"
+                                    variant="ghost"
+                                    aria-label="Notification"
+                                    borderRadius="full"
+                                    icon={<RiChat3Line />}
+                                />
+                                {numberOfNewMessage > 0 && (
+                                    <Flex
+                                        w="4"
+                                        h="4"
+                                        rounded="full"
+                                        bg="red"
+                                        position="absolute"
+                                        bottom="2"
+                                        right="2"
+                                        color="white"
+                                        fontSize={10}
+                                        fontWeight={500}
+                                        align="center"
+                                        justify="center"
+                                    >
+                                        {numberOfNewMessage <= 99
+                                            ? numberOfNewMessage
+                                            : `99+`}
+                                    </Flex>
+                                )}
+                            </Box>
+                        </Link>
+                    </>
+                )}
                 {user && user.role === WRITER_ROLE && (
                     <Link href={routes.getWriterPage()}>
                         <IconButton

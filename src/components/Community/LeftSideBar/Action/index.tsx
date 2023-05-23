@@ -131,7 +131,7 @@ const CommunityLeftSideBarAction: React.FC<
                     >
                         <Button variant="unstyled">
                             <Flex align="center">
-                                Phê duyệt bài viết
+                                Phê duyệt nội dung
                                 <Icon
                                     as={AiOutlineCheckCircle}
                                     fontSize={18}

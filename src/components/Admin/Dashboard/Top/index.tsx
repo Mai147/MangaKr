@@ -90,6 +90,7 @@ const TopSection: React.FC<TopSectionProps> = () => {
                 },
             ],
             bookLimit: 1,
+            isLock: false,
         });
         const mostPopularCommunity = await CommunityService.getAll({
             communityOrders: [

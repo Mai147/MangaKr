@@ -93,6 +93,7 @@ export const HomeProvider = ({ children }: any) => {
                         },
                     ],
                     bookLimit: 5,
+                    isLock: false,
                 })
         );
         get(
@@ -106,6 +107,7 @@ export const HomeProvider = ({ children }: any) => {
                         },
                     ],
                     bookLimit: 6,
+                    isLock: false,
                 })
         );
         get(
@@ -119,6 +121,7 @@ export const HomeProvider = ({ children }: any) => {
                         },
                     ],
                     bookLimit: 6,
+                    isLock: false,
                 })
         );
         get(

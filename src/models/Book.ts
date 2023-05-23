@@ -77,6 +77,7 @@ export interface Book extends BookSnippet {
     numberOfRates: number;
     numberOfComments: number;
     numberOfReviews: number;
+    isLock?: boolean;
     createdAt?: Timestamp;
 }
 
@@ -110,6 +111,7 @@ export const defaultBookForm: Book = {
     numberOfRates: 0,
     numberOfComments: 0,
     numberOfReviews: 0,
+    isLock: false,
     writerId: "",
 };
 

@@ -80,11 +80,11 @@ export const userHeaderList: TableInfoHeader[] = [
 
 const AdminUserAuthorize: React.FC<AdminUserAuthorizeProps> = () => {
     const { user } = useAuth();
-    const [AdminUserAuthorizeState, setAdminUserAuthorizeState] =
+    const [adminUserAuthorizeState, setAdminUserAuthorizeState] =
         useState<AdminUserAuthorizeState>(defaultAdminUserAuthorizeState);
     const { getUsers } = usePagination();
     const debouncedSearch = useDebounce(
-        AdminUserAuthorizeState.paginationInput.searchValue || "",
+        adminUserAuthorizeState.paginationInput.searchValue || "",
         300
     );
     const [selectedRole, setSelectedRole] = useState<RoleInfo | undefined>();
@@ -97,13 +97,13 @@ const AdminUserAuthorize: React.FC<AdminUserAuthorizeProps> = () => {
             loading: true,
         }));
         const input: UserPaginationInput = {
-            ...AdminUserAuthorizeState.paginationInput,
-            page: AdminUserAuthorizeState.reload
+            ...adminUserAuthorizeState.paginationInput,
+            page: adminUserAuthorizeState.reload
                 ? 1
-                : AdminUserAuthorizeState.paginationInput.page,
-            isFirst: AdminUserAuthorizeState.reload
+                : adminUserAuthorizeState.paginationInput.page,
+            isFirst: adminUserAuthorizeState.reload
                 ? true
-                : AdminUserAuthorizeState.paginationInput.isFirst,
+                : adminUserAuthorizeState.paginationInput.isFirst,
             setDocValue: (docValue) => {
                 setAdminUserAuthorizeState((prev) => ({
                     ...prev,
@@ -167,7 +167,7 @@ const AdminUserAuthorize: React.FC<AdminUserAuthorizeProps> = () => {
 
     useEffect(() => {
         getListUsers();
-    }, [AdminUserAuthorizeState.paginationInput.page, debouncedSearch]);
+    }, [adminUserAuthorizeState.paginationInput.page, debouncedSearch]);
 
     return (
         <Flex direction="column" flexGrow={1} justify="space-between">
@@ -214,13 +214,13 @@ const AdminUserAuthorize: React.FC<AdminUserAuthorizeProps> = () => {
                 <Divider borderColor="gray.300" />
                 <TableHeader list={userHeaderList} />
                 <Divider borderColor="gray.300" />
-                {AdminUserAuthorizeState.loading ? (
+                {adminUserAuthorizeState.loading ? (
                     <Flex align="center" justify="center" w="100%" p={10}>
                         <Spinner />
                     </Flex>
-                ) : AdminUserAuthorizeState.paginationOutput.list &&
-                  AdminUserAuthorizeState.paginationOutput.list.length > 0 ? (
-                    AdminUserAuthorizeState.paginationOutput.list.map(
+                ) : adminUserAuthorizeState.paginationOutput.list &&
+                  adminUserAuthorizeState.paginationOutput.list.length > 0 ? (
+                    adminUserAuthorizeState.paginationOutput.list.map(
                         (u: UserRoleSnippet) =>
                             u.role === ADMIN_ROLE || u.id === user?.uid ? (
                                 <Box key={u.id}></Box>
@@ -249,9 +249,9 @@ const AdminUserAuthorize: React.FC<AdminUserAuthorizeProps> = () => {
             </VStack>
             <Flex align="center" py={6} justify="center" w="100%">
                 <Pagination
-                    page={AdminUserAuthorizeState.paginationOutput.page}
+                    page={adminUserAuthorizeState.paginationOutput.page}
                     totalPage={
-                        AdminUserAuthorizeState.paginationOutput.totalPage
+                        adminUserAuthorizeState.paginationOutput.totalPage
                     }
                     onNext={() =>
                         setAdminUserAuthorizeState((prev) => ({

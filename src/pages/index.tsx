@@ -5,8 +5,6 @@ import { useEffect } from "react";
 import Home from "@/components/Home";
 import { HomeProvider } from "@/context/HomeContext";
 
-const inter = Inter({ subsets: ["latin"] });
-
 type HomePageProps = {};
 
 const HomePage: React.FC<HomePageProps> = () => {

@@ -25,11 +25,13 @@ import {
 } from "@chakra-ui/react";
 import { Timestamp } from "firebase/firestore";
 import React, { useState } from "react";
+import DatePicker, { ReactDatePicker } from "react-datepicker";
 import { IoAdd } from "react-icons/io5";
 import { v4 } from "uuid";
 import FormFooter from "../Footer";
 import FormHeader from "../Header";
 import VotingOptionItem from "./OptionItem";
+import "react-datepicker/dist/react-datepicker.css";
 
 type VotingFormProps = {
     community: Community;
@@ -165,7 +167,27 @@ const VotingForm: React.FC<VotingFormProps> = ({
                                 <HStack spacing={4} w="100%">
                                     <Text flexShrink={0}>Thời gian:</Text>
                                     <Box w={{ base: "100%", md: "300px" }}>
-                                        <Input
+                                        <DatePicker
+                                            customInput={<Input />}
+                                            dateFormat={"dd/MM/yyyy hh:mm"}
+                                            showTimeSelect
+                                            selected={
+                                                new Date(
+                                                    votingForm.timeLast
+                                                        .seconds * 1000
+                                                )
+                                            }
+                                            onChange={(date) => {
+                                                setVotingForm((prev) => ({
+                                                    ...prev,
+                                                    timeLast:
+                                                        Timestamp.fromDate(
+                                                            date!
+                                                        ),
+                                                }));
+                                            }}
+                                        />
+                                        {/* <Input
                                             type="datetime-local"
                                             value={formatDateToDateTimeLocal(
                                                 votingForm.timeLast
@@ -189,7 +211,7 @@ const VotingForm: React.FC<VotingFormProps> = ({
                                                 }
                                             }}
                                             borderColor="gray.400"
-                                        />
+                                        /> */}
                                     </Box>
                                 </HStack>
                                 <ErrorText

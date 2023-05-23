@@ -34,13 +34,11 @@ const PostPage: React.FC<PostPageProps> = ({ community, post }) => {
     return (
         <>
             <Head>
-                <title>{`MangaKr - Cuộc bình chọn - ${
-                    post?.caption || ""
-                }`}</title>
+                <title>{`MangaKr - Bài viết - ${post?.caption || ""}`}</title>
             </Head>
             <>
                 {!community || !post ? (
-                    <NotAvailable title="Cuộc bình chọn này không tồn tại hoặc đã bị xóa!" />
+                    <NotAvailable title="Bài viết này không tồn tại hoặc đã bị xóa!" />
                 ) : (
                     <PostProvider selectedCommunity={community}>
                         <PostItemDetail post={post} />

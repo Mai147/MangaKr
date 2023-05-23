@@ -143,7 +143,7 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                 </Flex>
                 <Divider my={4} />
                 <Box>
-                    <InputField label="Mật khẩu cũ" required maxWidth={false}>
+                    <InputField label="Mật khẩu cũ" required>
                         <Flex
                             direction="column"
                             flexGrow={1}
@@ -173,7 +173,7 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                             />
                         </Flex>
                     </InputField>
-                    <InputField label="Mật khẩu mới" required maxWidth={false}>
+                    <InputField label="Mật khẩu mới" required>
                         <Flex
                             direction="column"
                             flexGrow={1}
@@ -196,11 +196,7 @@ const ProfilePassword: React.FC<ProfilePasswordProps> = ({ user }) => {
                             />
                         </Flex>
                     </InputField>
-                    <InputField
-                        label="Xác nhận mật khẩu mới"
-                        required
-                        maxWidth={false}
-                    >
+                    <InputField label="Xác nhận mật khẩu mới" required>
                         <Flex
                             direction="column"
                             flexGrow={1}

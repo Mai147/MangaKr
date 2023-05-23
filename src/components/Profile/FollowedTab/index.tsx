@@ -9,8 +9,18 @@ import usePagination, {
     defaultPaginationOutput,
 } from "@/hooks/usePagination";
 import { Follow, UserModel } from "@/models/User";
-import { Box, Divider, Spinner, Text, VStack } from "@chakra-ui/react";
+import UserService from "@/services/UserService";
+import {
+    Box,
+    Divider,
+    Flex,
+    IconButton,
+    Spinner,
+    Text,
+    VStack,
+} from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
+import { IoMdClose } from "react-icons/io";
 import FollowRequest from "./FollowRequest";
 
 type ProfileFollowedTabProps = {
@@ -60,6 +70,7 @@ const ProfileFollowedTab: React.FC<ProfileFollowedTabProps> = ({ user }) => {
         accept: true,
     });
     const { getFolloweds } = usePagination();
+    const userAuth = useAuth();
 
     const getListFolloweds = async (field: "request" | "accept") => {
         setLoading((prev) => ({
@@ -104,15 +115,50 @@ const ProfileFollowedTab: React.FC<ProfileFollowedTabProps> = ({ user }) => {
                     <Spinner />
                 ) : followPaginationOutput.accept.list.length > 0 ? (
                     followPaginationOutput.accept.list.map((item: Follow) => (
-                        <Box w="100%" key={item.id}>
-                            <UserHorizontalSnippetItem
-                                user={{
-                                    id: item.id!,
-                                    displayName: item.displayName!,
-                                    imageUrl: item.imageUrl,
-                                }}
-                            />
-                        </Box>
+                        <Flex
+                            w="100%"
+                            key={item.id}
+                            pr={{ base: 2, md: 4 }}
+                            boxShadow="rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px"
+                            borderRadius={4}
+                            align="center"
+                            justify="space-between"
+                        >
+                            <Box flexGrow={1}>
+                                <UserHorizontalSnippetItem
+                                    user={{
+                                        id: item.id!,
+                                        displayName: item.displayName!,
+                                        imageUrl: item.imageUrl,
+                                    }}
+                                    boxShadow="none"
+                                />
+                            </Box>
+                            {user.uid === userAuth.user?.uid && (
+                                <IconButton
+                                    aria-label="unfollow-button"
+                                    icon={<IoMdClose />}
+                                    fontSize={20}
+                                    onClick={async () => {
+                                        await UserService.unfollow({
+                                            followerId: userAuth.user!.uid,
+                                            userId: user.uid,
+                                        });
+                                        setFollowPaginationOutput((prev) => ({
+                                            ...prev,
+                                            accept: {
+                                                ...prev.accept,
+                                                list: prev.accept.list.filter(
+                                                    (acceptItem: Follow) =>
+                                                        acceptItem.id !==
+                                                        item.id
+                                                ),
+                                            },
+                                        }));
+                                    }}
+                                />
+                            )}
+                        </Flex>
                     ))
                 ) : (
                     <Text>Chưa có người theo dõi</Text>

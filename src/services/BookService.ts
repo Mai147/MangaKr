@@ -31,18 +31,23 @@ class BookService {
     static getAll = async ({
         bookOrders,
         bookLimit,
+        isLock,
     }: {
         bookOrders?: {
             bookOrderBy: string;
             bookOrderDirection: "desc" | "asc";
         }[];
         bookLimit?: number;
+        isLock?: boolean;
     }) => {
         const bookDocsRef = collection(
             fireStore,
             firebaseRoute.getAllBookRoute()
         );
         const bookConstraints = [];
+        if (isLock !== undefined) {
+            bookConstraints.push(where("isLock", "==", isLock));
+        }
         if (bookLimit) {
             bookConstraints.push(limit(bookLimit));
         }
@@ -433,6 +438,22 @@ class BookService {
                 batch.update(doc.ref, newValue);
             }
         });
+    };
+
+    static toggleLockState = async ({ book }: { book: Book }) => {
+        try {
+            const batch = writeBatch(fireStore);
+            let bookDocRef = doc(
+                collection(fireStore, firebaseRoute.getAllBookRoute()),
+                book.id!
+            );
+            batch.update(bookDocRef, {
+                isLock: !book.isLock,
+            });
+            await batch.commit();
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     static delete = async ({ book }: { book: Book | BookSnippet }) => {

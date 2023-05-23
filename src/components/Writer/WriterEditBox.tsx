@@ -335,8 +335,8 @@ const WriterEditBox: React.FC<WriterEditBoxProps> = () => {
                             >
                                 <IconButton
                                     aria-label="Create"
-                                    bg={"blue.300"}
-                                    _hover={{ bg: "blue.400" }}
+                                    bg={"secondary.400"}
+                                    _hover={{ bg: "secondary.500" }}
                                     icon={<IoAddOutline />}
                                     fontSize={18}
                                 />

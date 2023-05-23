@@ -124,7 +124,7 @@ export const SearchProvider = ({ children }: any) => {
         };
         switch (field) {
             case "book":
-                res = await getBooks(input);
+                res = await getBooks({ ...input, isLock: false });
                 break;
             case "author":
                 res = await getAuthors(input);

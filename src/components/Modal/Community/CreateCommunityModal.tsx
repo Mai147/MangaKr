@@ -76,6 +76,7 @@ const CreateCommunityModal: React.FC = () => {
     const [bookPaginationInput, setBookPaginationInput] =
         useState<BookPaginationInput>({
             ...defaultPaginationInput,
+            isLock: false,
             pageCount: 10,
         });
     const [bookPaginationOutput, setBookPaginationOutput] =

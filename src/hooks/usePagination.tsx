@@ -59,6 +59,7 @@ export const defaultPaginationOutput: PaginationOutput = {
 };
 
 export interface BookPaginationInput extends PaginationInput {
+    isLock?: boolean;
     genreId?: string;
     authorId?: string;
     filter?: FilterValue;
@@ -208,7 +209,7 @@ const usePagination = () => {
     };
 
     const getBooks = async (input: BookPaginationInput) => {
-        const { searchValue, genreId, authorId, filter } = input;
+        const { searchValue, genreId, authorId, filter, isLock } = input;
         const bookDocsRef = collection(
             fireStore,
             firebaseRoute.getAllBookRoute()
@@ -218,6 +219,9 @@ const usePagination = () => {
             triGram(searchValue).map.forEach((name) => {
                 queryConstraints.push(where(`trigramName.${name}`, "==", true));
             });
+        }
+        if (isLock !== undefined) {
+            queryConstraints.push(where("isLock", "==", isLock));
         }
         if (genreId) {
             queryConstraints.push(where("genreIds", "array-contains", genreId));

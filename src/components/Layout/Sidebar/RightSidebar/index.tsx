@@ -28,6 +28,7 @@ const RightSidebar: React.FC<RightSidebarProps> = () => {
                     bookOrderDirection: "desc",
                 },
             ],
+            isLock: false,
         });
         setTopBooks(books);
         setTopBooksLoading(false);

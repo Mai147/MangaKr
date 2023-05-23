@@ -8,7 +8,7 @@ type CommunityInfoApproveListProps = {
     handleApprove?: (item: any, isAccept: boolean) => Promise<void>;
     handleLock?: (item: any) => Promise<void>;
     handleDelete?: (item: any) => Promise<void>;
-    type: "posts" | "topics" | "votings" | "users";
+    type: "posts" | "topics" | "votings" | "users" | "books" | "reviews";
     isAccept: boolean;
     exception?: (item: any) => boolean;
 };
@@ -74,7 +74,11 @@ const CommunityInfoApproveList: React.FC<CommunityInfoApproveListProps> = ({
                     ? "chủ đề"
                     : type === "votings"
                     ? "cuộc bình chọn"
-                    : "thành viên"}{" "}
+                    : type === "users"
+                    ? "thành viên"
+                    : type === "books"
+                    ? "Manga"
+                    : "bài đánh giá"}{" "}
                 cần phê duyệt
             </Text>
         </Flex>

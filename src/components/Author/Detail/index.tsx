@@ -39,6 +39,7 @@ const AuthorDetail: React.FC<AuthorDetailProps> = ({ author }) => {
             ...defaultPaginationInput,
             pageCount: WRITER_PAGE_COUNT,
             authorId: author.id!,
+            isLock: false,
             setDocValue: (docValue) => {
                 setAuthorBookPaginationInput((prev) => ({
                     ...prev,

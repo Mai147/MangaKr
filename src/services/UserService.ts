@@ -268,6 +268,16 @@ class UserService {
                     creatorImageUrl: downloadUrl,
                 },
             });
+            await this.updateSnippet({
+                batch,
+                route: "optionVotingVotes",
+                userId: profileForm.id!,
+                idField: "id",
+                newValue: {
+                    displayName: profileForm.displayName,
+                    imageUrl: downloadUrl,
+                },
+            });
             await batch.commit();
             return {
                 ...profileForm,
